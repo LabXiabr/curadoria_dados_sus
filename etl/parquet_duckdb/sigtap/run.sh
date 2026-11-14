@@ -2,7 +2,6 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-LAYOUT="$ROOT/systems/sigtap/layouts/fwf.tsv"
 PARSER="$ROOT/etl/parquet_duckdb/sigtap/fwf_to_tsv.awk"
 
 FTP_BASE="${SIGTAP_FTP_BASE:-ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads}"
@@ -16,16 +15,15 @@ LOGROOT="$LAKE_ROOT/logs/sigtap"
 
 COMP="latest"
 INSPECT=0
-ALLOW_PARTIAL=0
 KEEP_WORK="${KEEP_WORK:-0}"
 
 usage() {
     cat <<EOF
 Uso:
-  $0 [--competencia YYYYMM|latest] [--inspect-only] [--allow-partial]
+  $0 [--competencia YYYYMM|latest] [--inspect-only]
 
-Por padrao, falha antes de publicar se houver TXT sem layout conhecido
-ou largura de linha diferente do contrato.
+O layout fisico e lido dos arquivos *_layout.txt contidos no proprio ZIP.
+Os layouts sao validados (tamanho/inicio/fim/contiguidade) antes da carga.
 EOF
 }
 
@@ -33,7 +31,6 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --competencia) COMP="$2"; shift 2 ;;
         --inspect-only) INSPECT=1; shift ;;
-        --allow-partial) ALLOW_PARTIAL=1; shift ;;
         -h|--help) usage; exit 0 ;;
         *) echo "Parametro desconhecido: $1" >&2; usage; exit 2 ;;
     esac
@@ -55,51 +52,59 @@ exec > >(tee -a "$log") 2>&1
 echo "Inicio: $(date -Is)"
 echo "Competencia solicitada: $COMP"
 
-local_pick=""
-if [[ "$COMP" != "latest" ]]; then
-    local_pick="$(find "$RAW" -maxdepth 1 -type f -name "TabelaUnificada_${COMP}_*.zip" -printf '%f\n' 2>/dev/null | sort | tail -1 || true)"
-fi
-
 remote_names="$(mktemp)"
 trap 'rm -f "$remote_names"' EXIT
 
+ftp_ok=0
 if curl --fail --silent --show-error --list-only "$FTP_BASE/" \
     | tr -d '\r' \
     | grep -E '^TabelaUnificada_[0-9]{6}.*\.zip$' \
     | sort -u > "$remote_names"; then
-    :
-elif [[ -z "$local_pick" ]]; then
-    echo "ERRO: FTP indisponivel e nao existe ZIP local para $COMP" >&2
-    exit 4
+    ftp_ok=1
 fi
 
 if [[ "$COMP" == "latest" ]]; then
-    selected="$(
-        sed -nE 's/^(TabelaUnificada_([0-9]{6}).*\.zip)$/\2\t\1/p' "$remote_names" \
-        | sort -t $'\t' -k1,1n -k2,2 \
-        | tail -1 \
-        | cut -f2
-    )"
-elif [[ -n "$local_pick" ]]; then
-    selected="$local_pick"
+    if (( ftp_ok == 1 )); then
+        selected="$(
+            sed -nE 's/^(TabelaUnificada_([0-9]{6}).*\.zip)$/\2\t\1/p' "$remote_names" \
+            | sort -t $'\t' -k1,1n -k2,2 \
+            | tail -1 \
+            | cut -f2
+        )"
+    else
+        selected="$(
+            find "$RAW" -maxdepth 1 -type f -name 'TabelaUnificada_*.zip' -printf '%f\n' \
+            | sed -nE 's/^(TabelaUnificada_([0-9]{6}).*\.zip)$/\2\t\1/p' \
+            | sort -t $'\t' -k1,1n -k2,2 \
+            | tail -1 \
+            | cut -f2
+        )"
+    fi
 else
-    selected="$(grep -E "^TabelaUnificada_${COMP}.*\.zip$" "$remote_names" | sort | tail -1 || true)"
+    selected="$(
+        find "$RAW" -maxdepth 1 -type f -name "TabelaUnificada_${COMP}_*.zip" -printf '%f\n' \
+        | sort \
+        | tail -1
+    )"
+    if [[ -z "$selected" && "$ftp_ok" == "1" ]]; then
+        selected="$(grep -E "^TabelaUnificada_${COMP}.*\.zip$" "$remote_names" | sort | tail -1 || true)"
+    fi
 fi
 
-[[ -n "$selected" ]] || {
+[[ -n "${selected:-}" ]] || {
     echo "ERRO: competencia nao encontrada: $COMP" >&2
-    exit 5
+    exit 4
 }
 
 competencia="$(printf '%s\n' "$selected" | sed -nE 's/^TabelaUnificada_([0-9]{6}).*/\1/p')"
 zip="$RAW/$selected"
 
-echo "Arquivo: $selected"
-echo "Competencia: $competencia"
-
 if [[ ! -f "$zip" ]]; then
+    (( ftp_ok == 1 )) || {
+        echo "ERRO: ZIP local ausente e FTP indisponivel: $selected" >&2
+        exit 5
+    }
     partial="$zip.partial.$$"
-    echo "Baixando para Raw..."
     curl --fail --location --silent --show-error --retry 4 --retry-delay 3 \
         --remote-time --output "$partial" "$FTP_BASE/$selected"
     unzip -tq "$partial" >/dev/null
@@ -108,21 +113,76 @@ fi
 
 unzip -tq "$zip" >/dev/null
 zip_sha="$(sha256sum "$zip" | awk '{print $1}')"
+
+echo "Arquivo: $selected"
+echo "Competencia: $competencia"
 echo "SHA256 ZIP: $zip_sha"
 
 work="$WORKROOT/${competencia}_${ts}"
 mkdir -p "$work/extract"
 unzip -q "$zip" -d "$work/extract"
 
+registry="$STATE/layout_registry_${competencia}_${ts}.tsv"
 report="$STATE/layout_${competencia}_${ts}.tsv"
-printf 'table\tfile\trows\tmin_len\tmax_len\texpected_len\tlayout_source\tstatus\n' > "$report"
+resolved="$work/resolved.tsv"
+
+printf 'competencia\ttable\tordinal\tcolumn\twidth\tstart\tend\tsource_type\tsource_zip\tsha256_zip\n' > "$registry"
+printf 'table\tfile\trows\tmin_len\tmax_len\texpected_len\tlayout_file\tstatus\n' > "$report"
+printf 'table\tfile\trows\twidths\tfields\texpected_len\tstatus\n' > "$resolved"
+
+layout_issues=0
+
+while IFS= read -r -d '' lf; do
+    base="$(basename "$lf")"
+    table="$(printf '%s' "${base%_layout.*}" | tr '[:upper:]' '[:lower:]')"
+
+    if ! awk -F',' '
+        NR==1 {next}
+        {
+            gsub(/\r/,"")
+            width=$2+0
+            start=$3+0
+            end=$4+0
+            if (width != end-start+1) exit 11
+            if (NR>2 && start != prev_end+1) exit 12
+            prev_end=end
+        }
+    ' "$lf"; then
+        echo "ERRO layout oficial inconsistente: $base" >&2
+        ((layout_issues+=1))
+        continue
+    fi
+
+    awk -F',' -v c="$competencia" -v t="$table" -v z="$selected" -v h="$zip_sha" '
+        NR==1 {next}
+        {
+            gsub(/\r/,"")
+            col=tolower($1)
+            printf "%s\t%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+                   c,t,NR-1,col,$2,$3,$4,$5,z,h
+        }
+    ' "$lf" >> "$registry"
+done < <(find "$work/extract" -type f -iname '*_layout.txt' -print0 | sort -z)
+
+(( layout_issues == 0 )) || {
+    echo "ERRO: $layout_issues layouts oficiais invalidos." >&2
+    exit 6
+}
 
 issues=0
 recognized=0
+metadata=0
 
 while IFS= read -r -d '' txt; do
     base="$(basename "$txt")"
     table="$(printf '%s' "${base%.*}" | tr '[:upper:]' '[:lower:]')"
+
+    case "$table" in
+        layout|leia_me|*_layout)
+            ((metadata+=1))
+            continue
+            ;;
+    esac
 
     read -r rows minlen maxlen < <(
         LC_ALL=C awk '
@@ -136,91 +196,72 @@ while IFS= read -r -d '' txt; do
         ' "$txt"
     )
 
-    # TXT de documentacao/layout pertencem ao pacote oficial,
-    # mas nao sao tabelas de dados da Bronze.
-    case "$table" in
-        layout|leia_me|*_layout)
-            printf '%s\t%s\t%s\t%s\t%s\t\t\tignored_metadata\n' \
-                "$table" "$base" "$rows" "$minlen" "$maxlen" >> "$report"
-            continue
-            ;;
-    esac
+    lf="$(find "$work/extract" -type f -iname "${table}_layout.txt" -print -quit)"
 
-    layout_row="$(
-        awk -F'\t' -v t="$table" -v c="$competencia" '
-            NR>1 && $1==t && c>=$2 && c<=$3 {print; exit}
-        ' "$LAYOUT"
-    )"
-
-    if [[ -z "$layout_row" ]]; then
-        printf '%s\t%s\t%s\t%s\t%s\t\t\tunknown_layout\n' \
+    if [[ -z "$lf" ]]; then
+        printf '%s\t%s\t%s\t%s\t%s\t\t\tmissing_official_layout\n' \
             "$table" "$base" "$rows" "$minlen" "$maxlen" >> "$report"
+        printf '%s\t%s\t%s\t\t\t\tmissing_official_layout\n' \
+            "$table" "$base" "$rows" >> "$resolved"
         ((issues+=1))
         continue
     fi
 
-    expected="$(printf '%s\n' "$layout_row" | cut -f6)"
-    source="$(printf '%s\n' "$layout_row" | cut -f7)"
+    widths="$(
+        awk -F',' 'NR>1 {gsub(/\r/,""); printf "%s%s",$2,(NR==n?"":"|")}' \
+            n="$(wc -l < "$lf")" "$lf"
+    )"
+    fields="$(
+        awk -F',' 'NR>1 {gsub(/\r/,""); printf "%s%s",tolower($1),(NR==n?"":"|")}' \
+            n="$(wc -l < "$lf")" "$lf"
+    )"
+    expected="$(awk -F',' 'END {gsub(/\r/,""); print $4+0}' "$lf")"
 
-    # Arquivo de dados vazio e valido: representa conjunto vazio.
     if [[ "$rows" == "0" ]]; then
-        printf '%s\t%s\t0\t0\t0\t%s\t%s\tok\n' \
-            "$table" "$base" "$expected" "$source" >> "$report"
-        ((recognized+=1))
-        continue
-    fi
-
-    if [[ "$minlen" != "$expected" || "$maxlen" != "$expected" ]]; then
-        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\twidth_mismatch\n' \
-            "$table" "$base" "$rows" "$minlen" "$maxlen" "$expected" "$source" >> "$report"
+        status="ok"
+    elif [[ "$minlen" == "$expected" && "$maxlen" == "$expected" ]]; then
+        status="ok"
+    else
+        status="width_mismatch"
         ((issues+=1))
-        continue
     fi
 
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\tok\n' \
-        "$table" "$base" "$rows" "$minlen" "$maxlen" "$expected" "$source" >> "$report"
-    ((recognized+=1))
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$table" "$base" "$rows" "$minlen" "$maxlen" "$expected" "$(basename "$lf")" "$status" >> "$report"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$table" "$base" "$rows" "$widths" "$fields" "$expected" "$status" >> "$resolved"
+
+    [[ "$status" == "ok" ]] && ((recognized+=1))
 done < <(find "$work/extract" -type f -iname '*.txt' -print0 | sort -z)
 
 echo
-echo "Relatorio de layout: $report"
-awk -F'\t' 'NR==1 || ($8!="ok" && $8!="ignored_metadata")' "$report" | column -s $'\t' -t || true
-echo "Reconhecidos: $recognized"
+echo "Registro oficial de layouts: $registry"
+echo "Relatorio: $report"
+awk -F'\t' 'NR==1 || $8!="ok"' "$report" | column -s $'\t' -t || true
+echo "Tabelas de dados reconhecidas: $recognized"
+echo "Metadados/documentacao ignorados como dados: $metadata"
 echo "Problemas: $issues"
 
 if (( INSPECT == 1 )); then
     echo "Modo inspect-only: nenhum Parquet publicado."
     [[ "$KEEP_WORK" == "1" ]] || rm -rf "$work"
-    exit 0
+    exit $(( issues == 0 ? 0 : 7 ))
 fi
 
-if (( issues > 0 && ALLOW_PARTIAL == 0 )); then
-    echo "ERRO: Bronze completa bloqueada por layouts desconhecidos/divergentes." >&2
-    echo "Use o relatorio para atualizar systems/sigtap/layouts/fwf.tsv." >&2
-    exit 6
-fi
+(( issues == 0 )) || {
+    echo "ERRO: Bronze bloqueada por layout/arquivo divergente." >&2
+    exit 7
+}
 
 manifest="$STATE/bronze_${competencia}_${ts}.tsv"
 printf 'table\tcompetencia\trows_source\trows_parquet\tparquet\tsource_zip\tsha256_zip\n' > "$manifest"
 
-while IFS=$'\t' read -r table file rows minlen maxlen expected source status; do
+while IFS=$'\t' read -r table file rows widths fields expected status; do
     [[ "$table" == "table" ]] && continue
     [[ "$status" == "ok" ]] || continue
 
     txt="$(find "$work/extract" -type f -iname "${table}.txt" -print -quit)"
-    [[ -n "$txt" ]] || {
-        echo "ERRO: arquivo nao localizado para $table" >&2
-        exit 7
-    }
-
-    layout_row="$(
-        awk -F'\t' -v t="$table" -v c="$competencia" '
-            NR>1 && $1==t && c>=$2 && c<=$3 {print; exit}
-        ' "$LAYOUT"
-    )"
-
-    widths="$(printf '%s\n' "$layout_row" | cut -f4)"
-    fields="$(printf '%s\n' "$layout_row" | cut -f5)"
+    [[ -n "$txt" ]] || exit 8
 
     latin="$work/${table}.latin1.tsv"
     utf8="$work/${table}.utf8.tsv"
@@ -232,7 +273,6 @@ while IFS=$'\t' read -r table file rows minlen maxlen expected source status; do
     mkdir -p "$destdir"
     dest="$destdir/part-000.parquet"
     partial="$dest.partial.$$"
-
     rm -f "$partial"
 
     duckdb -c "
@@ -256,11 +296,10 @@ while IFS=$'\t' read -r table file rows minlen maxlen expected source status; do
     "
 
     rows_parquet="$(duckdb -csv -noheader -c "SELECT count(*) FROM read_parquet('$partial');" | tr -d '\r')"
-
-    if [[ "$rows" != "$rows_parquet" ]]; then
+    [[ "$rows" == "$rows_parquet" ]] || {
         echo "ERRO QC $table: TXT=$rows Parquet=$rows_parquet" >&2
-        exit 8
-    fi
+        exit 9
+    }
 
     mv -f "$partial" "$dest"
 
@@ -269,8 +308,8 @@ while IFS=$'\t' read -r table file rows minlen maxlen expected source status; do
         "$dest" "$selected" "$zip_sha" >> "$manifest"
 
     rm -f "$latin" "$utf8"
-    echo "OK $table rows=$rows -> $dest"
-done < "$report"
+    echo "OK $table rows=$rows"
+done < "$resolved"
 
 [[ "$KEEP_WORK" == "1" ]] || rm -rf "$work"
 
