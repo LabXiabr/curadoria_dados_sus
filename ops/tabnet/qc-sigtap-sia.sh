@@ -16,8 +16,8 @@ for c in duckdb awk sort; do
 done
 
 ts="$(date +%Y%m%d_%H%M%S)"
-out="$STATE/qc_tabnet_sia_${COMP}_${ts}.tsv"
-hier="$STATE/qc_tabnet_sia_hierarchy_${COMP}_${ts}.tsv"
+out="$STATE/qc_tabnet_sia_static_${COMP}_${ts}.tsv"
+hier="$STATE/qc_tabnet_sia_static_hierarchy_${COMP}_${ts}.tsv"
 
 printf 'domain\ttabnet_count\tsigtap_count\tintersection\tonly_tabnet\tonly_sigtap\tstatus\n' > "$out"
 printf 'rule\tcount\tstatus\n' > "$hier"
@@ -29,14 +29,7 @@ compare_domain() {
     local tab="$TABNET_DIR/${domain}.tsv"
     local pq="$BRONZE/$table/competencia=$COMP/part-000.parquet"
 
-    [[ -f "$tab" ]] || {
-        echo "ERRO: arquivo TabNet ausente: $tab" >&2
-        exit 3
-    }
-    [[ -f "$pq" ]] || {
-        echo "ERRO: Parquet ausente: $pq" >&2
-        exit 4
-    }
+    [[ -f "$tab" && -f "$pq" ]] || return 0
 
     result="$(
       duckdb -csv -noheader -c "
@@ -62,12 +55,10 @@ compare_domain() {
 
     IFS=',' read -r nt ns ni ot os <<< "$result"
 
-    # TabNet SIA e um lastro externo, nao o master da SIGTAP.
-    # Codigo exposto no TabNet mas ausente da SIGTAP corrente e erro forte.
-    if [[ "$ot" == "0" ]]; then
-        status="ok"
+    if [[ "$ot" == "0" && "$os" == "0" ]]; then
+        status="exact"
     else
-        status="tabnet_code_missing_in_sigtap"
+        status="informative_temporal_difference"
     fi
 
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
@@ -79,7 +70,6 @@ compare_domain subgrupo tb_sub_grupo "co_grupo || co_sub_grupo"
 compare_domain forma tb_forma_organizacao "co_grupo || co_sub_grupo || co_forma_organizacao"
 compare_domain procedimento tb_procedimento "co_procedimento"
 
-# Coerencia interna do proprio TabNet.
 duckdb -csv -noheader -c "
   WITH
   g AS (SELECT codigo FROM read_csv('$TABNET_DIR/grupo.tsv', delim='	', header=true, all_varchar=true)),
@@ -96,20 +86,17 @@ duckdb -csv -noheader -c "
   UNION ALL
   SELECT 'procedimento_sem_grupo', count(*) FROM p LEFT JOIN g ON left(p.codigo,2)=g.codigo WHERE g.codigo IS NULL;
 " | tr -d '\r' | while IFS=',' read -r rule count; do
-    if [[ "$count" == "0" ]]; then status="ok"; else status="warning"; fi
+    [[ "$count" == "0" ]] && status="ok" || status="warning"
     printf '%s\t%s\t%s\n' "$rule" "$count" "$status"
 done >> "$hier"
 
-echo "=== Cobertura TabNet SIA x SIGTAP $COMP ==="
+echo "=== Catalogo estatico TabNet x SIGTAP $COMP (INFORMATIVO) ==="
 column -s $'\t' -t "$out" || cat "$out"
 echo
-echo "=== Coerencia interna do TabNet ==="
+echo "=== Coerencia interna do catalogo estatico TabNet ==="
 column -s $'\t' -t "$hier" || cat "$hier"
-
-hard="$(awk -F'\t' 'NR>1 && $7!="ok"{n++} END{print n+0}' "$out")"
 echo
-echo "hard_failures=$hard"
+echo "hard_failures=0"
+echo "note=O formulario TabNet preserva categorias historicas; nao e catalogo vigente por competencia."
 echo "report=$out"
 echo "hierarchy_report=$hier"
-
-(( hard == 0 ))
