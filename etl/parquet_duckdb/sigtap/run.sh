@@ -286,9 +286,7 @@ while IFS=$'\t' read -r table file rows widths fields expected status; do
                 '$utf8',
                 delim=',',
                 header=true,
-                all_varchar=true,
-                quote='"',
-                escape='"'
+                all_varchar=true
             )
         )
         TO '$partial'
