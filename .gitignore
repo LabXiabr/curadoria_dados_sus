@@ -1,0 +1,28 @@
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+*.pgpass
+.pg_service.conf
+
+# Dados e temporários
+data/
+raw/
+bronze/
+silver/
+work/
+tmp/
+state/
+logs/
+*.duckdb
+*.duckdb.wal
+*.parquet
+*.dbc
+*.dbf
+*.zip
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+*~
