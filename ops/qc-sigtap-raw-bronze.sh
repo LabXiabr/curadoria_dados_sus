@@ -82,7 +82,7 @@ with open(txt, "rb") as f:
         line = line.rstrip(b"\r\n")
         vals = []
         for start, end in cols:
-            b = line[start-1:end].strip(b" \t\r\n\v\f")
+            b = line[start-1:end].strip(b" ")
             vals.append(b.decode("latin-1"))
         canonical = "".join(f"{len(v)}:{v}\x1f" for v in vals)
         hashes.append(hashlib.sha256(canonical.encode("utf-8")).hexdigest())

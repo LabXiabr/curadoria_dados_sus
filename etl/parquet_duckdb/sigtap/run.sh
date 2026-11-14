@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-PARSER="$ROOT/etl/parquet_duckdb/sigtap/fwf_to_tsv.awk"
+PARSER="$ROOT/etl/parquet_duckdb/sigtap/fwf_to_csv.awk"
 
 FTP_BASE="${SIGTAP_FTP_BASE:-ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads}"
 LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
@@ -263,8 +263,8 @@ while IFS=$'\t' read -r table file rows widths fields expected status; do
     txt="$(find "$work/extract" -type f -iname "${table}.txt" -print -quit)"
     [[ -n "$txt" ]] || exit 8
 
-    latin="$work/${table}.latin1.tsv"
-    utf8="$work/${table}.utf8.tsv"
+    latin="$work/${table}.latin1.csv"
+    utf8="$work/${table}.utf8.csv"
 
     LC_ALL=C awk -v widths="$widths" -v fields="$fields" -f "$PARSER" "$txt" > "$latin"
     iconv -f ISO-8859-1 -t UTF-8 "$latin" > "$utf8"
@@ -284,11 +284,11 @@ while IFS=$'\t' read -r table file rows widths fields expected status; do
                    current_timestamp AS _ingested_at
             FROM read_csv(
                 '$utf8',
-                delim='	',
+                delim=',',
                 header=true,
                 all_varchar=true,
-                quote='',
-                escape=''
+                quote='"',
+                escape='"'
             )
         )
         TO '$partial'
