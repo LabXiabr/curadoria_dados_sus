@@ -136,6 +136,16 @@ while IFS= read -r -d '' txt; do
         ' "$txt"
     )
 
+    # TXT de documentacao/layout pertencem ao pacote oficial,
+    # mas nao sao tabelas de dados da Bronze.
+    case "$table" in
+        layout|leia_me|*_layout)
+            printf '%s\t%s\t%s\t%s\t%s\t\t\tignored_metadata\n' \
+                "$table" "$base" "$rows" "$minlen" "$maxlen" >> "$report"
+            continue
+            ;;
+    esac
+
     layout_row="$(
         awk -F'\t' -v t="$table" -v c="$competencia" '
             NR>1 && $1==t && c>=$2 && c<=$3 {print; exit}
@@ -152,6 +162,14 @@ while IFS= read -r -d '' txt; do
     expected="$(printf '%s\n' "$layout_row" | cut -f6)"
     source="$(printf '%s\n' "$layout_row" | cut -f7)"
 
+    # Arquivo de dados vazio e valido: representa conjunto vazio.
+    if [[ "$rows" == "0" ]]; then
+        printf '%s\t%s\t0\t0\t0\t%s\t%s\tok\n' \
+            "$table" "$base" "$expected" "$source" >> "$report"
+        ((recognized+=1))
+        continue
+    fi
+
     if [[ "$minlen" != "$expected" || "$maxlen" != "$expected" ]]; then
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\twidth_mismatch\n' \
             "$table" "$base" "$rows" "$minlen" "$maxlen" "$expected" "$source" >> "$report"
@@ -166,7 +184,7 @@ done < <(find "$work/extract" -type f -iname '*.txt' -print0 | sort -z)
 
 echo
 echo "Relatorio de layout: $report"
-awk -F'\t' 'NR==1 || $8!="ok"' "$report" | column -s $'\t' -t || true
+awk -F'\t' 'NR==1 || ($8!="ok" && $8!="ignored_metadata")' "$report" | column -s $'\t' -t || true
 echo "Reconhecidos: $recognized"
 echo "Problemas: $issues"
 

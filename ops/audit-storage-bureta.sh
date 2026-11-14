@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-HOST="${BURETA_HOST:-192.168.88.12}"
-ssh "$HOST" '
+JUMP="${BURETA_SSH_JUMP:-ferre@ssh.labx.ia.br}"
+TARGET="${BURETA_SSH_TARGET:-ferre@bureta}"
+ssh -J "$JUMP" "$TARGET" '
   echo "=== FILESYSTEMS ==="
   df -h /dados/abertos /mnt/sdb /home /var
   echo
