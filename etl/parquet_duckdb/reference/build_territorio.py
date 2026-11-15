@@ -203,13 +203,6 @@ TO {sqls(str(ctmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
                         "source_bytes", "source_crc32", "bronze", "silver_current"])
             w.writerows(report_rows)
 
-        q = run_duck(f"""
-SELECT
-  count(*) AS rows,
-  count(DISTINCT coalesce(cast(CO_MUNICIP as varchar), cast(co_municipip as varchar), '')) AS municipios
-FROM read_parquet({sqls(str(silver_root / 'tb_municip' / 'current.parquet'))});
-""", True) if (silver_root / "tb_municip" / "current.parquet").is_file() else ""
-
         marker = state / "territorio_current.ok"
         marker.write_text("\n".join([
             f"timestamp={ts}",
