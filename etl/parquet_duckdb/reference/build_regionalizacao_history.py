@@ -36,6 +36,7 @@ def build_one(
     code_col: str,
     slug: str,
     work: Path,
+    allowed_sql: str,
 ) -> tuple[Path, Path]:
     pattern = (
         lake / "bronze" / "reference" / "territorio" /
@@ -64,6 +65,7 @@ WITH obs AS (
  )
  WHERE CO_MUNICIP IS NOT NULL
    AND {code_col} IS NOT NULL
+   AND cast("snapshot" as varchar) IN ({allowed_sql})
 ),
 ordered AS (
  SELECT *,
@@ -160,6 +162,18 @@ def main() -> int:
             20,
         )
 
+    snapshot_markers = sorted(state.glob("territorio_*.bronze.ok"))
+    allowed = []
+    for marker in snapshot_markers:
+        for line in marker.read_text(encoding="utf-8").splitlines():
+            if line.startswith("snapshot="):
+                allowed.append(line.split("=", 1)[1].strip())
+                break
+    allowed = sorted({x for x in allowed if x})
+    if not allowed:
+        die("nenhum snapshot territorial Bronze homologado", 20)
+    allowed_sql = ",".join(sqls(x) for x in allowed)
+
     workroot = lake / "work" / "regionalizacao_history"
     workroot.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix="build_", dir=workroot))
@@ -171,7 +185,7 @@ def main() -> int:
         ]
         staged = []
         for rel, col, slug in specs:
-            hist, events = build_one(lake, rel, col, slug, work)
+            hist, events = build_one(lake, rel, col, slug, work, allowed_sql)
             staged.append((slug, hist, events))
 
         reg_pattern = (
@@ -196,6 +210,7 @@ COPY (
      hive_partitioning=true,
      union_by_name=true
    )
+   WHERE cast("snapshot" as varchar) IN ({allowed_sql})
    GROUP BY 1
  ),
  m AS (
@@ -208,6 +223,7 @@ COPY (
      hive_partitioning=true,
      union_by_name=true
    )
+   WHERE cast("snapshot" as varchar) IN ({allowed_sql})
    GROUP BY 1
  )
  SELECT
