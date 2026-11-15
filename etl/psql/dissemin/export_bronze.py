@@ -189,7 +189,7 @@ COPY (
 )
 TO {sqls(str(partial))} (FORMAT PARQUET, COMPRESSION ZSTD);
 """
-            p=subprocess.run(["duckdb","-c",sql],text=True,capture_output=True)
+            p=subprocess.run(["duckdb"],input=sql,text=True,capture_output=True)
             if p.returncode:
                 partial.unlink(missing_ok=True)
                 if p.stdout: print(p.stdout,file=sys.stderr)
