@@ -171,6 +171,13 @@ def build_sql(endpoints, rules, timeout=30, max_depth=8):
             "",
         ]
     for rule in rules:
+        if rule.status.lower() == "private":
+            catalog_rows.append({
+                "dataset_id": rule.dataset_id, "system": rule.system, "layer": rule.layer,
+                "duckdb_schema": rule.duckdb_schema, "duckdb_view": "", "source_files": "0",
+                "status": "private", "discovery_url": "", "description": rule.description,
+            })
+            continue
         ep = endpoints.get(rule.endpoint_id)
         if not ep:
             warnings.append(f"{rule.dataset_id}: endpoint inexistente {rule.endpoint_id}")
