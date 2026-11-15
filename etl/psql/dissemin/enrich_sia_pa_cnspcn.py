@@ -131,7 +131,9 @@ WITH pa0 AS (
 ), mind AS (
  SELECT __rid,min(delta) AS delta FROM cand WHERE delta<=3 GROUP BY __rid
 ), best AS (
- SELECT c.__rid,min(c.cns) AS cns,min(c.sub) AS sub,min(c.comp) AS comp,
+ SELECT c.__rid,min(c.cns) AS cns,
+        string_agg(DISTINCT c.sub,'|' ORDER BY c.sub) AS sub,
+        string_agg(DISTINCT c.comp,'|' ORDER BY c.comp) AS comp,
         min(c.delta) AS delta,count(DISTINCT c.cns) AS cns_distintos
  FROM cand c JOIN mind m USING(__rid)
  WHERE c.delta=m.delta
