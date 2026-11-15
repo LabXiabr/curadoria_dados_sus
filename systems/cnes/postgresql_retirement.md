@@ -50,5 +50,6 @@ Para fatos de produção e notificação, a preferência é:
 - join temporal por competência quando o atributo CNES for volátil;
 - `CO_CNES` como identificador público do estabelecimento;
 - `CO_UNIDADE` somente em relações internas do próprio CNES;
-- dimensões Silver públicas para consumo analítico;
+- dimensões e relações Silver públicas para consumo analítico, inclusive
+  profissionais, equipes e vínculos do registro público CNES;
 - Bronze mensal para auditoria, reconstrução e atributos não promovidos à Silver.

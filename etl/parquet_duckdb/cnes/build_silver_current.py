@@ -369,7 +369,7 @@ SELECT count(*) FROM (
         f"objects={len(report)}",
         f"report={report_path}",
         "scope=current_core_with_team_professional_silver",
-        "visibility=mixed_public_reference_private_professional",
+        "visibility=public_reference_core_including_professionals_teams_and_links",
         "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_key_not_null;territory_referential_qc;df_ra_resolved;fact_orphans_zero",
         "status=complete",
         ""

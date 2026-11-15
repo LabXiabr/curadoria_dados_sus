@@ -7,8 +7,8 @@ sia_bronze	SIA	bronze	auto	public_parquet	suslake/bronze/sia/	first_dir	sia		.*\
 sih_bronze	SIH	bronze	auto	public_parquet	suslake/bronze/sih/	first_dir	sih		.*\.parquet$	SIH Bronze; views por primeiro diretorio quando publicada
 ciha_bronze	CIHA	bronze	auto	public_parquet	suslake/bronze/ciha/	first_dir	ciha		.*\.parquet$	CIHA Bronze; views por primeiro diretorio quando publicada
 cnes_bronze	CNES	bronze	private	public_parquet	suslake/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze completa local; nao publicar diretamente
-cnes_bronze_reference	CNES	bronze	published	public_parquet	bronze/cnes/	first_dir	cnes_bronze		^part-.*\.parquet$	Subconjunto CNES Bronze publico para referencia temporal; profissionais e vinculos excluidos
-cnes_silver_reference	CNES	silver	published	public_parquet	silver/cnes/	first_dir	cnes		^part-.*\.parquet$	Dimensoes e relacoes Silver CNES publicas por competencia; subset sem profissionais
+cnes_bronze_reference	CNES	bronze	published	public_parquet	bronze/cnes/	first_dir	cnes_bronze		^part-.*\.parquet$	Subconjunto CNES Bronze publico para referencia temporal, incluindo profissionais, equipes e vinculos
+cnes_silver_reference	CNES	silver	published	public_parquet	silver/cnes/	first_dir	cnes		^part-.*\.parquet$	Dimensoes e relacoes Silver CNES publicas por competencia, incluindo profissionais, equipes e vinculos
 sinasc_bronze	SINASC	bronze	auto	public_parquet	suslake/bronze/sinasc/	first_dir	sinasc		.*\.parquet$	SINASC Bronze; views por primeiro diretorio quando publicada
 sinan_bronze	SINAN	bronze	auto	public_parquet	suslake/bronze/sinan/	first_dir	sinan		.*\.parquet$	SINAN Bronze; views por primeiro diretorio quando publicada
 sigtap_silver	SIGTAP	silver	auto	public_parquet	suslake/silver/sigtap/	first_dir	sigtap_silver		^temporal\.parquet$	SIGTAP Silver temporal lossless; uma view por tabela quando publicada

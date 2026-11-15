@@ -224,8 +224,11 @@ e relações de referência é projetado em
 `/dados/abertos/silver/cnes/`, disponível em
 `https://dados.labx.ia.br/files/silver/cnes/`.
 
-Profissionais, vínculos e bridges com profissionais não integram a superfície
-pública inicial.
+Profissionais, equipes e vínculos integram a superfície pública CNES, em
+coerência com a consulta pública do próprio SCNES. Assim, a publicação de
+referência mantém juntos `dim_profissional`, `fact_profissional_vinculo`,
+`fact_equipe` e `bridge_estabelecimento_equipe_profissional`, além dos
+objetos de estabelecimento, serviço, equipamento e leito.
 
 Após o QC global:
 
