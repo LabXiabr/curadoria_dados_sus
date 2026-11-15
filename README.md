@@ -137,3 +137,26 @@ especificas do SCNES:
 ```bash
 ./ops/cnes-cep-complete.sh
 ```
+
+
+### Contexto territorial municipal
+
+A carga territorial materializa uma referência corrente com uma linha por
+município ativo:
+
+```text
+silver/reference/municipio_contexto/current.parquet
+```
+
+Ela combina município, código IBGE de 7 dígitos, UF, região, Região de Saúde,
+Macrorregião de Saúde, microrregião IBGE, região metropolitana/RIDE,
+Território da Cidadania, PNDR, divisão administrativa e DSEI. Os indicadores
+municipais confirmados na fonte incluem capital, Amazônia Legal e semiárido.
+`IN_FRONTZN` é preservado com nome semântico conservador até confirmação
+documental de seu significado exato no snapshot corrente.
+
+Execução isolada:
+
+```bash
+python3 etl/parquet_duckdb/reference/build_municipio_contexto.py
+```
