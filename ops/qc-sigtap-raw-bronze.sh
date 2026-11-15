@@ -94,6 +94,8 @@ rows = 0
 with open(txt, "rb") as f:
     for line in f:
         line = line.rstrip(b"\r\n")
+        if not line:
+            continue
         vals = []
         for start, end in cols:
             b = line[start-1:end].strip(b" ")
@@ -112,8 +114,15 @@ PY
     )"
 
     fields="$(
-        awk -F',' 'NR>1 {gsub(/\r/,""); printf "%s%s",tolower($1),(NR==n?"":"|")}' \
-            n="$(wc -l < "$lf")" "$lf"
+        awk -F',' '
+            NR>1 {
+                gsub(/\r/,"")
+                if ($0 ~ /^[[:space:]]*$/) next
+                if (seen) printf "|"
+                printf "%s",tolower($1)
+                seen=1
+            }
+        ' "$lf"
     )"
 
     IFS='|' read -r -a cols <<< "$fields"
