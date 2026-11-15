@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
 COMP="${1:-202502}"
+SOURCE_ZIP="${2:-}"
 
 RAW="$LAKE_ROOT/raw/sigtap/zip"
 BRONZE="$LAKE_ROOT/bronze/sigtap"
@@ -16,12 +17,25 @@ for c in unzip python3 duckdb sha256sum sort awk sed; do
     }
 done
 
-zip="$(
-    find "$RAW" -maxdepth 1 -type f -name "TabelaUnificada_${COMP}_*.zip" -printf '%p\n' \
-    | sort | tail -1
-)"
-[[ -n "$zip" ]] || {
-    echo "ERRO: ZIP nao encontrado para $COMP" >&2
+if [[ -n "$SOURCE_ZIP" ]]; then
+    [[ "$SOURCE_ZIP" == "$(basename "$SOURCE_ZIP")" ]] || {
+        echo "ERRO: source ZIP invalido: $SOURCE_ZIP" >&2
+        exit 3
+    }
+    zip="$RAW/$SOURCE_ZIP"
+else
+    zip="$(
+        find "$RAW" -maxdepth 1 -type f -name "TabelaUnificada_${COMP}*.zip" -printf '%p\n' \
+        | sort | tail -1
+    )"
+fi
+[[ -n "${zip:-}" && -f "$zip" ]] || {
+    echo "ERRO: ZIP nao encontrado para $COMP: ${SOURCE_ZIP:-auto}" >&2
+    exit 3
+}
+zip_comp="$(basename "$zip" | sed -nE 's/^TabelaUnificada_([0-9]{6}).*/\1/p')"
+[[ "$zip_comp" == "$COMP" ]] || {
+    echo "ERRO: ZIP $(basename "$zip") pertence a $zip_comp, esperado $COMP" >&2
     exit 3
 }
 

@@ -46,6 +46,9 @@ done
 [[ -x "$RUN" ]] || { echo "ERRO: $RUN ausente/nao executavel" >&2; exit 3; }
 [[ -x "$QC" ]] || { echo "ERRO: $QC ausente/nao executavel" >&2; exit 3; }
 
+bash -n "$RUN" || { echo "ERRO: sintaxe invalida em $RUN" >&2; exit 3; }
+bash -n "$QC" || { echo "ERRO: sintaxe invalida em $QC" >&2; exit 3; }
+
 mkdir -p "$RAW" "$STATE" "$LOGROOT"
 ts="$(date +%Y%m%d_%H%M%S)_$$"
 log="$LOGROOT/backfill_bronze_${ts}.log"
@@ -126,7 +129,7 @@ while IFS=$'\t' read -r comp zipname; do
     fi
 
     echo "=== BRONZE $comp $zipname ==="
-    if SIGTAP_OFFLINE=1 "$RUN" --competencia "$comp" --offline && "$QC" "$comp"; then
+    if SIGTAP_OFFLINE=1 "$RUN" --competencia "$comp" --source-zip "$zipname" --offline && "$QC" "$comp" "$zipname"; then
         new_marker_zip="$(sed -n 's/^zip=//p' "$marker" | head -1 2>/dev/null || true)"
         if [[ "$new_marker_zip" != "$zipname" ]]; then
             echo "ERRO $comp: marker aponta $new_marker_zip, esperado $zipname" >&2

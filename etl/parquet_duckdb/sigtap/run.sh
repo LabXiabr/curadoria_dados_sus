@@ -17,11 +17,12 @@ COMP="latest"
 INSPECT=0
 KEEP_WORK="${KEEP_WORK:-0}"
 OFFLINE="${SIGTAP_OFFLINE:-0}"
+SOURCE_ZIP=""
 
 usage() {
     cat <<EOF
 Uso:
-  $0 [--competencia YYYYMM|latest] [--inspect-only] [--offline]
+  $0 [--competencia YYYYMM|latest] [--source-zip ZIP] [--inspect-only] [--offline]
 
 O layout fisico e lido dos arquivos *_layout.txt contidos no proprio ZIP.
 Os layouts sao validados (tamanho/inicio/fim/contiguidade) antes da carga.
@@ -31,6 +32,7 @@ EOF
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --competencia) COMP="$2"; shift 2 ;;
+        --source-zip) SOURCE_ZIP="$2"; shift 2 ;;
         --inspect-only) INSPECT=1; shift ;;
         --offline) OFFLINE=1; shift ;;
         -h|--help) usage; exit 0 ;;
@@ -63,7 +65,22 @@ if (( OFFLINE == 0 )); then
         | tr -d '\r' \
         | grep -E '^TabelaUnificada_[0-9]{6}.*\.zip
 
-if [[ "$COMP" == "latest" ]]; then
+if [[ -n "$SOURCE_ZIP" ]]; then
+    [[ "$SOURCE_ZIP" == "$(basename "$SOURCE_ZIP")" ]] || {
+        echo "ERRO: --source-zip deve ser apenas nome de arquivo: $SOURCE_ZIP" >&2
+        exit 4
+    }
+    [[ "$SOURCE_ZIP" =~ ^TabelaUnificada_([0-9]{6}).*\.zip$ ]] || {
+        echo "ERRO: nome SIGTAP invalido: $SOURCE_ZIP" >&2
+        exit 4
+    }
+    selected="$SOURCE_ZIP"
+    source_comp="${BASH_REMATCH[1]}"
+    if [[ "$COMP" != "latest" && "$COMP" != "$source_comp" ]]; then
+        echo "ERRO: competencia $COMP diverge de --source-zip $SOURCE_ZIP" >&2
+        exit 4
+    fi
+elif [[ "$COMP" == "latest" ]]; then
     if (( ftp_ok == 1 )); then
         selected="$(
             sed -nE 's/^(TabelaUnificada_([0-9]{6}).*\.zip)$/\2\t\1/p' "$remote_names" \
@@ -82,7 +99,7 @@ if [[ "$COMP" == "latest" ]]; then
     fi
 else
     selected="$(
-        find "$RAW" -maxdepth 1 -type f -name "TabelaUnificada_${COMP}_*.zip" -printf '%f\n' \
+        find "$RAW" -maxdepth 1 -type f -name "TabelaUnificada_${COMP}*.zip" -printf '%f\n' \
         | sort \
         | tail -1
     )"
@@ -90,7 +107,6 @@ else
         selected="$(grep -E "^TabelaUnificada_${COMP}.*\.zip$" "$remote_names" | sort | tail -1 || true)"
     fi
 fi
-
 [[ -n "${selected:-}" ]] || {
     echo "ERRO: competencia nao encontrada: $COMP" >&2
     exit 4
