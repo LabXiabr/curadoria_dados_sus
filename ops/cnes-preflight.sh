@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
 TERR="$LAKE_ROOT/state/reference/territorio_current_complete.ok"
