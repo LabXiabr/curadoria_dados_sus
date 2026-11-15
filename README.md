@@ -307,3 +307,65 @@ Aquisição das fontes auxiliares:
 
 Use `--dry-run` para listar e `--refresh` para verificar nova versão de
 fontes rolling.
+
+
+## Migração PostgreSQL -> Parquet
+
+Para SIA, SIH, CIH, CIHA, SIM, SINASC e SINAN, a migração inicial usa as
+tabelas já processadas do PostgreSQL `bdsus`. O DBC não é reprocessado nessa
+etapa. A recomposição futura de arquivos ausentes/novos permanece a cargo da
+ETL Wine existente.
+
+Inventário somente leitura:
+
+```bash
+./ops/psql-dissemin-inventory.py --profile BURETA
+./ops/psql-dissemin-inventory.py --profile PIPETA
+```
+
+Planejamento de um sistema:
+
+```bash
+./ops/dissemin-system-complete.sh --profile BURETA --system SIA
+```
+
+Execução:
+
+```bash
+./ops/dissemin-system-complete.sh --profile BURETA --system SIA --execute
+```
+
+A Bronze é gravada na lake canônica em `suslake/bronze/<sistema>/`, com
+proveniência PostgreSQL. Cada tabela só é homologada quando
+`COUNT(*) PostgreSQL == COUNT(*) Parquet`. A retirada do PostgreSQL nunca é
+automática e depende também de QC externo contra TabNet.
+
+### SIA PA e CNSPCN
+
+Após migrar PA e as famílias APAC, a Silver PA pode recuperar CNSPCN por
+autorização. A regra exige mesma UF, mesma autorização e procura a competência
+mais próxima na janela de 3 meses antes/depois. Em empate, só imputa quando
+todos os candidatos da distância mínima concordam no mesmo CNS.
+
+```bash
+./ops/sia-pa-enrich-cnspcn.sh --profile BURETA --execute
+```
+
+A Silver preserva CNS original, CNS recuperado, subsistema/competência de
+origem e distância mensal da recuperação.
+
+## Superfície pública Bronze/Silver
+
+`/dados/abertos/suslake/` é a lake canônica e deve permanecer privada.
+`/dados/abertos/bronze/` e `/dados/abertos/silver/` são projeções públicas
+por hardlink dos datasets explicitamente autorizados.
+
+Antes de fechar o acesso à lake canônica, projete os datasets já marcados
+como publicados:
+
+```bash
+python3 ops/project-public-datasets.py
+sudo ops/apache/install-labx-private-guard.sh
+```
+
+Depois disso `/files/suslake/` deve responder 403 e não aparecer no índice.
