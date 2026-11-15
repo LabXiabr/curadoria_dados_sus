@@ -31,3 +31,17 @@ O projeto não substitui a governança estratégica/institucional.
 - `catalog/`: catálogo transversal da curadoria.
 
 Dados volumosos não são versionados em Git.
+
+## Acesso público aos Parquet
+
+- Endpoint: `https://dados.labx.ia.br/files/`.
+- Transporte: HTTPS público, somente leitura, com HTTP Range.
+- O catálogo DuckDB local para DBeaver é gerado por `ops/build-duckdb-public-catalog.py`.
+- As regras de descoberta ficam em `catalog/endpoints.tsv` e `catalog/datasets.tsv`.
+- O SQL operacional gerado não é versionado; ele reflete os Parquet publicados no momento da execução.
+
+Exemplo:
+
+```bash
+python3 ops/build-duckdb-public-catalog.py --database ~/duckdb/bureta.duckdb
+```

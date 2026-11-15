@@ -1,0 +1,11 @@
+dataset_id	system	layer	status	endpoint_id	discovery_path	grouping	duckdb_schema	duckdb_view	file_regex	description
+sim_do_estaduais	SIM	external	published	public_parquet	benchmark_mylena/sim_do_1996_2024/estaduais/	single	sim	do_estaduais	^do[a-z]{2}[0-9]{4}\.parquet$	SIM/DO 1996-2024 - arquivos estaduais do benchmark publicado
+sim_do_nacionais	SIM	external	published	public_parquet	benchmark_mylena/sim_do_1996_2024/nacionais/	single	sim	do_nacionais	^dobr[0-9]{4}\.parquet$	SIM/DO 1996-2024 - arquivos nacionais do benchmark publicado
+sim_bronze	SIM	bronze	auto	public_parquet	suslake/bronze/sim/	first_dir	sim		.*\.parquet$	SIM Bronze canonica; views por primeiro diretorio quando publicada
+sigtap_bronze	SIGTAP	bronze	published	public_parquet	suslake/bronze/sigtap/	first_dir	sigtap		^part-.*\.parquet$	SIGTAP Bronze; uma view por tabela agregando competencias publicadas
+sia_bronze	SIA	bronze	auto	public_parquet	suslake/bronze/sia/	first_dir	sia		.*\.parquet$	SIA Bronze; views por primeiro diretorio quando publicada
+sih_bronze	SIH	bronze	auto	public_parquet	suslake/bronze/sih/	first_dir	sih		.*\.parquet$	SIH Bronze; views por primeiro diretorio quando publicada
+ciha_bronze	CIHA	bronze	auto	public_parquet	suslake/bronze/ciha/	first_dir	ciha		.*\.parquet$	CIHA Bronze; views por primeiro diretorio quando publicada
+cnes_bronze	CNES	bronze	auto	public_parquet	suslake/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze; views por primeiro diretorio quando publicada
+sinasc_bronze	SINASC	bronze	auto	public_parquet	suslake/bronze/sinasc/	first_dir	sinasc		.*\.parquet$	SINASC Bronze; views por primeiro diretorio quando publicada
+sinan_bronze	SINAN	bronze	auto	public_parquet	suslake/bronze/sinan/	first_dir	sinan		.*\.parquet$	SINAN Bronze; views por primeiro diretorio quando publicada

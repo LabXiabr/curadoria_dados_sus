@@ -26,3 +26,6 @@ logs/
 .idea/
 .DS_Store
 *~
+
+# Catálogo DuckDB gerado a partir do endpoint público
+sql/duckdb/generated/

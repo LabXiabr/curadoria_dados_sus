@@ -1,0 +1,3 @@
+endpoint_id	base_url	protocol	public	range_requests	origin	path_scope	status	description
+public_catalog	https://dados.labx.ia.br/	https	yes	no	Cloudflare Tunnel -> bureta:8766	/	active	Portal e catalogo publico LabX
+public_parquet	https://dados.labx.ia.br/files/	https	yes	yes	bureta:/dados/abertos	/files/	active	Parquet publico via Apache 8766 e Cloudflare Tunnel; GET/HEAD e HTTP Range
