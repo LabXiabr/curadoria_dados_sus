@@ -1,0 +1,16 @@
+system	subsystem	version	name	source_url	competence_min	competence_max	attribute_count	canonical_field_count	status
+SIA	AB	200801_	Laudo de Acompanhamento à Cirurgia Bariátrica	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	202507	58	8	canonical
+SIA	ABO	200801_	Acompanhamento Pós-Cirurgia Bariátrica	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	201808	202603	78	0	canonical
+SIA	ACF	200801_	Laudo de Confecção de Fístula Arteriovenosa	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	201408	202604	56	8	canonical
+SIA	AD	200801_	Laudos Diversos	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	202604	46	8	canonical
+SIA	AM	200801_	Laudo de Medicamentos	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	202604	51	8	canonical
+SIA	AMP	200801_	Laudo de Acompanhamento Multiprofissional	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	201603	202604	65	8	canonical
+SIA	AN	200801_	Laudo de Nefrologia	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	201410	61	8	canonical
+SIA	AQ	200801_	Laudo de Quimioterapia	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	202604	74	8	canonical
+SIA	AR	200801_	Laudo de Radioterapia	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	202604	74	8	canonical
+SIA	ATD	200801_	Tratamento Dialítico	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	201408	202604	65	8	canonical
+SIA	BI	200801_	Boletim Individual	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	202604	36	9	canonical
+SIA	PA	199407_200712	Produção Ambulatorial	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/199407_200712/Dados/	199407	200712	29	6	canonical
+SIA	PA	200801_	Produção Ambulatorial	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	200801	202604	63	9	canonical
+SIA	PS	200801_	Psicossocial	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	201211	202604	45	9	canonical
+SIA	SAD	200801_	Atenção Domiciliar	ftp://ftp.datasus.gov.br/dissemin/publicos/SIASUS/200801_/Dados/	201204	201810	45	9	canonical

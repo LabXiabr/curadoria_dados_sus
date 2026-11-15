@@ -1,0 +1,4 @@
+layer	object	source	grain	time_anchor	references	status
+fact	fact_sia_pa	PA	source_record	competencia_producao	CNES|SIGTAP|TERRITORIO|TAB_SIA	designed
+fact	fact_sia_subsystem	AB|ABO|ACF|AD|AM|AMP|AN|AQ|AR|ATD|BI|PS|SAD	source_record	competencia_producao	CNES|SIGTAP|TERRITORIO|TAB_SIA	designed
+view	vw_sia_evento_core	fact_sia_*	common_projection	competencia_producao	CNES|SIGTAP|TERRITORIO	designed

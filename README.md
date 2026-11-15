@@ -282,3 +282,17 @@ python3 etl/parquet_duckdb/reference/build_municipio_contexto.py
 A série `BASE_DE_DADOS_CNES` é considerada oficial para backfill a partir de
 `201706`. Competências anteriores são tratadas como legado PostgreSQL/DBC e
 seguem `systems/cnes/legacy_pre201706.md`.
+
+
+## Modelagem dos sistemas de produção e notificação
+
+SIA, SIH, CIH, CIHA, SIM, SINASC e SINAN são modelados em
+`systems/<sistema>/`. Bronze é lossless por arquivo/família; Silver usa fatos
+por subsistema/agravo e views comuns. CNES, SIGTAP, território, CID e demais
+domínios são ligados temporalmente.
+
+DEF/CNV/DBD/DBF auxiliares permanecem versionados; nenhuma tabela de domínio
+corrente é aplicada retroativamente sem vínculo temporal explícito.
+
+Política: `systems/reference/datasus_auxiliary_policy.md`.
+Catálogo: `catalog/auxiliary_sources.tsv`.

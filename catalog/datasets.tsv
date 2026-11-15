@@ -5,6 +5,7 @@ sim_bronze	SIM	bronze	auto	public_parquet	suslake/bronze/sim/	first_dir	sim		.*\
 sigtap_bronze	SIGTAP	bronze	published	public_parquet	suslake/bronze/sigtap/	first_dir	sigtap		^part-.*\.parquet$	SIGTAP Bronze; uma view por tabela agregando competencias publicadas
 sia_bronze	SIA	bronze	auto	public_parquet	suslake/bronze/sia/	first_dir	sia		.*\.parquet$	SIA Bronze; views por primeiro diretorio quando publicada
 sih_bronze	SIH	bronze	auto	public_parquet	suslake/bronze/sih/	first_dir	sih		.*\.parquet$	SIH Bronze; views por primeiro diretorio quando publicada
+cih_bronze	CIH	bronze	auto	public_parquet	suslake/bronze/cih/	first_dir	cih		.*\.parquet$	CIH Bronze canonica; views por primeiro diretorio quando publicada
 ciha_bronze	CIHA	bronze	auto	public_parquet	suslake/bronze/ciha/	first_dir	ciha		.*\.parquet$	CIHA Bronze; views por primeiro diretorio quando publicada
 cnes_bronze	CNES	bronze	private	public_parquet	suslake/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze completa local; nao publicar diretamente
 cnes_bronze_reference	CNES	bronze	published	public_parquet	bronze/cnes/	first_dir	cnes_bronze		^part-.*\.parquet$	Subconjunto CNES Bronze publico para referencia temporal, incluindo profissionais, equipes e vinculos

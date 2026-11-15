@@ -1,0 +1,10 @@
+system	subsystem	version	name	source_url	competence_min	competence_max	attribute_count	canonical_field_count	status
+SIH	CH	200801_		ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/	201901	202603	7	0	metadata_only_needs_curation
+SIH	CM	200801_		ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/	201901	202603	3	0	metadata_only_needs_curation
+SIH	ER	200801_	Rejeitadas com Código de Erro	ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/	201101	202604	13	1	canonical
+SIH	RD	199201_200712	Reduzido de AIH	ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/199201_200712/Dados/	199201	200712	89	9	canonical
+SIH	RD	200801_	Reduzido de AIH	ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/	200801	202604	114	9	canonical
+SIH	RJ	199201_200712	AIH rejeitada	ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/199201_200712/Dados/	200604	200712	78	9	canonical
+SIH	RJ	200801_	AIH rejeitada	ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/	200801	202604	91	9	canonical
+SIH	SP	199201_200712	Serviços Profissionais	ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/199201_200712/Dados/	199706	200712	20	2	canonical
+SIH	SP	200801_	Serviços Profissionais	ftp://ftp.datasus.gov.br/dissemin/publicos/SIHSUS/200801_/Dados/	200801	202604	37	4	canonical
