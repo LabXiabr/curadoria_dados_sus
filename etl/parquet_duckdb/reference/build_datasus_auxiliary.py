@@ -323,6 +323,19 @@ def main() -> int:
     state.mkdir(parents=True, exist_ok=True)
 
     wanted = {x.upper() for x in (args.system or [])}
+
+    # Bronze auxiliar e totalmente derivada dos artefatos Raw versionados.
+    # Limpa antes da reconstrucao para nao manter falsos positivos/stale files.
+    if not wanted:
+        shutil.rmtree(bronze_root, ignore_errors=True)
+    else:
+        for kind in ("cnv", "def", "dbf"):
+            for system in wanted:
+                shutil.rmtree(
+                    bronze_root / kind / f"system={system}",
+                    ignore_errors=True,
+                )
+
     rules = [
         r for r in read_tsv(args.catalog)
         if r.get("status") in {"active", "discover"}
