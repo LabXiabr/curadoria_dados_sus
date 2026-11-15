@@ -51,7 +51,21 @@ permanecem a fonte de reconstrução.
 4. Views `current` nunca misturam competências.
 5. Queries longitudinais devem declarar explicitamente a competência ou intervalo.
 
+## Promoção do snapshot homologado
+
+Após `qc_global_AAAAMM.ok`, `ops/cnes-promote-silver-snapshot.py` cria por
+hardlink a partição histórica de cada objeto Silver. O histórico é imutável:
+se uma partição já existir com inode diferente, a promoção falha em vez de
+sobrescrever.
+
+## PostgreSQL
+
+A Bronze mensal em Parquet é a representação relacional canônica dos dados
+abertos CNES. O PostgreSQL é tratado como legado/cache durante a transição.
+A retirada de tabelas segue `systems/cnes/postgresql_retirement.md`.
+
 ## Próxima etapa
 
-O backfill temporal somente é promovido após inventário das competências Raw CNES
-disponíveis e execução do QC de chaves por competência.
+Inventariar e backfilar as competências históricas necessárias, executar os
+QCs por competência e só então retirar do PostgreSQL as tabelas Bronze
+redundantes.

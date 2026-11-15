@@ -211,6 +211,33 @@ O pipeline CNES também cria o catálogo privado
 `silver/suslake.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
 fatos virtualmente sem duplicar a geografia nas tabelas factuais.
 
+
+### CNES Parquet público e histórico
+
+A Bronze completa continua canônica e protegida em `suslake/bronze/cnes/`.
+Um subconjunto próprio para referência é projetado por hardlink em
+`/dados/abertos/bronze/cnes/`, disponível em
+`https://dados.labx.ia.br/files/bronze/cnes/`.
+
+A Silver homologada é promovida por competência e o subconjunto de dimensões
+e relações de referência é projetado em
+`/dados/abertos/silver/cnes/`, disponível em
+`https://dados.labx.ia.br/files/silver/cnes/`.
+
+Profissionais, vínculos e bridges com profissionais não integram a superfície
+pública inicial.
+
+Após o QC global:
+
+```bash
+python3 ops/cnes-promote-silver-snapshot.py --competencia 202610
+./ops/cnes-publish-reference.sh 202610
+```
+
+A Bronze mensal em Parquet passa a ser a fonte relacional canônica dos dados
+abertos CNES. O plano para retirar tabelas equivalentes do PostgreSQL está em
+`systems/cnes/postgresql_retirement.md`.
+
 Execução isolada:
 
 ```bash
