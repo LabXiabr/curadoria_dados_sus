@@ -1,0 +1,46 @@
+system	subsystem	version	name	source_url	competence_min	competence_max	attribute_count	canonical_field_count	status
+SINAN	ACBI	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	68	0	metadata_only_needs_curation
+SINAN	ACGR	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	54	0	metadata_only_needs_curation
+SINAN	ANIM	FINAIS	Animais Peçonhentos	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202212	76	3	canonical
+SINAN	ANTR	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202412	89	0	metadata_only_needs_curation
+SINAN	BOTU	FINAIS	Botulismo	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202412	150	3	canonical
+SINAN	CANC	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202212	66	0	metadata_only_needs_curation
+SINAN	CHAG	FINAIS	Doença de Chagas	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200012	202212	151	3	canonical
+SINAN	CHIK	FINAIS	Chikungunya	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201512	202412	125	3	canonical
+SINAN	COLE	FINAIS	Cólera	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201112	202212	91	3	canonical
+SINAN	COQU	FINAIS	Coqueluche	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202212	82	3	canonical
+SINAN	DCRJ	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202212	38	0	metadata_only_needs_curation
+SINAN	DENG	FINAIS	Dengue e Chikungunya	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200012	202512	195	3	canonical
+SINAN	DERM	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	64	0	metadata_only_needs_curation
+SINAN	DIFT	FINAIS	Difteria	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202312	91	3	canonical
+SINAN	ESPO	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201312	202212	17	0	metadata_only_needs_curation
+SINAN	ESQU	FINAIS	Esquistossomose	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202212	53	3	canonical
+SINAN	FMAC	FINAIS	Febre Maculosa	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202112	98	3	canonical
+SINAN	FTIF	FINAIS	Febre Tifoide	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202412	130	3	canonical
+SINAN	HANS	FINAIS	Hanseníase	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200112	202312	63	3	canonical
+SINAN	HANT	FINAIS	Hantavirose	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	199912	202412	171	3	canonical
+SINAN	IEXO	FINAIS	Intoxicação Exógena	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	83	3	canonical
+SINAN	LEIV	FINAIS	Leishmaniose Visceral	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200012	202412	101	3	canonical
+SINAN	LEPT	FINAIS	Leptospirose	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200012	202412	177	3	canonical
+SINAN	LERD	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	72	0	metadata_only_needs_curation
+SINAN	LER	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201912	201912	72	0	metadata_only_needs_curation
+SINAN	LTAN	FINAIS	Leishmaniose Tegumentar Americana	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200012	202412	114	3	canonical
+SINAN	MALA	FINAIS	Malária	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200412	202212	102	3	canonical
+SINAN	MENI	FINAIS	Meningite	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202212	133	3	canonical
+SINAN	MENT	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	62	0	metadata_only_needs_curation
+SINAN	NTRA	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201012	202412	25	0	metadata_only_needs_curation
+SINAN	PAIR	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	70	0	metadata_only_needs_curation
+SINAN	PEST	FINAIS	Peste	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202412	61	3	canonical
+SINAN	PFAN	FINAIS	Paralisia Flácida Aguda	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202012	178	0	canonical
+SINAN	PNEU	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200612	202212	81	0	metadata_only_needs_curation
+SINAN	RAIV	FINAIS	Raiva Humana	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202412	94	3	canonical
+SINAN	ROTA	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200912	202412	72	0	metadata_only_needs_curation
+SINAN	SDTA	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	201812	95	0	metadata_only_needs_curation
+SINAN	TETA	FINAIS	Tétano Acidental	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200712	202312	65	3	canonical
+SINAN	TETN	FINAIS	Tétano Neonatal	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201412	202112	77	3	canonical
+SINAN	TOXC	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201912	202312	38	0	metadata_only_needs_curation
+SINAN	TOXG	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201912	202312	38	0	metadata_only_needs_curation
+SINAN	TRAC	FINAIS		ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200912	202412	30	0	metadata_only_needs_curation
+SINAN	TUBE	FINAIS	Tuberculose	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200112	201912	97	3	canonical
+SINAN	VIOL	FINAIS	Violência Interpessoal ou Autoprovocada	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	200912	202412	160	3	canonical
+SINAN	ZIKA	FINAIS	Zika	ftp://ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/	201612	202412	41	3	canonical

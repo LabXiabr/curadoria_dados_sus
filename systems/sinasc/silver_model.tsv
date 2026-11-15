@@ -1,0 +1,2 @@
+layer	object	source	grain	time_anchor	references	status
+fact	fact_sinasc_nascimento	DNR|DN	source_record;business_key_candidate=NUMERODN	data_nascimento	CNES|TERRITORIO|SINASC_AUX	designed

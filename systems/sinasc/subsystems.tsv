@@ -1,0 +1,4 @@
+system	subsystem	version	name	source_url	competence_min	competence_max	attribute_count	canonical_field_count	status
+SINASC	DN	ANT	Declarações de Nascidos Vivos	ftp://ftp.datasus.gov.br/dissemin/publicos/SINASC/ANT/DNRES/	201412	201412	64	3	canonical
+SINASC	DN	NOV	Declarações de Nascidos Vivos	ftp://ftp.datasus.gov.br/dissemin/publicos/SINASC/NOV/DNRES/	199612	202212	78	3	canonical
+SINASC	DNR	ANT	Nascimentos por UF de residência	ftp://ftp.datasus.gov.br/dissemin/publicos/SINASC/ANT/DNRES/	199412	199512	31	2	canonical
