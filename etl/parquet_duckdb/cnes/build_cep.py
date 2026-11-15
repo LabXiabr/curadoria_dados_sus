@@ -65,7 +65,9 @@ def main() -> int:
         die(f"ZIP ausente: {zp}",4)
 
     version=sha[:16]
-    work=Path(tempfile.mkdtemp(prefix="cep_",dir=lake/"work"))
+    workroot=lake/"work"
+    workroot.mkdir(parents=True,exist_ok=True)
+    work=Path(tempfile.mkdtemp(prefix="cep_",dir=workroot))
     try:
         with zipfile.ZipFile(zp) as zf:
             names={Path(x).name.upper():x for x in zf.namelist() if not x.endswith("/")}
@@ -96,7 +98,7 @@ COPY (
         current_timestamp AS _ingested_at
  FROM read_csv_auto(
       {sqls(str(src))},
-      delim='\\t',
+      delim={sqls(chr(9))},
       header=false,
       all_varchar=true,
       sample_size=-1
@@ -108,7 +110,19 @@ TO {sqls(str(partial))} (FORMAT PARQUET, COMPRESSION ZSTD);
                 if pq != rows:
                     raise RuntimeError(f"{table}: TXT={rows} Parquet={pq}")
                 os.replace(partial,dest)
-                print(f"OK {table} rows={rows} version={version}")
+
+                current_dir=lake/"silver"/"reference"/table
+                current_dir.mkdir(parents=True,exist_ok=True)
+                current=current_dir/"current.parquet"
+                current_partial=current.with_name(current.name+f".partial.{os.getpid()}")
+                run(f"""
+COPY (
+ SELECT * FROM read_parquet({sqls(str(dest))})
+)
+TO {sqls(str(current_partial))} (FORMAT PARQUET, COMPRESSION ZSTD);
+""")
+                os.replace(current_partial,current)
+                print(f"OK {table} rows={rows} version={version} current={current}")
 
         out=state/"qc_reference_cep_brasil.ok"
         out.write_text("\n".join([
