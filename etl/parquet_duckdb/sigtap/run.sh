@@ -236,11 +236,18 @@ while IFS= read -r -d '' txt; do
             n="$(wc -l < "$lf")" "$lf"
     )"
     expected="$(awk -F',' 'END {gsub(/\r/,""); print $4+0}' "$lf")"
+    last_start="$(awk -F',' 'END {gsub(/\r/,""); print $3+0}' "$lf")"
 
     if [[ "$rows" == "0" ]]; then
         status="ok"
     elif [[ "$minlen" == "$expected" && "$maxlen" == "$expected" ]]; then
         status="ok"
+    elif (( maxlen <= expected && minlen >= last_start - 1 )); then
+        # Alguns TXT oficiais omitem apenas o padding de espacos a direita
+        # do ultimo campo. Isso e lossless porque o parser/QC normalizam
+        # espacos terminais do campo, sem aceitar truncamento de campos
+        # anteriores.
+        status="ok_right_trimmed"
     else
         status="width_mismatch"
         ((issues+=1))
@@ -251,7 +258,7 @@ while IFS= read -r -d '' txt; do
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
         "$table" "$base" "$rows" "$widths" "$fields" "$expected" "$status" >> "$resolved"
 
-    [[ "$status" == "ok" ]] && ((recognized+=1))
+    [[ "$status" == "ok" || "$status" == "ok_right_trimmed" ]] && ((recognized+=1))
 done < <(find "$work/extract" -type f -iname '*.txt' -print0 | sort -z)
 
 echo
@@ -278,7 +285,7 @@ printf 'table\tcompetencia\trows_source\trows_parquet\tparquet\tsource_zip\tsha2
 
 while IFS=$'\t' read -r table file rows widths fields expected status; do
     [[ "$table" == "table" ]] && continue
-    [[ "$status" == "ok" ]] || continue
+    [[ "$status" == "ok" || "$status" == "ok_right_trimmed" ]] || continue
 
     txt="$(find "$work/extract" -type f -iname "${table}.txt" -print -quit)"
     [[ -n "$txt" ]] || exit 8
