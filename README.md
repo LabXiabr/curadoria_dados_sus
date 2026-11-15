@@ -46,6 +46,30 @@ Exemplo:
 python3 ops/build-duckdb-public-catalog.py --database ~/duckdb/bureta.duckdb
 ```
 
+## Raw oficial para download
+
+Os artefatos Raw selecionados são publicados sem duplicação de disco por
+hardlinks em:
+
+```text
+/dados/abertos/raw/
+https://dados.labx.ia.br/files/raw/
+```
+
+A allowlist fica em `catalog/raw_publication.tsv` e o inventário concreto
+gerado fica em `/dados/abertos/raw/catalog.tsv`.
+
+Publicação inicial:
+
+```bash
+./ops/publish-raw-artifacts.py
+```
+
+Isso não cria nova camada: os arquivos continuam sendo Raw. O caminho público
+é apenas uma projeção dos mesmos inodes preservados em `suslake/raw/`.
+
+Política completa: `docs/adr/0007-publicacao-raw.md`.
+
 ## SIGTAP completa e temporal
 
 A Bronze histórica completa é construída competência a competência com QC independente Raw→Bronze. A Silver temporal só inicia quando toda competência Raw canônica estiver homologada para o mesmo ZIP selecionado.

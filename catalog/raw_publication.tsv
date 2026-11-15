@@ -1,0 +1,4 @@
+dataset_id	system	status	source_rel	glob	public_prefix	source_base_url	description
+territorio	REFERENCE	published	reference/territorio	**/*.zip	territorio	ftp://ftp.datasus.gov.br/territorio/tabelas/	Base Territorial DATASUS; preserva snapshots oficiais
+popsvs	REFERENCE	published	reference/populacao_popsvs	ano=*/*.zip	populacao/popsvs	ftp://ftp.datasus.gov.br/dissemin/publicos/IBGE/POPSVS/	POPSVS; populacao anual por municipio sexo e idade
+sigtap	SIGTAP	published	sigtap/zip	TabelaUnificada_*.zip	sigtap	ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads/	SIGTAP; arquivos oficiais TabelaUnificada por competencia/revisao
