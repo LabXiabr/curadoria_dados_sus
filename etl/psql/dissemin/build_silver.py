@@ -68,6 +68,8 @@ def main() -> int:
     ap.add_argument("--manifest",type=Path)
     ap.add_argument("--system",action="append")
     ap.add_argument("--subsystem",action="append")
+    ap.add_argument("--schema",action="append")
+    ap.add_argument("--table",action="append")
     ap.add_argument("--from",dest="comp_from")
     ap.add_argument("--to",dest="comp_to")
     ap.add_argument("--max-tables",type=int,default=0)
@@ -81,11 +83,15 @@ def main() -> int:
 
     wanted_systems={x.upper() for x in (args.system or [])}
     wanted_subs={x.upper() for x in (args.subsystem or [])}
+    wanted_schema=set(args.schema or [])
+    wanted_table=set(args.table or [])
     selected=[]
     for r in read_tsv(manifest):
         if r.get("status")!="validated": continue
         if wanted_systems and r["system"].upper() not in wanted_systems: continue
         if wanted_subs and r["subsystem"].upper() not in wanted_subs: continue
+        if wanted_schema and r["table_schema"] not in wanted_schema: continue
+        if wanted_table and r["table_name"] not in wanted_table: continue
         comp=r.get("source_competencia","")
         if (args.comp_from or args.comp_to) and not comp: continue
         if args.comp_from and comp<args.comp_from: continue
