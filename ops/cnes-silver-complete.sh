@@ -14,13 +14,20 @@ mkdir -p "$STATE"
   exit 2
 }
 
+TERR_CONFORM="$LAKE_ROOT/state/reference/territorio_conformado_current.ok"
+if [[ ! -f "$TERR_CONFORM" ]]; then
+  python3 "$ROOT/etl/parquet_duckdb/reference/build_territorio_conformado.py"
+fi
+
 for f in \
   "$STATE/base_complete_${COMP}.ok" \
   "$STATE/qc_bronze_${COMP}.ok" \
-  "$STATE/qc_territorio_${COMP}.ok"
+  "$STATE/qc_territorio_${COMP}.ok" \
+  "$STATE/qc_unidade_${COMP}.ok"
 do
   [[ -f "$f" ]] || { echo "ERRO: gate ausente: $f" >&2; exit 20; }
 done
 
+python3 "$ROOT/ops/qc-cnes-df-territorio.py" --competencia "$COMP"
 python3 "$ROOT/ops/cnes-profile-bronze.py" --competencia "$COMP"
 python3 "$ROOT/etl/parquet_duckdb/cnes/build_silver_current.py" --competencia "$COMP"

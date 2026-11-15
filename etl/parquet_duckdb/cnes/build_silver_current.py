@@ -111,6 +111,7 @@ def main() -> int:
 
     munraw=f"regexp_replace(trim(cast(e.{qi(c_mun)} as varchar)), '[^0-9]', '', 'g')"
     munkey=f"""CASE
+      WHEN substr({munraw},1,2)='53' AND length({munraw}) IN (6,7) THEN '530010'
       WHEN length({munraw})=7 THEN {munraw}
       WHEN length({munraw})=6 THEN {munraw}
       ELSE NULL
@@ -149,14 +150,19 @@ catalog AS (
   FROM read_parquet({qs(str(terr_all))})
 ),
 src AS (
-  SELECT e.*, {munkey} AS _municipio_match_key
+  SELECT
+    e.*,
+    {munraw} AS _municipio_gestor_cnes,
+    {munkey} AS _municipio_match_key
   FROM read_parquet({qs(str(estab))}) e
 )
 SELECT
-  src.* EXCLUDE (_municipio_match_key),
+  src.* EXCLUDE (_municipio_gestor_cnes, _municipio_match_key),
   trim(cast(src.{qi(c_unidade)} as varchar)) AS co_unidade_key,
   trim(cast(src.{qi(c_cnes)} as varchar)) AS co_cnes_key,
+  src._municipio_gestor_cnes AS co_localidade_gestor_cnes,
   CASE
+    WHEN substr(src._municipio_gestor_cnes,1,2)='53' THEN 'df_parent_brasilia'
     WHEN t.mun_key IS NOT NULL THEN 'active'
     WHEN c.mun6 IS NOT NULL THEN 'historical_catalog'
     ELSE 'unmatched'
@@ -292,7 +298,7 @@ WHERE co_unidade_key IS NOT NULL
         f"report={report_path}",
         "scope=current_core_no_professional_silver_yet",
         "visibility=private_until_public_contract",
-        "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_no_unmatched;fact_orphans_zero",
+        "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_no_unmatched;df_parent_brasilia_preserves_cnes_locality;fact_orphans_zero",
         "status=complete",
         ""
     ]),encoding="utf-8")

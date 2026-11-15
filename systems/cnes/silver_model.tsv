@@ -1,5 +1,6 @@
 layer	object	source_tables	grain	purpose
-dimension	dim_estabelecimento	tb_estabelecimento	1 row per CO_CNES per official snapshot	Estabelecimento corrente com chaves territoriais e classificacoes reutilizaveis
+dimension	dim_territorio	reference/municipio_contexto|reference/territorio/rl_municip_divadm|reference/territorio/tb_divadm	1 row per municipio IBGE plus DF administrative division	Territorio conformado: municipios e, no DF, divisao administrativa/RA como nivel submunicipal; codigo IBGE da RA somente quando resolvido na referencia
+dimension	dim_estabelecimento	tb_estabelecimento	1 row per CO_CNES per official snapshot	Estabelecimento corrente; preserva localidade gestora CNES e usa geografia conformada sem derivar territorio de CO_UNIDADE
 fact	fact_estabelecimento_servico	rl_estab_serv_class	CO_CNES x servico x classificacao x snapshot	Oferta de servicos/classificacoes por estabelecimento
 fact	fact_estabelecimento_equipamento	rl_estab_equipamento	CO_CNES x equipamento x snapshot	Equipamentos existentes/em uso por estabelecimento
 fact	fact_estabelecimento_leito	rl_estab_complementar	CO_CNES x CO_LEITO x CO_TIPO_LEITO x snapshot	Leitos por estabelecimento; nao confundir com NU_LEITOS de instalacao fisica/SIPAC
@@ -11,6 +12,10 @@ dimension	dim_equipamento	tb_equipamento|tb_tipo_equipamento	codigo de dominio	D
 dimension	dim_tipo_estabelecimento	tb_tipo_estabelecimento	codigo de dominio	Dominio de tipo de estabelecimento
 dimension	dim_natureza_juridica	tb_natureza_juridica	codigo de dominio	Dominio de natureza juridica
 
-# key_policy	CO_UNIDADE=chave_relacional_interna	CO_CNES=identificador_cnes_publico	facts_join_on=CO_UNIDADE
+# key_policy	CO_UNIDADE=chave_relacional_interna_opaca	CO_CNES=identificador_cnes_publico_7d	facts_join_on=CO_UNIDADE
 
-# unidade_semantics	CO_UNIDADE=candidato_13d(municipio6+CNES7)	prefixo_municipal=derivado_auditoria_nao_autoritativo	geografia=CO_MUNICIPIO_GESTOR+dim_territorial
+# unidade_semantics	numeric13_suffix7=CO_CNES_observado	numeric13_prefix6=nao_autoritativo_para_territorio	non_numeric13=valor_legitimo_preservar_como_varchar
+
+# geography_policy	CO_MUNICIPIO_GESTOR=localidade_operacional_cnes_preservada	municipio_ibge=dim_territorio	DF_parent_municipio=5300108	DF_submunicipal=divisao_administrativa_RA
+
+# geography_resolution	fora_DF=municipio_IBGE	DF=municipio_5300108_mais_RA_quando_resolvida	co_ra_ibge=nao_inferir_de_CO_UNIDADE
