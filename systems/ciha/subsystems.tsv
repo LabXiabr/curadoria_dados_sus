@@ -1,0 +1,2 @@
+system	subsystem	version	name	source_url	competence_min	competence_max	attribute_count	canonical_field_count	status
+CIHA	CIHA	201101_	Sistema de Comunicação de Informação Hospitalar e Ambulatorial	ftp://ftp.datasus.gov.br/dissemin/publicos/CIHA/201101_/Dados/	201101	202604	30	9	canonical

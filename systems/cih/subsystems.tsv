@@ -1,0 +1,2 @@
+system	subsystem	version	name	source_url	competence_min	competence_max	attribute_count	canonical_field_count	status
+CIH	CR	200801_201012	Central de Regulação / Caráter	ftp://ftp.datasus.gov.br/dissemin/publicos/CIH/200801_201012/Dados/	200801	201104	27	9	canonical

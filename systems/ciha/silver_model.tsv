@@ -1,0 +1,3 @@
+layer	object	source	grain	time_anchor	references	status
+fact	fact_ciha_evento	CIHA	source_record	competencia|data_atendimento	CNES|SIGTAP|CID|TERRITORIO|TAB_CIHA	designed
+view	vw_cih_ciha_evento_core	CIH.CR|CIHA.CIHA	common_projection	declared_by_query	CNES|SIGTAP|CID|TERRITORIO	designed

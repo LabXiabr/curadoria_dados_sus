@@ -1,0 +1,7 @@
+system	subsystem	version	name	source_url	competence_min	competence_max	attribute_count	canonical_field_count	status
+SIM	DO		Declarações de Óbitos	ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DORES/	199612	202412	99	7	canonical
+SIM	DOE		Declarações de Óbitos por causas externas	ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DOFET/	199612	202412	98	7	canonical
+SIM	DOF		Declarações de Óbitos Fetais	ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DOFET/	199612	202412	126	7	canonical
+SIM	DOI		Declarações de Óbitos Infantis	ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DOFET/	199612	202412	98	7	canonical
+SIM	DOM		Declarações de Óbitos Maternos	ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DOFET/	199612	202412	98	7	canonical
+SIM	DORE			ftp://ftp.datasus.gov.br/dissemin/publicos/SIM/CID10/DOFET/	201312	202312	92	0	metadata_only_needs_curation
