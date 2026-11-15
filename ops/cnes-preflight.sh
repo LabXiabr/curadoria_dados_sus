@@ -27,6 +27,12 @@ if [[ -d /etc/apache2 ]]; then
     echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
     exit 21
   fi
+  if ! grep -Fq '<Directory "/dados/abertos/suslake/silver/cnes">' "$conf" \
+     || ! grep -Fq '^<LocationMatch "^/files/suslake/silver/cnes(/|$)">' "$conf"; then
+    echo "ERRO: guard Silver CNES ausente/desatualizado em $conf" >&2
+    echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
+    exit 21
+  fi
   echo "APACHE_PRIVATE_CONF_OK $conf included_by=$vhost"
 
   command -v curl >/dev/null 2>&1 || {
@@ -44,6 +50,18 @@ if [[ -d /etc/apache2 ]]; then
     exit 23
   fi
   echo "APACHE_PRIVATE_HTTP_OK $private_url -> HTTP $private_code"
+
+  silver_private_url="$HTTP_BASE/suslake/silver/cnes/_privacy_probe"
+  silver_private_code="$(
+    curl -sS -o /dev/null -w '%{http_code}' \
+      -H "Host: $HTTP_HOST" \
+      "$silver_private_url"
+  )"
+  if [[ "$silver_private_code" != "403" ]]; then
+    echo "ERRO: Silver CNES nao esta privada: $silver_private_url -> $silver_private_code" >&2
+    exit 23
+  fi
+  echo "APACHE_CNES_SILVER_PRIVATE_OK $silver_private_url -> HTTP $silver_private_code"
 
   public_file="$LAKE_ROOT/silver/sigtap/tb_procedimento/temporal.parquet"
   if [[ -f "$public_file" ]]; then
