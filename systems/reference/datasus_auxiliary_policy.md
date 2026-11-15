@@ -51,3 +51,15 @@ Snapshot baseado em `LabXiabr/bd_geral` commit
 FTP do `ftpsus_navegador`. O navegador mantém nomes físicos, anexa metadados
 e só extrai enumerações quando há pares código-rótulo explícitos; essa
 postura conservadora é adotada aqui.
+
+
+## Aquisição operacional
+
+`ops/acquire-datasus-auxiliary.py` lê `catalog/auxiliary_sources.tsv`,
+baixa o artefato com progresso visível, calcula SHA-256 e grava manifesto dos
+membros de ZIP. Pacotes rolling só são baixados novamente com `--refresh`.
+Diretórios marcados como `discover` geram listagem para curadoria posterior.
+
+A aquisição não interpreta automaticamente DEF/CNV/DBD. Primeiro preserva e
+inventaria; o parser Bronze será específico por formato e validado contra os
+membros reais.

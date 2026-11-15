@@ -296,3 +296,14 @@ corrente é aplicada retroativamente sem vínculo temporal explícito.
 
 Política: `systems/reference/datasus_auxiliary_policy.md`.
 Catálogo: `catalog/auxiliary_sources.tsv`.
+
+
+Aquisição das fontes auxiliares:
+
+```bash
+./ops/acquire-datasus-auxiliary.py --system SIA --system SIH
+./ops/acquire-datasus-auxiliary.py --system SINAN
+```
+
+Use `--dry-run` para listar e `--refresh` para verificar nova versão de
+fontes rolling.
