@@ -2,51 +2,57 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PROFILE="BURETA"
 SYSTEM=""
-DRY=0
-BRONZE_ARGS=()
-SILVER_ARGS=()
+EXEC=0
+MAX_TABLES=""
+COMMON=()
+INV=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --profile)
+      PROFILE="$2"; shift 2 ;;
     --system)
-      SYSTEM="$2"
-      BRONZE_ARGS+=("$1" "$2")
-      SILVER_ARGS+=("$1" "$2")
-      shift 2
-      ;;
-    --max-files)
-      BRONZE_ARGS+=("$1" "$2")
-      shift 2
-      ;;
-    --dry-run)
-      DRY=1
-      BRONZE_ARGS+=("$1")
-      shift
-      ;;
+      SYSTEM="$2"; COMMON+=("--system" "$2"); INV+=("--system" "$2"); shift 2 ;;
+    --subsystem|--from|--to|--schema|--table)
+      COMMON+=("$1" "$2"); shift 2 ;;
+    --max-tables|--max-files)
+      MAX_TABLES="$2"; shift 2 ;;
+    --execute)
+      EXEC=1; shift ;;
+    --force)
+      COMMON+=("--force"); shift ;;
+    -h|--help)
+      cat <<'EOF'
+Uso:
+  ops/dissemin-system-complete.sh --system SIA|SIH|CIH|CIHA|SIM|SINASC|SINAN [filtros] [--execute]
+
+Fonte da migracao inicial: PostgreSQL bdsus.
+DBC/Wine fica fora deste fluxo e serve para recomposicao futura.
+EOF
+      exit 0 ;;
     *)
-      BRONZE_ARGS+=("$1")
-      SILVER_ARGS+=("$1")
-      shift
-      ;;
+      echo "Parametro desconhecido: $1" >&2; exit 2 ;;
   esac
 done
 
-[[ "$SYSTEM" == "SIA" || "$SYSTEM" == "SIH" ]] || {
-  echo "Uso: $0 --system SIA|SIH [--subsystem X] [--uf XX] [--from YYYYMM] [--to YYYYMM] [--max-files N]" >&2
-  exit 2
-}
+[[ -n "$SYSTEM" ]] || { echo "ERRO: --system obrigatorio" >&2; exit 2; }
 
-python3 -m py_compile \
-  "$ROOT/etl/parquet_duckdb/dissemin/build_dbc_bronze.py" \
-  "$ROOT/etl/parquet_duckdb/dissemin/build_dbc_silver.py"
+python3 -m py_compile   "$ROOT/ops/psql-dissemin-inventory.py"   "$ROOT/etl/psql/dissemin/export_bronze.py"   "$ROOT/etl/psql/dissemin/build_silver.py"
 
-python3 "$ROOT/etl/parquet_duckdb/dissemin/build_dbc_bronze.py" "${BRONZE_ARGS[@]}"
-if (( DRY == 1 )); then
-  echo "DISSEMIN_SYSTEM_DRY_RUN_OK system=$SYSTEM"
+python3 "$ROOT/ops/psql-dissemin-inventory.py" --profile "$PROFILE" "${INV[@]}"
+
+ARGS=(--profile "$PROFILE" "${COMMON[@]}")
+[[ -n "$MAX_TABLES" ]] && ARGS+=(--max-tables "$MAX_TABLES")
+
+if (( EXEC == 0 )); then
+  python3 "$ROOT/etl/psql/dissemin/export_bronze.py" "${ARGS[@]}"
+  echo "DISSEMIN_PSQL_DRY_RUN_OK system=$SYSTEM profile=$PROFILE"
   exit 0
 fi
-"$ROOT/ops/dissemin-dbc-preflight.sh"
-python3 "$ROOT/etl/parquet_duckdb/dissemin/build_dbc_silver.py" "${SILVER_ARGS[@]}"
 
-echo "DISSEMIN_SYSTEM_COMPLETE_OK system=$SYSTEM"
+python3 "$ROOT/etl/psql/dissemin/export_bronze.py" "${ARGS[@]}" --execute
+python3 "$ROOT/etl/psql/dissemin/build_silver.py" "${ARGS[@]}" --execute
+
+echo "DISSEMIN_PSQL_COMPLETE_OK system=$SYSTEM profile=$PROFILE"
