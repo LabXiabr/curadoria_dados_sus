@@ -37,7 +37,6 @@ done
   exit 2
 }
 
-"$ROOT/ops/dissemin-dbc-preflight.sh"
 python3 -m py_compile \
   "$ROOT/etl/parquet_duckdb/dissemin/build_dbc_bronze.py" \
   "$ROOT/etl/parquet_duckdb/dissemin/build_dbc_silver.py"
@@ -47,6 +46,7 @@ if (( DRY == 1 )); then
   echo "DISSEMIN_SYSTEM_DRY_RUN_OK system=$SYSTEM"
   exit 0
 fi
+"$ROOT/ops/dissemin-dbc-preflight.sh"
 python3 "$ROOT/etl/parquet_duckdb/dissemin/build_dbc_silver.py" "${SILVER_ARGS[@]}"
 
 echo "DISSEMIN_SYSTEM_COMPLETE_OK system=$SYSTEM"

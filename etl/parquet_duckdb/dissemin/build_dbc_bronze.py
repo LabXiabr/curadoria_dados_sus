@@ -158,10 +158,11 @@ def main() -> int:
     ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"))
     args = ap.parse_args()
 
-    if not shutil.which("duckdb"):
-        die("duckdb CLI ausente", 3)
-    if not shutil.which("Rscript"):
-        die("Rscript ausente", 3)
+    if not args.dry_run:
+        if not shutil.which("duckdb"):
+            die("duckdb CLI ausente", 3)
+        if not shutil.which("Rscript"):
+            die("Rscript ausente", 3)
 
     system = args.system
     cfg = SYSTEMS[system]
