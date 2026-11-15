@@ -275,3 +275,10 @@ Execução isolada:
 ```bash
 python3 etl/parquet_duckdb/reference/build_municipio_contexto.py
 ```
+
+
+### Corte histórico CNES
+
+A série `BASE_DE_DADOS_CNES` é considerada oficial para backfill a partir de
+`201706`. Competências anteriores são tratadas como legado PostgreSQL/DBC e
+seguem `systems/cnes/legacy_pre201706.md`.

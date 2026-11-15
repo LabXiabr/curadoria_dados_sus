@@ -53,3 +53,14 @@ Para fatos de produção e notificação, a preferência é:
 - dimensões e relações Silver públicas para consumo analítico, inclusive
   profissionais, equipes e vínculos do registro público CNES;
 - Bronze mensal para auditoria, reconstrução e atributos não promovidos à Silver.
+
+
+## Série pré-201706
+
+A série moderna `BASE_DE_DADOS_CNES_AAAAMM.ZIP` é tratada como canônica a
+partir de 201706. Tabelas PostgreSQL anteriores pertencem ao legado CNES e
+devem ser migradas por família/UF/competência conforme
+`systems/cnes/legacy_pre201706.md`.
+
+A existência de uma tabela histórica no PostgreSQL não autoriza sua remoção
+até que a exportação Parquet correspondente seja homologada.

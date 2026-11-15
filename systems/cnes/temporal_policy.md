@@ -91,3 +91,14 @@ Atributos nativos do CNES (estabelecimento, tipo, natureza, serviços,
 equipamentos, leitos, equipes, profissionais e vínculos) permanecem
 mensais. A geografia derivada deve carregar a proveniência da referência
 territorial utilizada.
+
+
+## Corte histórico da fonte BASE_DE_DADOS_CNES
+
+O Portal CNES documenta o download da Base de Dados por competência a partir
+de 06/2017. O pipeline adota `201706` como corte mínimo oficial para
+`BASE_DE_DADOS_CNES_AAAAMM.ZIP`.
+
+Itens anteriores eventualmente listados no FTP não são considerados elegíveis
+para o backfill moderno. O histórico pré-201706 segue o fluxo legado descrito
+em `systems/cnes/legacy_pre201706.md`.

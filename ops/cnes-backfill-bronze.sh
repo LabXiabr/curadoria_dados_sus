@@ -4,6 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
 STATE="$LAKE_ROOT/state/cnes"
+MIN_COMP="${CNES_BASE_MIN_COMP:-201706}"
 
 FROM=""
 TO=""
@@ -16,7 +17,9 @@ Uso:
   ops/cnes-backfill-bronze.sh --from YYYYMM --to YYYYMM [--execute] [--max N]
 
 Sem --execute, apenas imprime o plano.
-O backfill cobre Raw + Bronze + QCs de base. Nao executa Silver historica.
+O backfill cobre Raw + Bronze + QCs de base para a serie oficial
+BASE_DE_DADOS_CNES, suportada a partir de 201706.
+Competencias anteriores pertencem ao fluxo legado PostgreSQL/DBC.
 USAGE
 }
 
@@ -35,6 +38,16 @@ done
   echo "ERRO: --from e --to devem ser YYYYMM" >&2
   exit 2
 }
+[[ "$MIN_COMP" =~ ^[0-9]{6}$ ]] || {
+  echo "ERRO: CNES_BASE_MIN_COMP invalida: $MIN_COMP" >&2
+  exit 2
+}
+
+requested_from="$FROM"
+if [[ "$FROM" < "$MIN_COMP" ]]; then
+  echo "CNES_BACKFILL_NOTICE requested_from=$FROM official_base_start=$MIN_COMP legacy_pre_start=1"
+  FROM="$MIN_COMP"
+fi
 
 "$ROOT/ops/cnes-list-remote-history.sh" >/dev/null
 
@@ -47,7 +60,7 @@ report="$(sed -n 's/^report=//p' "$remote_marker" | head -1)"
 
 mapfile -t comps < <(
   awk -F $'\t' -v a="$FROM" -v b="$TO" '
-    NR>1 && $1>=a && $1<=b && $4!=1 {print $1}
+    NR>1 && $1>=a && $1<=b && $3==1 && $5!=1 {print $1}
   ' "$report" | sort
 )
 
@@ -55,7 +68,7 @@ if (( MAX > 0 && ${#comps[@]} > MAX )); then
   comps=("${comps[@]:0:MAX}")
 fi
 
-echo "CNES_BACKFILL_PLAN from=$FROM to=$TO missing_base_complete=${#comps[@]} execute=$EXECUTE"
+echo "CNES_BACKFILL_PLAN requested_from=$requested_from effective_from=$FROM to=$TO official_min=$MIN_COMP missing_base_complete=${#comps[@]} execute=$EXECUTE"
 printf '%s\n' "${comps[@]}"
 
 if (( EXECUTE == 0 )); then
