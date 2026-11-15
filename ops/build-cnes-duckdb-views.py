@@ -144,6 +144,7 @@ def main() -> int:
   t.co_macrorregiao_saude,
   t.no_macrorregiao_saude,
   t.co_regiao_saude_key,
+  t.co_regiao_saude_drill_key,
   t.co_regiao_saude,
   t.no_regiao_saude,
   t.co_municipio_key,

@@ -25,9 +25,11 @@ view	vw_leito_drill	fact_estabelecimento_leito|vw_estabelecimento_drill	grain do
 
 # territorio_key	MUN:<IBGE7>=municipio	RA_DF:<IBGE11>=RA_resolvida	regra=menor_territorio_resolvido_com_seguranca
 
-# hierarchy_primary	REGIAO>UF>MACRORREGIAO_SAUDE>REGIAO_SAUDE>MUNICIPIO>RA_DF
+# hierarchy_primary_drill	REGIAO>UF>MACRORREGIAO_SAUDE>REGIAO_SAUDE_DRILL>MUNICIPIO>RA_DF
 
-# hierarchy_keys	REGIAO:<co_regiao>	UF:<co_uf>	MACRO_SAUDE:<co_uf>:<co_macro>	REG_SAUDE:<co_uf>:<co_regiao_saude>	MUN:<IBGE7>	RA_DF:<IBGE11>
+# hierarchy_keys	REGIAO:<co_regiao>	UF:<co_uf>	MACRO_SAUDE:<co_uf>:<co_macro>	REG_SAUDE:<co_uf>:<co_regiao_saude>	REG_SAUDE_DRILL:<co_uf>:<co_macro>:<co_regiao_saude>	MUN:<IBGE7>	RA_DF:<IBGE11>
+
+# health_hierarchy_semantics	REG_SAUDE=entidade_canonica_pode_cruzar_macrorregiao	REG_SAUDE_DRILL=caminho_hierarquico_estrito_dentro_da_macro	exemplo=Central_RO_cruza_Macro_I_e_II
 
 # hierarchy_alternative	MICRORREGIAO_IBGE	REGIAO_METROPOLITANA	DSEI	PNDR	TERRITORIO_CIDADANIA
 

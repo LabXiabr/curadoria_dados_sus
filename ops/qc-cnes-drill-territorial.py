@@ -62,23 +62,33 @@ e AS (
   SELECT *
   FROM cnes.vw_estabelecimento_drill
 ),
-rconf AS (
+region_multimacro AS (
   SELECT count(*) AS n
   FROM (
     SELECT co_regiao_saude_key
     FROM t
     GROUP BY 1
     HAVING count(DISTINCT co_macrorregiao_saude_key)>1
-       OR count(DISTINCT co_uf_key)>1
   )
 ),
-mconf AS (
+macro_multiuf AS (
   SELECT count(*) AS n
   FROM (
     SELECT co_macrorregiao_saude_key
     FROM t
     GROUP BY 1
     HAVING count(DISTINCT co_uf_key)>1
+  )
+),
+drill_conflict AS (
+  SELECT count(*) AS n
+  FROM (
+    SELECT co_regiao_saude_drill_key
+    FROM t
+    GROUP BY 1
+    HAVING count(DISTINCT co_uf_key)>1
+       OR count(DISTINCT co_macrorregiao_saude_key)>1
+       OR count(DISTINCT co_regiao_saude_key)>1
   )
 )
 SELECT
@@ -95,7 +105,14 @@ SELECT
      WHERE co_regiao_saude_key IS NULL
         OR no_regiao_saude IS NULL OR no_regiao_saude=''),
   (SELECT count(*) FROM t
+     WHERE co_regiao_saude_drill_key IS NULL
+        OR co_regiao_saude_drill_key=''),
+  (SELECT count(*) FROM t
      WHERE co_municipio_key IS NULL OR no_municipio IS NULL OR no_municipio=''),
+  (SELECT count(*) FROM t
+     WHERE coalesce(qt_regiao_saude,0)<>1),
+  (SELECT count(*) FROM t
+     WHERE coalesce(qt_macrorregiao_saude,0)<>1),
   (SELECT count(*) FROM cnes.dim_territorio WHERE tp_territorio='RA_DF'),
   (SELECT count(*) FROM cnes.dim_estabelecimento),
   (SELECT count(*) FROM e),
@@ -104,8 +121,9 @@ SELECT
      WHERE co_regiao_key IS NULL OR no_regiao IS NULL OR no_regiao=''),
   (SELECT count(*) FROM e
      WHERE sg_uf='DF' AND tp_territorio<>'RA_DF'),
-  (SELECT n FROM rconf),
-  (SELECT n FROM mconf);
+  (SELECT n FROM region_multimacro),
+  (SELECT n FROM macro_multiuf),
+  (SELECT n FROM drill_conflict);
 """
 
     vals = list(map(int, next(csv.reader([duck(db, stats_sql, True).strip()]))))
@@ -117,15 +135,19 @@ SELECT
         "miss_regiao",
         "miss_macro",
         "miss_regsaud",
+        "miss_regsaud_drill_key",
         "miss_municipio",
+        "municipio_multi_regsaud",
+        "municipio_multi_macro",
         "ra_df",
         "estabelecimentos",
         "drill_rows",
         "estab_sem_territorio",
         "estab_sem_regiao",
         "df_estab_sem_ra",
-        "regiao_saude_conflitos",
-        "macro_saude_conflitos",
+        "regiao_saude_multimacro",
+        "macro_saude_multiuf",
+        "drill_path_conflitos",
     ]
     s = dict(zip(keys, vals))
 
@@ -139,33 +161,25 @@ SELECT
         check=True,
     ).stdout.strip()
 
-    detail = state / f"qc_drill_territorial_{ts}_conflicts.tsv"
-
-    detail_sql = f"""
+    if s["regiao_saude_multimacro"]:
+        detail = state / f"qc_drill_territorial_{ts}_non_strict.tsv"
+        duck(
+            db,
+            f"""
 COPY (
 WITH t AS (
   SELECT *
   FROM cnes.dim_territorio
   WHERE tp_territorio='MUNICIPIO'
 ),
-bad_reg AS (
+multi AS (
   SELECT co_regiao_saude_key
   FROM t
   GROUP BY 1
   HAVING count(DISTINCT co_macrorregiao_saude_key)>1
-     OR count(DISTINCT co_uf_key)>1
-),
-bad_macro AS (
-  SELECT co_macrorregiao_saude_key
-  FROM t
-  GROUP BY 1
-  HAVING count(DISTINCT co_uf_key)>1
 )
 SELECT
-  CASE
-    WHEN br.co_regiao_saude_key IS NOT NULL THEN 'REGIAO_SAUDE_MULTIMACRO'
-    WHEN bm.co_macrorregiao_saude_key IS NOT NULL THEN 'MACRORREGIAO_MULTIUF'
-  END AS finding,
+  'REGIAO_SAUDE_MULTIMACRO' AS finding,
   t.co_regiao_key,
   t.no_regiao,
   t.co_uf_key,
@@ -173,35 +187,28 @@ SELECT
   t.co_macrorregiao_saude_key,
   t.co_macrorregiao_saude,
   t.no_macrorregiao_saude,
-  t.qt_macrorregiao_saude,
   t.co_regiao_saude_key,
+  t.co_regiao_saude_drill_key,
   t.co_regiao_saude,
   t.no_regiao_saude,
-  t.qt_regiao_saude,
   t.co_municipio_key,
-  t.co_municipio,
   t.co_municipio_ibge,
   t.no_municipio
 FROM t
-LEFT JOIN bad_reg br
-  ON br.co_regiao_saude_key=t.co_regiao_saude_key
-LEFT JOIN bad_macro bm
-  ON bm.co_macrorregiao_saude_key=t.co_macrorregiao_saude_key
-WHERE br.co_regiao_saude_key IS NOT NULL
-   OR bm.co_macrorregiao_saude_key IS NOT NULL
+JOIN multi USING (co_regiao_saude_key)
 ORDER BY
-  finding,
   t.sg_uf,
   t.co_regiao_saude_key,
   t.co_macrorregiao_saude_key,
   t.no_municipio
 )
 TO {qs(str(detail))} (HEADER, DELIMITER '\t');
-"""
-
-    if s["regiao_saude_conflitos"] or s["macro_saude_conflitos"]:
-        duck(db, detail_sql)
-        print(f"conflict_detail={detail}")
+""",
+        )
+        print(
+            "REGIAO_SAUDE_MULTIMACRO_INFO "
+            f"count={s['regiao_saude_multimacro']} detail={detail}"
+        )
 
         summary = duck(
             db,
@@ -211,42 +218,34 @@ WITH t AS (
   FROM cnes.dim_territorio
   WHERE tp_territorio='MUNICIPIO'
 ),
-bad_reg AS (
+multi AS (
   SELECT co_regiao_saude_key
   FROM t
   GROUP BY 1
   HAVING count(DISTINCT co_macrorregiao_saude_key)>1
-     OR count(DISTINCT co_uf_key)>1
 )
 SELECT
   co_regiao_saude_key,
-  any_value(no_regiao_saude) AS no_regiao_saude,
+  any_value(no_regiao_saude),
   string_agg(
     DISTINCT co_macrorregiao_saude_key,
     ' | '
     ORDER BY co_macrorregiao_saude_key
-  ) AS macro_keys,
-  string_agg(
-    DISTINCT no_macrorregiao_saude,
-    ' | '
-    ORDER BY no_macrorregiao_saude
-  ) AS macro_names,
-  count(*) AS municipios
+  ),
+  count(*)
 FROM t
-JOIN bad_reg USING (co_regiao_saude_key)
+JOIN multi USING (co_regiao_saude_key)
 GROUP BY 1
 ORDER BY 1;
 """,
             True,
         ).strip()
-        if summary:
-            print("CONFLITOS_REGIAO_SAUDE")
-            for row in csv.reader(summary.splitlines()):
-                print(
-                    "  key={} nome={} macros={} macro_nomes={} municipios={}".format(
-                        *row
-                    )
+        for row in csv.reader(summary.splitlines()):
+            print(
+                "  canonical_region={} nome={} macro_paths={} municipios={}".format(
+                    *row
                 )
+            )
 
     hard = (
         s["municipios"] != 5571
@@ -259,12 +258,15 @@ ORDER BY 1;
                 "miss_regiao",
                 "miss_macro",
                 "miss_regsaud",
+                "miss_regsaud_drill_key",
                 "miss_municipio",
+                "municipio_multi_regsaud",
+                "municipio_multi_macro",
                 "estab_sem_territorio",
                 "estab_sem_regiao",
                 "df_estab_sem_ra",
-                "regiao_saude_conflitos",
-                "macro_saude_conflitos",
+                "macro_saude_multiuf",
+                "drill_path_conflitos",
             ]
         )
         or s["ra_df"] < 20
@@ -283,7 +285,8 @@ ORDER BY 1;
             [
                 f"timestamp={ts}",
                 *(f"{k}={v}" for k, v in s.items()),
-                "hierarquia=REGIAO>UF>MACRORREGIAO_SAUDE>REGIAO_SAUDE>MUNICIPIO>RA_DF",
+                "hierarquia_drill=REGIAO>UF>MACRORREGIAO_SAUDE>REGIAO_SAUDE_DRILL>MUNICIPIO>RA_DF",
+                "regiao_saude_canonica=independente_da_macrorregiao",
                 "status=validated",
                 "",
             ]

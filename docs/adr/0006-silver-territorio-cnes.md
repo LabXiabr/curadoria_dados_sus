@@ -24,35 +24,54 @@ IBGE. Os códigos operacionais CNES do DF são conciliados por nome normalizado
 (com aliases explícitos documentados) e resultam em `RA_DF:<IBGE11>`.
 Nenhuma RA é inferida do prefixo de `CO_UNIDADE`.
 
-## Hierarquia principal de drill
+## Hierarquia de saúde: dimensão não estrita
 
-A hierarquia analítica principal é:
+Macrorregião de Saúde e Região de Saúde não formam uma hierarquia pai-filho
+estrita em todo o Brasil. Rondônia é um caso oficial: a Região de Saúde
+Central contém municípios alocados tanto na Macrorregião I quanto na
+Macrorregião II.
+
+Por isso a Silver preserva dois conceitos:
+
+- `co_regiao_saude_key = REG_SAUDE:<UF>:<REGSAUD>`: identifica a Região de
+  Saúde canônica, independentemente da Macrorregião;
+- `co_regiao_saude_drill_key =
+  REG_SAUDE_DRILL:<UF>:<MACRO>:<REGSAUD>`: identifica o ramo hierárquico
+  utilizado quando o usuário navega passando pela Macrorregião.
+
+O caminho de drill estrito é:
 
 ```text
 Região
   -> UF
     -> Macrorregião de Saúde
-      -> Região de Saúde
+      -> Região de Saúde dentro da Macro (REG_SAUDE_DRILL)
         -> Município
           -> RA-DF
 ```
 
-A dimensão é achatada: a linha do menor território resolvido contém também os
-atributos dos níveis superiores. Isso permite `ROLLUP`, `GROUPING SETS` e
-consultas ad hoc sem percorrer uma cadeia de tabelas.
+Também é válido agregar diretamente:
 
-Para evitar colisões de códigos locais entre UFs, a dimensão também expõe
-chaves qualificadas:
+```text
+Região -> UF -> Região de Saúde canônica -> Município
+```
+
+A dimensão é achatada: a linha do menor território resolvido contém os
+atributos e as duas chaves. Isso permite `ROLLUP`, `GROUPING SETS` e
+consultas ad hoc sem inventar uma relação pai-filho que não existe na fonte.
+
+Chaves qualificadas:
 
 - `REGIAO:<co_regiao>`;
 - `UF:<co_uf>`;
 - `MACRO_SAUDE:<co_uf>:<co_macrorregiao_saude>`;
 - `REG_SAUDE:<co_uf>:<co_regiao_saude>`;
+- `REG_SAUDE_DRILL:<co_uf>:<co_macrorregiao_saude>:<co_regiao_saude>`;
 - `MUN:<IBGE7>`;
 - `RA_DF:<IBGE11>`.
 
-Consultas nacionais devem preferir essas chaves quando precisarem identificar
-univocamente um nível, ainda que os nomes continuem disponíveis para exibição.
+O QC exige uma única Região de Saúde e uma única Macrorregião por município,
+mas aceita que uma Região de Saúde canônica atravesse Macrorregiões.
 
 Microrregião IBGE, Região Metropolitana/RIDE, DSEI, PNDR e Território da
 Cidadania são classificações/hierarquias alternativas. Não devem ser
