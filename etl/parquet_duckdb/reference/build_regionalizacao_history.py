@@ -42,7 +42,7 @@ WITH obs AS (
  SELECT DISTINCT
    trim(cast(CO_MUNICIP as varchar)) AS co_municipio,
    trim(cast({code_col} as varchar)) AS codigo,
-   cast(snapshot as varchar) AS snapshot
+   cast(snapshot as varchar) AS snapshot_key
  FROM read_parquet(
    {sqls(str(pattern))},
    hive_partitioning=true,
@@ -53,8 +53,8 @@ WITH obs AS (
 ),
 ordered AS (
  SELECT *,
-        lag(codigo) OVER (PARTITION BY co_municipio ORDER BY snapshot) AS prev_codigo,
-        lag(snapshot) OVER (PARTITION BY co_municipio ORDER BY snapshot) AS prev_snapshot
+        lag(codigo) OVER (PARTITION BY co_municipio ORDER BY snapshot_key) AS prev_codigo,
+        lag(snapshot_key) OVER (PARTITION BY co_municipio ORDER BY snapshot_key) AS prev_snapshot
  FROM obs
 ),
 flagged AS (
@@ -66,7 +66,7 @@ grp AS (
  SELECT *,
         sum(new_group) OVER (
           PARTITION BY co_municipio
-          ORDER BY snapshot
+          ORDER BY snapshot_key
           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
         ) AS grp
  FROM flagged
@@ -77,10 +77,10 @@ grp AS (
 SELECT
  co_municipio,
  codigo AS co_{slug},
- min(snapshot) AS observed_from_snapshot,
- max(snapshot) AS observed_to_snapshot,
+ min(snapshot_key) AS observed_from_snapshot,
+ max(snapshot_key) AS observed_to_snapshot,
  count(*) AS observed_snapshots,
- (max(snapshot)= (SELECT max(snapshot) FROM obs)) AS is_current_observation
+ (max(snapshot_key)= (SELECT max(snapshot_key) FROM obs)) AS is_current_observation
 FROM grp
 GROUP BY co_municipio,codigo,grp
 ORDER BY co_municipio,observed_from_snapshot
@@ -95,11 +95,11 @@ SELECT
  prev_codigo AS co_{slug}_anterior,
  codigo AS co_{slug}_novo,
  prev_snapshot AS ultima_observacao_anterior,
- snapshot AS primeira_observacao_nova,
+ snapshot_key AS primeira_observacao_nova,
  'snapshot_change'::VARCHAR AS tp_evento
 FROM ordered
 WHERE prev_codigo IS NOT NULL AND codigo <> prev_codigo
-ORDER BY snapshot,co_municipio
+ORDER BY snapshot_key,co_municipio
 """
     etmp=events.with_name(events.name+f".partial.{os.getpid()}")
     duck(f"COPY ({esql}) TO {sqls(str(etmp))} (FORMAT PARQUET, COMPRESSION ZSTD);")
@@ -116,6 +116,14 @@ def main() -> int:
     lake=Path(args.lake_root)
     state=lake/"state"/"reference"
     state.mkdir(parents=True,exist_ok=True)
+
+    gate=state/"territorio_backfill_complete.ok"
+    if not gate.is_file():
+        die(
+            f"backfill territorial ainda nao homologado: {gate}. "
+            "Conclua ops/territorio-backfill.sh antes de gerar a memoria temporal.",
+            20,
+        )
 
     specs=[
       ("rl_municip_regsaud","CO_REGSAUD","regiao_saude"),
@@ -134,32 +142,32 @@ def main() -> int:
     duck(f"""
 COPY (
  WITH r AS (
-   SELECT cast(snapshot as varchar) snapshot,
+   SELECT cast("snapshot" as varchar) AS snapshot_key,
           count(DISTINCT trim(cast(CO_MUNICIP as varchar))) municipios_regiao,
           count(DISTINCT trim(cast(CO_REGSAUD as varchar))) regioes_saude
    FROM read_parquet({sqls(str(reg_pattern))},hive_partitioning=true,union_by_name=true)
    GROUP BY 1
  ),
  m AS (
-   SELECT cast(snapshot as varchar) snapshot,
+   SELECT cast("snapshot" as varchar) AS snapshot_key,
           count(DISTINCT trim(cast(CO_MUNICIP as varchar))) municipios_macro,
           count(DISTINCT trim(cast(CO_MACSAUD as varchar))) macrorregioes_saude
    FROM read_parquet({sqls(str(mac_pattern))},hive_partitioning=true,union_by_name=true)
    GROUP BY 1
  )
- SELECT coalesce(r.snapshot,m.snapshot) snapshot,
+ SELECT coalesce(r.snapshot_key,m.snapshot_key) AS snapshot_key,
         r.municipios_regiao,
         r.regioes_saude,
         m.municipios_macro,
         m.macrorregioes_saude
- FROM r FULL OUTER JOIN m USING(snapshot)
- ORDER BY snapshot
+ FROM r FULL OUTER JOIN m USING(snapshot_key)
+ ORDER BY snapshot_key
 )
 TO {sqls(str(tmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
 """)
     os.replace(tmp,summary)
 
-    stats=duck(f"SELECT count(*), min(snapshot), max(snapshot) FROM read_parquet({sqls(str(summary))});",True).strip()
+    stats=duck(f"SELECT count(*), min(snapshot_key), max(snapshot_key) FROM read_parquet({sqls(str(summary))});",True).strip()
     n,first,last=next(csv.reader([stats]))
     ts=subprocess.run(["date","+%Y%m%d_%H%M%S"],text=True,capture_output=True,check=True).stdout.strip()
     marker=state/"regionalizacao_historico.ok"
