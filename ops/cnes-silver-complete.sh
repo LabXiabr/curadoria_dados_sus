@@ -21,7 +21,8 @@ python3 -m py_compile \
   "$ROOT/ops/build-cnes-duckdb-views.py" \
   "$ROOT/ops/qc-cnes-drill-territorial.py" \
   "$ROOT/ops/cnes-classify-tables.py" \
-  "$ROOT/ops/qc-cnes-global.py"
+  "$ROOT/ops/qc-cnes-global.py" \
+  "$ROOT/ops/cnes-promote-silver-snapshot.py"
 echo "CNES_PYTHON_SYNTAX_OK"
 
 [[ "$COMP" =~ ^[0-9]{6}$ ]] || {
@@ -52,4 +53,5 @@ python3 "$ROOT/ops/build-cnes-duckdb-views.py"
 python3 "$ROOT/ops/qc-cnes-drill-territorial.py"
 python3 "$ROOT/ops/cnes-classify-tables.py"
 python3 "$ROOT/ops/qc-cnes-global.py" --competencia "$COMP"
+python3 "$ROOT/ops/cnes-promote-silver-snapshot.py" --competencia "$COMP"
 echo "CNES_SILVER_COMPLETE_OK competencia=$COMP"
