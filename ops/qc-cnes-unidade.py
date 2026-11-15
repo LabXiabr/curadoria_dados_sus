@@ -121,7 +121,7 @@ SELECT
     WHEN b.co_unidade IS NULL OR b.co_unidade='' THEN 'missing_co_unidade'
     WHEN b.co_cnes IS NULL OR b.co_cnes='' THEN 'missing_co_cnes'
     WHEN regexp_matches(b.co_unidade, '^[0-9]{{13}}$')
-         AND b.unidade_cnes7 <> lpad(b.co_cnes,7,'0') THEN 'numeric13_suffix_diff_cnes'
+         AND b.unidade_cnes7 <> lpad(b.co_cnes,7,'0') THEN 'numeric13_suffix_diff_cnes_informative'
     WHEN coalesce(u.n_cnes,0)>1 THEN 'co_unidade_multicnes'
     WHEN coalesce(c.n_unidade,0)>1 THEN 'co_cnes_multiunidade'
     WHEN NOT regexp_matches(b.co_unidade, '^[0-9]{{13}}$') THEN 'non_numeric13_informative'
@@ -150,7 +150,6 @@ TO {qs(str(tmp))} (HEADER, DELIMITER '\t');
     hard_fail=(
         data["unidade_missing"]>0
         or data["cnes_missing"]>0
-        or data["suffix_diff_cnes"]>0
         or data["co_unidade_multicnes"]>0
         or data["co_cnes_multiunidade"]>0
     )
@@ -165,7 +164,7 @@ TO {qs(str(tmp))} (HEADER, DELIMITER '\t');
     if hard_fail:
         print(
             "CNES_UNIDADE_QC_FAIL "
-            "hard_fail=missing_key_or_functional_relation_or_numeric13_suffix",
+            "hard_fail=missing_key_or_functional_relation",
             file=sys.stderr,
         )
         return 20
@@ -175,8 +174,8 @@ TO {qs(str(tmp))} (HEADER, DELIMITER '\t');
         f"timestamp={ts}",
         *(f"{k}={v}" for k,v in data.items()),
         f"detail={detail}",
-        "interpretation=CO_UNIDADE_opaca;numeric13_suffix7_observado_como_CO_CNES;prefix6_nao_autoritativo",
-        "policy=hard_fail_missing_keys_or_relation_conflict_or_numeric13_suffix_conflict;non_numeric13_and_prefix_difference_informative",
+        "interpretation=CO_UNIDADE_opaca;numeric13_suffix7_frequentemente_coincide_com_CO_CNES_mas_nao_e_regra;prefix6_nao_autoritativo",
+        "policy=hard_fail_missing_keys_or_functional_relation_conflict;suffix_difference_non_numeric13_and_prefix_difference_informative",
         "status=validated",
         ""
     ]),encoding="utf-8")
