@@ -114,7 +114,7 @@ o custo de disco nos fatos maiores.
 O pipeline cria um catálogo privado em:
 
 ```text
-silver/cnes/cnes.duckdb
+silver/suslake.duckdb
 ```
 
 As principais views são:

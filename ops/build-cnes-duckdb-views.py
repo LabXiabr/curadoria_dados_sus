@@ -43,7 +43,7 @@ def main() -> int:
         die("duckdb CLI ausente",3)
 
     lake=Path(args.lake_root)
-    database=(args.database or (lake/"silver"/"cnes"/"cnes.duckdb")).expanduser().resolve()
+    database=(args.database or (lake/"silver"/"suslake.duckdb")).expanduser().resolve()
     sql_path=args.output_sql.expanduser().resolve()
     state=lake/"state"/"cnes"
 
@@ -59,6 +59,12 @@ def main() -> int:
         die("Parquet Silver ausente: "+", ".join(missing))
 
     database.parent.mkdir(parents=True,exist_ok=True)
+    if database.stem.lower()=="cnes":
+        die(
+            "nome de catalogo DuckDB 'cnes' conflita com o schema 'cnes'; "
+            "use outro arquivo, por exemplo silver/suslake.duckdb",
+            4,
+        )
     sql_path.parent.mkdir(parents=True,exist_ok=True)
     state.mkdir(parents=True,exist_ok=True)
 

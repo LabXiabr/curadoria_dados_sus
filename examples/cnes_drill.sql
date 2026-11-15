@@ -1,5 +1,5 @@
 -- Exemplos de drill territorial CNES Silver.
--- Catalogo: /dados/abertos/suslake/silver/cnes/cnes.duckdb
+-- Catalogo: /dados/abertos/suslake/silver/suslake.duckdb
 
 -- 1. Drill principal: Regiao -> UF -> Macro -> Regiao de Saude -> Municipio.
 SELECT

@@ -174,7 +174,7 @@ física. O contrato completo está em
 `docs/adr/0006-silver-territorio-cnes.md`.
 
 O pipeline CNES também cria o catálogo privado
-`silver/cnes/cnes.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
+`silver/suslake.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
 fatos virtualmente sem duplicar a geografia nas tabelas factuais.
 
 Execução isolada:
