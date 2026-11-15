@@ -54,11 +54,11 @@ def main() -> int:
 
     pc=describe(portal)
     c_mun=choose(pc,"codigo_municipio","cod_municipio","codigo_ibge","co_municipio")
-    c_reg=choose(pc,"codigo_regiao_saude","cod_regiao_saude","co_regsaud")
-    c_mac=choose(pc,"codigo_macrorregiao_saude","cod_macrorregiao_saude","co_macsaud")
+    c_reg=choose(pc,"codigo_regiao_saude","cod_regiao_saude","cod_regiao_de_saude","co_regsaud")
+    c_mac=choose(pc,"codigo_macrorregiao_saude","cod_macrorregiao_saude","cod_macrorregiao_de_saude","co_macsaud")
     c_nomemun=choose(pc,"municipio","nome_municipio","no_municipio")
-    c_nreg=choose(pc,"regiao_saude","nome_regiao_saude","no_regiao_saude")
-    c_nmac=choose(pc,"macrorregiao_saude","nome_macrorregiao_saude","no_macrorregiao_saude")
+    c_nreg=choose(pc,"regiao_saude","regiao_de_saude","nome_regiao_saude","no_regiao_saude")
+    c_nmac=choose(pc,"macrorregiao_saude","macrorregiao_de_saude","nome_macrorregiao_saude","no_macrorregiao_saude")
     if not all([c_mun,c_reg,c_mac]):
         die(f"schema Portal inesperado: {sorted(pc.values())}",5)
 
