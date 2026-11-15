@@ -124,8 +124,9 @@ def main() -> int:
         if wanted_table and r["table_name"] not in wanted_table: continue
         uf,comp=infer_period(r["system"],r["subsystem"],r["table_name"])
         r=dict(r); r["source_uf"]=uf; r["source_competencia"]=comp
-        if args.comp_from and comp and comp<args.comp_from: continue
-        if args.comp_to and comp and comp>args.comp_to: continue
+        if (args.comp_from or args.comp_to) and not comp: continue
+        if args.comp_from and comp<args.comp_from: continue
+        if args.comp_to and comp>args.comp_to: continue
         selected.append(r)
     selected.sort(key=lambda r:(r["system"],r["subsystem"],r["source_competencia"],r["table_schema"],r["table_name"]))
     if args.max_tables>0: selected=selected[:args.max_tables]
