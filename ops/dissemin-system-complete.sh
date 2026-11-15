@@ -15,7 +15,7 @@ while [[ $# -gt 0 ]]; do
       PROFILE="$2"; shift 2 ;;
     --system)
       SYSTEM="$2"; COMMON+=("--system" "$2"); INV+=("--system" "$2"); shift 2 ;;
-    --subsystem|--from|--to|--schema|--table)
+    --subsystem|--uf|--from|--to|--schema|--table)
       COMMON+=("$1" "$2"); shift 2 ;;
     --max-tables|--max-files)
       MAX_TABLES="$2"; shift 2 ;;
