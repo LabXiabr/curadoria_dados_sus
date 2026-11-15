@@ -55,7 +55,8 @@ def main() -> int:
         "fact_estabelecimento_leito": lake/"silver"/"cnes"/"fact_estabelecimento_leito"/"current.parquet",
         "dim_tipo_estabelecimento": lake/"silver"/"cnes"/"dim_tipo_estabelecimento"/"current.parquet",
         "dim_natureza_juridica": lake/"silver"/"cnes"/"dim_natureza_juridica"/"current.parquet",
-        "dim_profissional": lake/"silver"/"cnes"/"dim_profissional"/"current.parquet",
+        "fact_profissional_vinculo": lake/"silver"/"cnes"/"fact_profissional_vinculo"/"current.parquet",
+        "fact_profissional_carga_horaria": lake/"silver"/"cnes"/"fact_profissional_carga_horaria"/"current.parquet",
         "fact_equipe": lake/"silver"/"cnes"/"fact_equipe"/"current.parquet",
         "bridge_estabelecimento_equipe_profissional": lake/"silver"/"cnes"/"bridge_estabelecimento_equipe_profissional"/"current.parquet",
         "fact_profissional_vinculo": lake/"silver"/"cnes"/"fact_profissional_vinculo"/"current.parquet",
@@ -139,15 +140,14 @@ CREATE OR REPLACE VIEW cnes.dim_tipo_estabelecimento AS
 SELECT * FROM read_parquet({p['dim_tipo_estabelecimento']});
 CREATE OR REPLACE VIEW cnes.dim_natureza_juridica AS
 SELECT * FROM read_parquet({p['dim_natureza_juridica']});
-CREATE OR REPLACE VIEW cnes.dim_profissional AS
-SELECT * FROM read_parquet({p['dim_profissional']});
+CREATE OR REPLACE VIEW cnes.fact_profissional_vinculo AS
+SELECT * FROM read_parquet({p['fact_profissional_vinculo']});
+CREATE OR REPLACE VIEW cnes.fact_profissional_carga_horaria AS
+SELECT * FROM read_parquet({p['fact_profissional_carga_horaria']});
 CREATE OR REPLACE VIEW cnes.fact_equipe AS
 SELECT * FROM read_parquet({p['fact_equipe']});
 CREATE OR REPLACE VIEW cnes.bridge_estabelecimento_equipe_profissional AS
 SELECT * FROM read_parquet({p['bridge_estabelecimento_equipe_profissional']});
-CREATE OR REPLACE VIEW cnes.fact_profissional_vinculo AS
-SELECT * FROM read_parquet({p['fact_profissional_vinculo']});
-
 CREATE OR REPLACE VIEW cnes.vw_estabelecimento_drill AS
 SELECT
   e.co_unidade_key,
@@ -190,9 +190,14 @@ SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
 FROM cnes.bridge_estabelecimento_equipe_profissional f
 JOIN cnes.vw_estabelecimento_drill d ON d.co_unidade_key=f.co_unidade_key;
 
-CREATE OR REPLACE VIEW cnes.vw_profissional_vinculo_drill AS
+CREATE OR REPLACE VIEW cnes.vw_profissional_vinculo_drill|cnes.vw_profissional_carga_horaria_drill AS
 SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
 FROM cnes.fact_profissional_vinculo f
+JOIN cnes.vw_estabelecimento_drill d ON d.co_unidade_key=f.co_unidade_key;
+
+CREATE OR REPLACE VIEW cnes.vw_profissional_carga_horaria_drill AS
+SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
+FROM cnes.fact_profissional_carga_horaria f
 JOIN cnes.vw_estabelecimento_drill d ON d.co_unidade_key=f.co_unidade_key;
 """
     sql_path.write_text(sql,encoding="utf-8")
@@ -231,7 +236,7 @@ SELECT
         f"dim_estabelecimento_rows={estab}",
         f"vw_estabelecimento_drill_rows={drill}",
         f"territory_orphans={orphans}",
-        "views=cnes.dim_territorio|cnes.dim_estabelecimento|cnes.dim_tipo_estabelecimento|cnes.dim_natureza_juridica|cnes.dim_profissional|cnes.fact_estabelecimento_servico|cnes.fact_estabelecimento_equipamento|cnes.fact_estabelecimento_leito|cnes.fact_equipe|cnes.bridge_estabelecimento_equipe_profissional|cnes.fact_profissional_vinculo|cnes.vw_estabelecimento_drill|cnes.vw_servico_drill|cnes.vw_equipamento_drill|cnes.vw_leito_drill|cnes.vw_equipe_drill|cnes.vw_equipe_profissional_drill|cnes.vw_profissional_vinculo_drill",
+        "views=cnes.dim_territorio|cnes.dim_estabelecimento|cnes.dim_tipo_estabelecimento|cnes.dim_natureza_juridica|cnes.fact_estabelecimento_servico|cnes.fact_estabelecimento_equipamento|cnes.fact_estabelecimento_leito|cnes.fact_equipe|cnes.bridge_estabelecimento_equipe_profissional|cnes.fact_profissional_vinculo|cnes.fact_profissional_carga_horaria|cnes.vw_estabelecimento_drill|cnes.vw_servico_drill|cnes.vw_equipamento_drill|cnes.vw_leito_drill|cnes.vw_equipe_drill|cnes.vw_equipe_profissional_drill|cnes.vw_profissional_vinculo_drill",
         "storage=views_only_no_fact_materialization",
         ""
     ]),encoding="utf-8")

@@ -167,9 +167,20 @@ Pertencem à Gold:
 - cubos/materializações agregadas orientadas a produto;
 - coortes e produtos analíticos específicos.
 
-## Pendência DF
+## RA do Distrito Federal
 
-A Base Territorial corrente não resolve ainda a crosswalk dos códigos
-operacionais CNES `53xxxx` para as RAs. A próxima evolução deve incorporar uma
-fonte oficial de RA, produzir a crosswalk versionada e só então promover
-estabelecimentos do DF de `MUN:5300108` para `RA_DF:<IBGE11>`.
+A referência de RA é o produto IBGE "Localidades do Brasil" de 2022. A seleção
+das RAs usa `CD_UF=53` e `CD_LOCALIDADE` com 11 dígitos, regra específica
+do produto para o Distrito Federal.
+
+A bridge `bridge_localidade_cnes_ra_df` concilia os códigos operacionais
+`53xxxx` do CNES com a RA por nome normalizado e aliases explícitos. O
+pipeline bloqueia a Silver se alguma localidade DF usada na competência ficar
+sem correspondência única. `CO_UNIDADE` nunca é usado para inferir RA.
+
+## Profissionais
+
+`tb_dados_profissional_sus` e `tb_carga_horaria_sus` são preservadas como
+fatos Silver relacionados ao estabelecimento. Não se cria uma
+`dim_profissional` diretamente dessas tabelas sem demonstrar primeiro a
+unicidade e o grain real de `CO_PROFISSIONAL_SUS`.

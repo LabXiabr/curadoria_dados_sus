@@ -18,13 +18,13 @@ CORE = [
     ("dim_leito", "tb_leito", None),
     ("dim_tipo_estabelecimento", "tb_tipo_estabelecimento", None),
     ("dim_natureza_juridica", "tb_natureza_juridica", None),
-    ("dim_profissional", "tb_dados_profissional_sus", None),
+    ("fact_profissional_vinculo", "tb_dados_profissional_sus", "CO_UNIDADE"),
     ("fact_estabelecimento_servico", "rl_estab_serv_class", "CO_UNIDADE"),
     ("fact_estabelecimento_equipamento", "rl_estab_equipamento", "CO_UNIDADE"),
     ("fact_estabelecimento_leito", "rl_estab_complementar", "CO_UNIDADE"),
     ("fact_equipe", "tb_equipe", "CO_UNIDADE"),
     ("bridge_estabelecimento_equipe_profissional", "rl_estab_equipe_prof", "CO_UNIDADE"),
-    ("fact_profissional_vinculo", "tb_carga_horaria_sus", "CO_UNIDADE"),
+    ("fact_profissional_carga_horaria", "tb_carga_horaria_sus", "CO_UNIDADE"),
 ]
 def die(msg: str, code: int = 20):
     print(f"ERRO: {msg}", file=sys.stderr)

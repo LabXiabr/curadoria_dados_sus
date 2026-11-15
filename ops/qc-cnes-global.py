@@ -47,28 +47,22 @@ def main()->int:
             objects+=1
             if r["status"]!="ok" or int(r["source_rows"])!=int(r["silver_rows"]) or int(r["orphan_unidade"])!=0:
                 bad.append(r["object"])
-    prof=silver/"dim_profissional"/"current.parquet"
-    if not prof.is_file():
-        bad.append("dim_profissional_missing")
-        dup_prof=-1
-    else:
-        dup_prof=int(duck(f"""
-SELECT count(*) FROM (
- SELECT co_profissional_sus_key FROM read_parquet({qs(str(prof))})
- WHERE co_profissional_sus_key IS NOT NULL AND co_profissional_sus_key<>''
- GROUP BY 1 HAVING count(*)>1
-);
-""").strip())
-        if dup_prof: bad.append("dim_profissional_duplicate_key")
+    required_professional=[
+        silver/"fact_profissional_vinculo"/"current.parquet",
+        silver/"fact_profissional_carga_horaria"/"current.parquet",
+    ]
+    for p in required_professional:
+        if not p.is_file():
+            bad.append(p.parent.name+"_missing")
     marker=state/f"qc_global_{args.competencia}.ok"; marker.unlink(missing_ok=True)
     if bad:
         print("CNES_GLOBAL_QC_FAIL findings="+"|".join(bad),file=sys.stderr); return 20
     marker.write_text("\n".join([
       f"competencia={args.competencia}",
       f"timestamp={subprocess.run(['date','+%Y%m%d_%H%M%S'],text=True,capture_output=True,check=True).stdout.strip()}",
-      f"objects={objects}",f"duplicate_profissional_key={dup_prof}",
+      f"objects={objects}",
       "status=validated",""
     ]),encoding="utf-8")
-    print(f"CNES_GLOBAL_QC_OK objects={objects} duplicate_profissional_key={dup_prof}")
+    print(f"CNES_GLOBAL_QC_OK objects={objects}")
     print(f"marker={marker}"); return 0
 if __name__=="__main__": raise SystemExit(main())
