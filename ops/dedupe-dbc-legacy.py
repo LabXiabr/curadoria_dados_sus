@@ -104,7 +104,9 @@ def main() -> int:
     with args.report.open("w",encoding="utf-8") as out:
         out.write(
             "relative_path\tsha256\tbytes\tstatus\treason\t"
-            "home_inode\tsdb_inode_before\tsdb_inode_after\n"
+            "home_inode\tsdb_inode_before\tsdb_inode_after\t"
+            "home_mtime_ns_before\tsdb_mtime_ns_before\t"
+            "home_nlink_before\tsdb_nlink_before\n"
         )
         for rel,digest in candidates:
             scanned+=1
@@ -115,28 +117,28 @@ def main() -> int:
                 ss=sp.stat()
             except FileNotFoundError as e:
                 skipped+=1
-                out.write(f"{rel}\t{digest}\t0\tskip\tmissing:{e.filename}\t0\t0\t0\n")
+                out.write(f"{rel}\t{digest}\t0\tskip\tmissing:{e.filename}\t0\t0\t0\t0\t0\t0\t0\n")
                 continue
 
             if not hp.is_file() or not sp.is_file():
                 skipped+=1
-                out.write(f"{rel}\t{digest}\t0\tskip\tnot_regular\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t0\tskip\tnot_regular\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
                 continue
             if hs.st_dev != ss.st_dev:
                 skipped+=1
-                out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tdifferent_filesystem\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tdifferent_filesystem\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
                 continue
             if hs.st_size != ss.st_size:
                 skipped+=1
-                out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tsize_changed_since_manifest\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tsize_changed_since_manifest\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
                 continue
             if hs.st_mtime > hm_mtime or ss.st_mtime > sm_mtime:
                 skipped+=1
-                out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tfile_newer_than_manifest\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tfile_newer_than_manifest\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
                 continue
             if hs.st_ino == ss.st_ino and hs.st_dev == ss.st_dev:
                 already_linked+=1
-                out.write(f"{rel}\t{digest}\t{ss.st_size}\tok\talready_hardlinked\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t{ss.st_size}\tok\talready_hardlinked\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
                 continue
 
             if args.verify_hash:
@@ -144,7 +146,7 @@ def main() -> int:
                 sh=sha256(sp)
                 if hh != digest or sh != digest:
                     skipped+=1
-                    out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tcurrent_hash_mismatch\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                    out.write(f"{rel}\t{digest}\t{ss.st_size}\tskip\tcurrent_hash_mismatch\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
                     continue
 
             eligible+=1
@@ -153,7 +155,7 @@ def main() -> int:
                 potential_bytes+=ss.st_blocks*512
 
             if not args.apply:
-                out.write(f"{rel}\t{digest}\t{ss.st_size}\tdry_run\teligible\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t{ss.st_size}\tdry_run\teligible\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
                 continue
 
             tmp=sp.with_name(sp.name+f".dedupe.{os.getpid()}")
@@ -171,14 +173,14 @@ def main() -> int:
                 if fs.st_ino != hs.st_ino or fs.st_size != hs.st_size:
                     raise RuntimeError("hardlink final inconsistente")
                 linked+=1
-                out.write(f"{rel}\t{digest}\t{ss.st_size}\tok\thardlinked\t{hs.st_ino}\t{ss.st_ino}\t{fs.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t{ss.st_size}\tok\thardlinked\t{hs.st_ino}\t{ss.st_ino}\t{fs.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
             except Exception as e:
                 skipped+=1
                 try:
                     tmp.unlink()
                 except FileNotFoundError:
                     pass
-                out.write(f"{rel}\t{digest}\t{ss.st_size}\terror\t{type(e).__name__}:{e}\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\n")
+                out.write(f"{rel}\t{digest}\t{ss.st_size}\terror\t{type(e).__name__}:{e}\t{hs.st_ino}\t{ss.st_ino}\t{ss.st_ino}\t{hs.st_mtime_ns}\t{ss.st_mtime_ns}\t{hs.st_nlink}\t{ss.st_nlink}\n")
 
     print(f"mode={mode}")
     print(f"home_manifest={hm}")
