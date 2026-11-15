@@ -121,6 +121,11 @@ def main() -> int:
     state.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix=f"{snapshot}_", dir=workroot))
     report_rows = []
+    current_marker = state / "territorio_current.ok"
+    previous_snapshot = ""
+    if current_marker.is_file():
+        previous_snapshot = read_marker(current_marker).get("snapshot", "")
+    publish_current = not previous_snapshot or snapshot >= previous_snapshot
 
     try:
         with zipfile.ZipFile(zp) as zf:
@@ -179,18 +184,20 @@ TO {sqls(str(partial))} (FORMAT PARQUET, COMPRESSION ZSTD);
                 current_dir = silver_root / table
                 current_dir.mkdir(parents=True, exist_ok=True)
                 current = current_dir / "current.parquet"
-                ctmp = current.with_name(current.name + f".partial.{os.getpid()}")
-                run_duck(f"""
+                if publish_current:
+                    ctmp = current.with_name(current.name + f".partial.{os.getpid()}")
+                    run_duck(f"""
 COPY (
   SELECT * FROM read_parquet({sqls(str(dest))})
 )
 TO {sqls(str(ctmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
 """)
-                os.replace(ctmp, current)
+                    os.replace(ctmp, current)
 
                 report_rows.append((
                     table, info.filename, enc, delim, rows_src,
-                    info.file_size, f"{info.CRC:08x}", str(dest), str(current)
+                    info.file_size, f"{info.CRC:08x}", str(dest),
+                    str(current) if publish_current else ""
                 ))
                 print(f"[{idx}/{len(entries)}] OK {table} rows={rows_src}")
 
@@ -203,18 +210,24 @@ TO {sqls(str(ctmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
                         "source_bytes", "source_crc32", "bronze", "silver_current"])
             w.writerows(report_rows)
 
-        marker = state / "territorio_current.ok"
-        marker.write_text("\n".join([
-            f"timestamp={ts}",
-            f"snapshot={snapshot}",
-            f"source_zip={zp.name}",
-            f"source_sha256={sha}",
-            f"tables={len(report_rows)}",
-            f"report={report}",
-            ""
-        ]), encoding="utf-8")
-        print(f"TERRITORIO_REFERENCE_OK snapshot={snapshot} tables={len(report_rows)}")
-        print(f"marker={marker}")
+        if publish_current:
+            marker = state / "territorio_current.ok"
+            marker.write_text("\n".join([
+                f"timestamp={ts}",
+                f"snapshot={snapshot}",
+                f"source_zip={zp.name}",
+                f"source_sha256={sha}",
+                f"tables={len(report_rows)}",
+                f"report={report}",
+                ""
+            ]), encoding="utf-8")
+            print(f"TERRITORIO_REFERENCE_OK snapshot={snapshot} tables={len(report_rows)}")
+            print(f"marker={marker}")
+        else:
+            print(
+                f"TERRITORIO_SNAPSHOT_OK snapshot={snapshot} tables={len(report_rows)} "
+                f"current_preserved={previous_snapshot}"
+            )
         return 0
     finally:
         if args.keep_work:
