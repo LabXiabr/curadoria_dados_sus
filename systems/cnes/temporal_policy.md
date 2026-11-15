@@ -69,3 +69,25 @@ A retirada de tabelas segue `systems/cnes/postgresql_retirement.md`.
 Inventariar e backfilar as competências históricas necessárias, executar os
 QCs por competência e só então retirar do PostgreSQL as tabelas Bronze
 redundantes.
+
+
+## Backfill histórico em duas etapas
+
+O backfill histórico é deliberadamente separado:
+
+1. **Raw + Bronze + QCs de base** podem ser carregados para qualquer competência
+   oficial disponível, pois são fiéis ao lote mensal e independem de
+   regionalização histórica.
+2. **Silver histórica** só deve ser promovida quando a referência territorial
+   usada estiver explicitamente identificada. Enquanto a história da Base
+   Territorial estiver `deferred`, não se deve interpretar Região de Saúde,
+   Macrorregião ou demais classificações correntes como se fossem históricas.
+
+`ops/cnes-list-remote-history.sh` inventaria as competências disponíveis no
+FTP oficial. `ops/cnes-backfill-bronze.sh` planeja ou executa somente o
+backfill Raw/Bronze.
+
+Atributos nativos do CNES (estabelecimento, tipo, natureza, serviços,
+equipamentos, leitos, equipes, profissionais e vínculos) permanecem
+mensais. A geografia derivada deve carregar a proveniência da referência
+territorial utilizada.

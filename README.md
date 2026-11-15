@@ -254,6 +254,22 @@ Inventário somente leitura das tabelas PostgreSQL candidatas à retirada:
 ./ops/cnes-audit-psql-retirement.sh
 ```
 
+
+Inventário das competências CNES disponíveis no FTP oficial:
+
+```bash
+./ops/cnes-list-remote-history.sh
+```
+
+Planejamento do backfill Raw/Bronze, sem baixar nada:
+
+```bash
+./ops/cnes-backfill-bronze.sh --from AAAAMM --to AAAAMM
+```
+
+Para executar de fato, acrescentar `--execute`. O backfill histórico Silver
+fica separado enquanto a regionalização histórica não estiver versionada.
+
 Execução isolada:
 
 ```bash
