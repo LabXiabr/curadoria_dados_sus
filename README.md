@@ -60,3 +60,48 @@ git pull --ff-only origin develop
 ```
 
 A política de volatilidade e reconstrução lossless está em `systems/sigtap/temporal_policy.md`.
+
+
+## CNES e referencias territoriais
+
+### CNES mensal
+
+A fonte Raw preferencial e o snapshot oficial `BASE_DE_DADOS_CNES_AAAAMM.ZIP`.
+A Bronze completa e local/privada, pois o pacote pode conter tabelas com
+identificadores de profissionais.
+
+```bash
+./ops/cnes-base-complete.sh --competencia latest
+```
+
+Antes da primeira carga, aplicar `ops/apache/labx-suslake-private.conf` no Apache.
+
+### CEP Brasil
+
+`CEP_BRASIL.ZIP` e observado periodicamente e versionado por SHA-256. Apenas
+uma copia de cada conteudo e preservada. `CEP.txt` e `CEPALTERADO.txt` sao
+convertidos para Bronze, e a versao corrente e materializada na Silver.
+
+```bash
+./ops/cnes-cep-complete.sh
+```
+
+### Municipio
+
+A referencia municipal corrente e derivada de `tb_municipio` da Bronze CNES.
+O campo de populacao do CNES e mantido apenas como atributo operacional; nao
+substitui a serie demografica selecionada.
+
+```bash
+python3 etl/parquet_duckdb/reference/build_municipio.py
+```
+
+### Populacao DATASUS TabNet
+
+O pipeline reutiliza o projeto publico `LabXiabr/tabnet-populacao`, preserva
+a resposta/metadados da consulta no Raw, a extracao normalizada na Bronze e a
+serie corrente por ano na Silver.
+
+```bash
+./ops/populacao-tabnet-to-lake.sh --ano 2024
+```
