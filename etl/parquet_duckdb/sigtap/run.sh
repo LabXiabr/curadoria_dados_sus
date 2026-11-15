@@ -63,7 +63,13 @@ ftp_ok=0
 if (( OFFLINE == 0 )); then
     if curl --fail --silent --show-error --list-only "$FTP_BASE/" \
         | tr -d '\r' \
-        | grep -E '^TabelaUnificada_[0-9]{6}.*\.zip
+        | grep -E '^TabelaUnificada_[0-9]{6}.*\.zip$' \
+        | sort -u > "$remote_names"; then
+        ftp_ok=1
+    fi
+fi
+
+if [[ -n "$SOURCE_ZIP" ]]; then
     [[ "$SOURCE_ZIP" == "$(basename "$SOURCE_ZIP")" ]] || {
         echo "ERRO: --source-zip deve ser apenas nome de arquivo: $SOURCE_ZIP" >&2
         exit 4
