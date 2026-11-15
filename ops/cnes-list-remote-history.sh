@@ -35,7 +35,9 @@ curl --fail --silent --show-error --list-only "$FTP_BASE/"   | tr -d '\r'   | gr
     [[ -n "$comp" ]] || continue
 
     supported=0
-    [[ "$comp" >= "$MIN_COMP" ]] && supported=1
+    if (( 10#$comp >= 10#$MIN_COMP )); then
+      supported=1
+    fi
 
     raw=0
     base=0

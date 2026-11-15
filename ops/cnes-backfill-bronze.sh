@@ -44,7 +44,7 @@ done
 }
 
 requested_from="$FROM"
-if [[ "$FROM" < "$MIN_COMP" ]]; then
+if (( 10#$FROM < 10#$MIN_COMP )); then
   echo "CNES_BACKFILL_NOTICE requested_from=$FROM official_base_start=$MIN_COMP legacy_pre_start=1"
   FROM="$MIN_COMP"
 fi

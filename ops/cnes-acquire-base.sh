@@ -37,7 +37,7 @@ done
     echo "ERRO: CNES_BASE_MIN_COMP invalida: $MIN_COMP" >&2
     exit 2
 }
-if [[ "$COMP" != "latest" && "$COMP" < "$MIN_COMP" ]]; then
+if [[ "$COMP" != "latest" ]] && (( 10#$COMP < 10#$MIN_COMP )); then
     echo "ERRO: BASE_DE_DADOS_CNES por competencia e suportada a partir de $MIN_COMP; solicitado=$COMP" >&2
     echo "Use o fluxo legado PostgreSQL/DBC para competencias anteriores." >&2
     exit 5
@@ -58,9 +58,17 @@ trap 'rm -f "$names"' EXIT
 curl --fail --silent --show-error --list-only "$FTP_BASE/"     | tr -d '\r'     | grep -Ei '^BASE_DE_DADOS_CNES_[0-9]{6}\.ZIP$'     | sort -u > "$names"
 
 if [[ "$COMP" == "latest" ]]; then
-    selected="$(awk -v m="$MIN_COMP" '
-      match($0,/BASE_DE_DADOS_CNES_([0-9]{6})\.ZIP/,a) && a[1]>=m {print}
-    ' "$names" | sort | tail -1)"
+    selected="$(
+      while IFS= read -r candidate; do
+        c="$(
+          printf '%s\n' "$candidate"             | sed -nE 's/^BASE_DE_DADOS_CNES_([0-9]{6})\.ZIP$/\1/Ip'
+        )"
+        [[ -n "$c" ]] || continue
+        if (( 10#$c >= 10#$MIN_COMP )); then
+          printf '%s\n' "$candidate"
+        fi
+      done < "$names" | sort | tail -1
+    )"
 else
     selected="$(grep -Ei "^BASE_DE_DADOS_CNES_${COMP}\.ZIP$" "$names" | tail -1 || true)"
 fi
@@ -71,7 +79,7 @@ fi
 }
 
 competencia="$(printf '%s\n' "$selected" | sed -nE 's/^BASE_DE_DADOS_CNES_([0-9]{6})\.ZIP$/\1/Ip')"
-if [[ "$competencia" < "$MIN_COMP" ]]; then
+if (( 10#$competencia < 10#$MIN_COMP )); then
     echo "ERRO: item listado no FTP e anterior ao inicio oficial suportado: $competencia < $MIN_COMP" >&2
     exit 5
 fi
