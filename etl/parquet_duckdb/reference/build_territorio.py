@@ -179,6 +179,8 @@ def main() -> int:
     state.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix=f"{snapshot}_", dir=workroot))
     report_rows = []
+    snapshot_ok = state / f"territorio_{snapshot}.bronze.ok"
+    snapshot_ok.unlink(missing_ok=True)
     current_marker = state / "territorio_current.ok"
     previous_snapshot = ""
     if current_marker.is_file():
@@ -278,6 +280,18 @@ TO {sqls(str(ctmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
                         "header_mode", "expected_columns", "rows",
                         "source_bytes", "source_crc32", "bronze", "silver_current"])
             w.writerows(report_rows)
+
+        snapshot_ok.write_text("\n".join([
+            f"timestamp={ts}",
+            f"snapshot={snapshot}",
+            f"source_zip={zp.name}",
+            f"source_sha256={sha}",
+            f"tables={len(report_rows)}",
+            f"report={report}",
+            "status=bronze_complete",
+            ""
+        ]), encoding="utf-8")
+        print(f"TERRITORIO_BRONZE_OK snapshot={snapshot} marker={snapshot_ok}")
 
         if publish_current:
             marker = state / "territorio_current.ok"
