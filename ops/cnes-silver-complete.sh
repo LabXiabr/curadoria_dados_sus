@@ -9,6 +9,21 @@ mkdir -p "$STATE"
 
 "$ROOT/ops/cnes-preflight.sh"
 
+# Falhar cedo em qualquer erro de sintaxe Python.
+export PYTHONPYCACHEPREFIX="${PYTHONPYCACHEPREFIX:-/tmp/curadoria_dados_sus_pycache}"
+python3 -m py_compile \
+  "$ROOT/etl/parquet_duckdb/reference/build_ibge_localidades.py" \
+  "$ROOT/etl/parquet_duckdb/reference/build_ra_df.py" \
+  "$ROOT/etl/parquet_duckdb/reference/build_municipio_contexto.py" \
+  "$ROOT/etl/parquet_duckdb/reference/build_territorio_conformado.py" \
+  "$ROOT/etl/parquet_duckdb/cnes/build_df_ra_crosswalk.py" \
+  "$ROOT/etl/parquet_duckdb/cnes/build_silver_current.py" \
+  "$ROOT/ops/build-cnes-duckdb-views.py" \
+  "$ROOT/ops/qc-cnes-drill-territorial.py" \
+  "$ROOT/ops/cnes-classify-tables.py" \
+  "$ROOT/ops/qc-cnes-global.py"
+echo "CNES_PYTHON_SYNTAX_OK"
+
 [[ "$COMP" =~ ^[0-9]{6}$ ]] || {
   echo "Uso: $0 YYYYMM" >&2
   exit 2
