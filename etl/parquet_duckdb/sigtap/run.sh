@@ -160,12 +160,14 @@ while IFS= read -r -d '' lf; do
         NR==1 {next}
         {
             gsub(/\r/,"")
+            if ($0 ~ /^[[:space:]]*$/) next
             width=$2+0
             start=$3+0
             end=$4+0
             if (width != end-start+1) exit 11
-            if (NR>2 && start != prev_end+1) exit 12
+            if (seen && start != prev_end+1) exit 12
             prev_end=end
+            seen=1
         }
     ' "$lf"; then
         echo "ERRO layout oficial inconsistente: $base" >&2
@@ -177,9 +179,11 @@ while IFS= read -r -d '' lf; do
         NR==1 {next}
         {
             gsub(/\r/,"")
+            if ($0 ~ /^[[:space:]]*$/) next
+            ordinal+=1
             col=tolower($1)
             printf "%s\t%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-                   c,t,NR-1,col,$2,$3,$4,$5,z,h
+                   c,t,ordinal,col,$2,$3,$4,$5,z,h
         }
     ' "$lf" >> "$registry"
 done < <(find "$work/extract" -type f -iname '*_layout.txt' -print0 | sort -z)
@@ -208,11 +212,13 @@ while IFS= read -r -d '' txt; do
         LC_ALL=C awk '
             {
                 sub(/\r$/, "", $0)
+                if (length($0)==0) next
                 l=length($0)
-                if (NR==1 || l<mn) mn=l
-                if (NR==1 || l>mx) mx=l
+                n+=1
+                if (n==1 || l<mn) mn=l
+                if (n==1 || l>mx) mx=l
             }
-            END {print NR+0, mn+0, mx+0}
+            END {print n+0, mn+0, mx+0}
         ' "$txt"
     )
 
@@ -228,15 +234,29 @@ while IFS= read -r -d '' txt; do
     fi
 
     widths="$(
-        awk -F',' 'NR>1 {gsub(/\r/,""); printf "%s%s",$2,(NR==n?"":"|")}' \
-            n="$(wc -l < "$lf")" "$lf"
+        awk -F',' '
+            NR>1 {
+                gsub(/\r/,"")
+                if ($0 ~ /^[[:space:]]*$/) next
+                if (seen) printf "|"
+                printf "%s",$2
+                seen=1
+            }
+        ' "$lf"
     )"
     fields="$(
-        awk -F',' 'NR>1 {gsub(/\r/,""); printf "%s%s",tolower($1),(NR==n?"":"|")}' \
-            n="$(wc -l < "$lf")" "$lf"
+        awk -F',' '
+            NR>1 {
+                gsub(/\r/,"")
+                if ($0 ~ /^[[:space:]]*$/) next
+                if (seen) printf "|"
+                printf "%s",tolower($1)
+                seen=1
+            }
+        ' "$lf"
     )"
-    expected="$(awk -F',' 'END {gsub(/\r/,""); print $4+0}' "$lf")"
-    last_start="$(awk -F',' 'END {gsub(/\r/,""); print $3+0}' "$lf")"
+    expected="$(awk -F',' 'NR>1 {gsub(/\r/,""); if ($0 !~ /^[[:space:]]*$/) v=$4+0} END {print v+0}' "$lf")"
+    last_start="$(awk -F',' 'NR>1 {gsub(/\r/,""); if ($0 !~ /^[[:space:]]*$/) v=$3+0} END {print v+0}' "$lf")"
 
     if [[ "$rows" == "0" ]]; then
         status="ok"
