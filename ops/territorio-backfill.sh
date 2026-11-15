@@ -100,8 +100,24 @@ done < "$years"
 
 echo "Relatorio: $report"
 if (( fail )); then
+  rm -f "$LAKE_ROOT/state/reference/territorio_backfill_complete.ok"
   echo "TERRITORIO_BACKFILL_INCOMPLETO falhas=$fail" >&2
   exit 20
 fi
 
-echo "TERRITORIO_BACKFILL_OK from=$FROM_YEAR to=$TO_YEAR"
+ok_count="$(awk -F'\t' 'NR>1 && $4=="ok"{n++} END{print n+0}' "$report")"
+first_snapshot="$(awk -F'\t' 'NR>1 && $4=="ok"{print $1}' "$report" | sort | head -1)"
+last_snapshot="$(awk -F'\t' 'NR>1 && $4=="ok"{print $1}' "$report" | sort | tail -1)"
+marker="$LAKE_ROOT/state/reference/territorio_backfill_complete.ok"
+{
+  echo "timestamp=$(date -Is)"
+  echo "from_year=$FROM_YEAR"
+  echo "to_year=$TO_YEAR"
+  echo "snapshots_ok=$ok_count"
+  echo "first_snapshot=$first_snapshot"
+  echo "last_snapshot=$last_snapshot"
+  echo "report=$report"
+} > "$marker"
+
+echo "TERRITORIO_BACKFILL_OK from=$FROM_YEAR to=$TO_YEAR snapshots=$ok_count"
+echo "marker=$marker"
