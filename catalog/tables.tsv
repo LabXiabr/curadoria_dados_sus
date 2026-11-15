@@ -1,0 +1,20 @@
+system	object	layer	source	grain	time_anchor	status	public_policy	notes
+SIA	fact_sia_pa	silver	PA	source_record	competencia_producao	designed	public	Producao ambulatorial
+SIA	fact_sia_subsystem	silver	AB|ABO|ACF|AD|AM|AMP|AN|AQ|AR|ATD|BI|PS|SAD	source_record	competencia_producao	designed	public	Materializar por subsistema
+SIA	vw_sia_evento_core	silver	fact_sia_*	common_projection	competencia_producao	designed	public	View comum sem perder grain
+SIH	fact_sih_rd	silver	RD	source_record	competencia_processamento|data_internacao	designed	public	AIH reduzida
+SIH	fact_sih_sp	silver	SP	source_record	competencia_processamento	designed	public	Atos e servicos profissionais
+SIH	fact_sih_rj	silver	RJ	source_record	competencia_processamento	designed	public	AIH rejeitada
+SIH	fact_sih_er	silver	ER	source_record	competencia_processamento	designed	public	Rejeicoes com erro
+SIH	vw_sih_evento_core	silver	fact_sih_*	common_projection	declared_by_query	designed	public	View comum
+CIH	fact_cih_cr	silver	CR	source_record	competencia|data_internacao	designed	public	Comunicacao de internacao
+CIH_CIHA	vw_cih_ciha_evento_core	silver	CIH.CR|CIHA.CIHA	common_projection	declared_by_query	designed	public	Continuidade entre eras
+CIHA	fact_ciha_evento	silver	CIHA	source_record	competencia|data_atendimento	designed	public	Hospitalar e ambulatorial
+SIM	fact_sim_obito	silver	DO	source_record	data_obito	designed	public	DO geral definitiva como fato canonico
+SIM	vw_sim_obito_fetal	silver	DOF|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
+SIM	vw_sim_obito_infantil	silver	DOI|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
+SIM	vw_sim_obito_materno	silver	DOM|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
+SIM	vw_sim_obito_causa_externa	silver	DOE|DORE|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
+SINASC	fact_sinasc_nascimento	silver	DNR|DN	source_record	data_nascimento	designed	public	Conforma eras preservando origem
+SINAN	fact_sinan_agravo	silver	one_per_agravo	source_record	data_notificacao	designed	public	Uma tabela por agravo
+SINAN	vw_sinan_notificacao_core	silver	fact_sinan_*	common_projection	data_notificacao|data_inicio_sintomas	designed	public	Nucleo comum; sem tabela larga global

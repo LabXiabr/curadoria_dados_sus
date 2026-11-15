@@ -1,0 +1,51 @@
+system	object_scope	field	semantic_role	source_examples	reference	status	notes
+SIA	fact_sia_*	competencia_producao	time_anchor	PA_CMP|file_competencia		defined	Separar de movimento/processamento quando ambos existirem
+SIA	fact_sia_*	co_cnes	estabelecimento	PA_CODUNI|*_CODUNI	CNES.dim_estabelecimento	defined	Texto 7 digitos quando fonte CNES
+SIA	fact_sia_*	co_procedimento	procedimento	PA_PROC_ID|PA_CODPRO|AP_PRIPAL	SIGTAP.tb_procedimento	defined	Texto; exato por competencia em 2008+
+SIA	fact_sia_*	nu_autorizacao	autorizacao	PA_AUTORIZ|AP_AUTORIZ		defined	Preservar zeros; candidato de ligacao
+SIA	fact_sia_*	co_municipio_estabelecimento	territory_role	PA_UFMUN|PA_MUNAT	REFERENCE.dim_territorio	defined	Nao substituir por residencia
+SIA	fact_sia_*	co_municipio_residencia	territory_role	PA_MUNPCN	REFERENCE.dim_territorio	defined	Pode refletir estabelecimento quando paciente nao identificado; preservar fonte
+SIA	fact_sia_*	co_cid_principal	diagnosis	PA_CIDPRI	CID	defined	Versao/classificacao depende do periodo
+SIA	fact_sia_*	sg_sexo	person_attribute	PA_SEXO		defined	Dominio versionado
+SIA	fact_sia_*	nu_idade	person_attribute	PA_IDADE		defined	Preservar regra da fonte
+SIA	fact_sia_*	qt_aprovada	measure	PA_QTDAPR		defined	Nao confundir apresentada
+SIH	fact_sih_rd	competencia_processamento	time_anchor	ANO_CMPT+MES_CMPT		defined	Distinguir de data de internacao
+SIH	fact_sih_rd	nu_aih	business_identifier	N_AIH		candidate	Validar unicidade por competencia/UF/tipo
+SIH	fact_sih_rd	co_cnes	estabelecimento	CNES	CNES.dim_estabelecimento	defined	Quando presente
+SIH	fact_sih_rd	co_procedimento	procedimento	PROC_REA	SIGTAP.tb_procedimento	defined	Historico pre-2008 usa TAB_SIH
+SIH	fact_sih_sp	nu_aih	link_identifier	SP_NAIH	fact_sih_rd.nu_aih	candidate	Validar cardinalidade
+SIH	fact_sih_sp	co_cnes	estabelecimento	SP_CNES	CNES.dim_estabelecimento	defined	Quando presente
+SIH	fact_sih_sp	co_procedimento	procedimento	SP_PROCREA	SIGTAP.tb_procedimento	defined	Conferir semantica com ato profissional
+SIH	fact_sih_rd	co_municipio_residencia	territory_role	MUNIC_RES	REFERENCE.dim_territorio	defined	Papel residencia
+SIH	fact_sih_rd	co_municipio_estabelecimento	territory_role	MUNIC_MOV	REFERENCE.dim_territorio	defined	Papel internacao
+SIH	fact_sih_rd	dt_internacao	event_date	DT_INTER		defined	Ancora alternativa
+SIH	fact_sih_rd	dt_saida	event_date	DT_SAIDA		defined	
+SIH	fact_sih_rd	co_cid_principal	diagnosis	DIAG_PRINC	CID	defined	
+CIH	fact_cih_cr	competencia	time_anchor	ANO_CMPT+MES_CMPT		defined	
+CIH	fact_cih_cr	co_cnes	estabelecimento	CNES	CNES.dim_estabelecimento	defined	Preservar CGC_HOSP
+CIH	fact_cih_cr	co_procedimento	procedimento	PROC_REA	SIGTAP.tb_procedimento	needs_validation	
+CIHA	fact_ciha_evento	competencia	time_anchor	ANO_CMPT+MES_CMPT		defined	
+CIHA	fact_ciha_evento	co_cnes	estabelecimento	CNES	CNES.dim_estabelecimento	defined	Preservar CGC_HOSP
+CIHA	fact_ciha_evento	co_procedimento	procedimento	PROC_REA	SIGTAP.tb_procedimento	needs_validation	
+SIM	fact_sim_obito	dt_obito	time_anchor	DTOBITO		defined	Data do evento
+SIM	fact_sim_obito	co_cnes	estabelecimento_ocorrencia	CODESTAB	CNES.dim_estabelecimento	defined	Nullable
+SIM	fact_sim_obito	co_municipio_residencia	territory_role	CODMUNRES	REFERENCE.dim_territorio	defined	
+SIM	fact_sim_obito	co_municipio_ocorrencia	territory_role	CODMUNOCOR	REFERENCE.dim_territorio	defined	
+SIM	fact_sim_obito	co_cid_causa_basica	diagnosis	CAUSABAS	CID	defined	Nao substituir linhas do atestado
+SIM	fact_sim_obito	dt_nascimento	person_attribute	DTNASC		defined	
+SIM	fact_sim_obito	sg_sexo	person_attribute	SEXO		defined	
+SINASC	fact_sinasc_nascimento	dt_nascimento	time_anchor	DTNASC		defined	Data do evento
+SINASC	fact_sinasc_nascimento	nu_declaracao_nascido_vivo	business_identifier	NUMERODN		candidate	Validar por era
+SINASC	fact_sinasc_nascimento	co_cnes	estabelecimento_ocorrencia	CODESTAB	CNES.dim_estabelecimento	defined	Nullable
+SINASC	fact_sinasc_nascimento	co_municipio_residencia_mae	territory_role	CODMUNRES	REFERENCE.dim_territorio	defined	
+SINASC	fact_sinasc_nascimento	co_municipio_ocorrencia	territory_role	CODMUNNASC	REFERENCE.dim_territorio	defined	
+SINASC	fact_sinasc_nascimento	sg_sexo	person_attribute	SEXO		defined	Sexo do nascido
+SINAN	fact_sinan_agravo	dt_notificacao	time_anchor	DT_NOTIFIC		defined	Presente em todas as familias observadas
+SINAN	fact_sinan_agravo	co_agravo	disease	ID_AGRAVO	SINAN_AUX	defined	Dominio por versao
+SINAN	fact_sinan_agravo	co_municipio_notificacao	territory_role	ID_MUNICIP	REFERENCE.dim_territorio	defined	
+SINAN	fact_sinan_agravo	co_municipio_residencia	territory_role	ID_MN_RESI	REFERENCE.dim_territorio	defined	Nem todas as familias
+SINAN	fact_sinan_agravo	co_municipio_infeccao	territory_role	COMUNINF	REFERENCE.dim_territorio	defined	Somente agravos aplicaveis
+SINAN	fact_sinan_agravo	id_unidade_notificadora	source_identifier	ID_UNIDADE		needs_validation	Nao tratar como CNES antes de QC
+SINAN	fact_sinan_agravo	dt_inicio_sintomas	event_date	DT_SIN_PRI		defined	Quando presente
+SINAN	fact_sinan_agravo	sg_sexo	person_attribute	CS_SEXO		defined	
+SINAN	fact_sinan_agravo	nu_idade	person_attribute	NU_IDADE_N|NU_IDADE		defined	Codificacao muda por era
