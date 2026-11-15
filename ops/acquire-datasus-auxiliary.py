@@ -161,8 +161,12 @@ def main() -> int:
         if args.dry_run:
             continue
 
-        with tempfile.TemporaryDirectory(prefix="datasus_aux_") as td:
-            tmp = Path(td) / name
+        incoming = raw_root / ".incoming"
+        incoming.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(prefix=f"{source_id}.", suffix=".partial", dir=incoming)
+        os.close(fd)
+        tmp = Path(tmp_name)
+        try:
             curl_download(url, tmp)
             digest = sha256(tmp)
             destdir = raw_root / f"system={system}" / f"source={source_id}" / f"sha256={digest}"
@@ -170,6 +174,8 @@ def main() -> int:
             dest = destdir / name
             if not dest.exists():
                 os.replace(tmp, dest)
+        finally:
+            tmp.unlink(missing_ok=True)
 
         member_manifest = ""
         suffix = dest.suffix.lower()
