@@ -14,8 +14,11 @@ mkdir -p "$STATE"
   exit 2
 }
 
-# Dimensao pequena: reconstruir sempre para que contrato e schema Silver acompanhem o codigo.
-python3 "$ROOT/etl/parquet_duckdb/reference/build_territorio_conformado.py"
+# Referencia oficial das Regioes Administrativas do DF.
+"$ROOT/ops/ibge-localidades-complete.sh"
+
+# Reconstroi contexto municipal com nomes das cinco Grandes Regioes.
+python3 "$ROOT/etl/parquet_duckdb/reference/build_municipio_contexto.py"
 
 for f in \
   "$STATE/base_complete_${COMP}.ok" \
@@ -26,7 +29,10 @@ do
   [[ -f "$f" ]] || { echo "ERRO: gate ausente: $f" >&2; exit 20; }
 done
 
-python3 "$ROOT/ops/qc-cnes-df-territorio.py" --competencia "$COMP"
+python3 "$ROOT/etl/parquet_duckdb/cnes/build_df_ra_crosswalk.py" --competencia "$COMP"
+python3 "$ROOT/etl/parquet_duckdb/reference/build_territorio_conformado.py"
 python3 "$ROOT/ops/cnes-profile-bronze.py" --competencia "$COMP"
 python3 "$ROOT/etl/parquet_duckdb/cnes/build_silver_current.py" --competencia "$COMP"
 python3 "$ROOT/ops/build-cnes-duckdb-views.py"
+python3 "$ROOT/ops/qc-cnes-drill-territorial.py"
+echo "CNES_SILVER_COMPLETE_OK competencia=$COMP"

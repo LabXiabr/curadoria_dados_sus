@@ -133,19 +133,31 @@ QUALIFY row_number() OVER (
     # Região
     rcols=schemas["tb_regiao"]
     r_key=choose(rcols,"CO_REGIAO")
-    r_nome=choose(rcols,"DS_NOMEPAD","DS_NOME","DS_ABREV")
+    r_nome=choose(rcols,"DS_NOMEPAD","DS_NOME","DS_REGIAO","NO_REGIAO","NM_REGIAO","DS_ABREV")
     if not r_key:
         die(f"schema tb_regiao sem CO_REGIAO: {sorted(rcols)}",5)
+    reg_mun_expr=(
+        f"coalesce(nullif(trim(cast(m.{qi(c_reg)} as varchar)),''), "
+        f"substr(trim(cast(m.{qi(c_uf)} as varchar)),1,1))"
+    )
+    reg_code_expr=f"trim(cast(r.{qi(r_key)} as varchar))"
+    reg_name_source=text_expr('r',r_nome)
+    reg_name_expr=(
+        f"coalesce({reg_name_source}, CASE {reg_code_expr} "
+        "WHEN '1' THEN 'Norte' WHEN '2' THEN 'Nordeste' "
+        "WHEN '3' THEN 'Sudeste' WHEN '4' THEN 'Sul' "
+        "WHEN '5' THEN 'Centro-Oeste' END)"
+    )
     ctes.append(f"""regiao AS (
-SELECT cast({qi(r_key)} as varchar) AS co_regiao,
-       {text_expr('r',r_nome)} AS no_regiao
+SELECT {reg_code_expr} AS co_regiao,
+       {reg_name_expr} AS no_regiao
 FROM read_parquet({sqls(str(path('tb_regiao')))}) r
 QUALIFY row_number() OVER (
-  PARTITION BY cast({qi(r_key)} as varchar)
-  ORDER BY cast({qi(r_key)} as varchar)
+  PARTITION BY {reg_code_expr}
+  ORDER BY {reg_code_expr}
 )=1
 )""")
-    joins.append(f"LEFT JOIN regiao ON regiao.co_regiao = cast(m.{qi(c_reg)} as varchar)")
+    joins.append(f"LEFT JOIN regiao ON regiao.co_regiao = {reg_mun_expr}")
 
     # Relacionamentos genéricos: todos agregados para garantir uma linha por município.
     specs=[
@@ -194,7 +206,7 @@ GROUP BY 1
       "co_uf": f"cast(m.{qi(c_uf)} as varchar)",
       "sg_uf": f"coalesce({text_expr('m',c_sguf)}, uf.sg_uf_dim)",
       "no_uf": "uf.no_uf",
-      "co_regiao": f"cast(m.{qi(c_reg)} as varchar)",
+      "co_regiao": reg_mun_expr,
       "no_regiao": "regiao.no_regiao",
       "in_capital": flag_expr("m",choose(mcols,"IN_CAPITAL")),
       "in_amazonia_legal": flag_expr("m",choose(mcols,"IN_AMAZLEG")),
@@ -247,16 +259,21 @@ SELECT
  count(DISTINCT co_municipio_ibge) AS mun7,
  count(DISTINCT co_uf) AS ufs,
  count(DISTINCT co_regiao) AS regioes,
+ count(DISTINCT no_regiao) AS nomes_regioes,
+ count(*) FILTER (WHERE co_regiao IS NULL OR co_regiao='' OR no_regiao IS NULL OR no_regiao='') AS miss_regiao,
  count(*) FILTER (WHERE co_regiao_saude IS NULL OR co_regiao_saude='') AS miss_regsaud,
  count(*) FILTER (WHERE co_macrorregiao_saude IS NULL OR co_macrorregiao_saude='') AS miss_macsaud
 FROM read_parquet({sqls(str(tmp))});
 """,True).strip()
     row=next(csv.reader([stats]))
-    rows,mun6,mun7,ufs,regioes,miss_reg,miss_mac=map(int,row)
+    rows,mun6,mun7,ufs,regioes,nomes_regioes,miss_regiao,miss_reg,miss_mac=map(int,row)
     if rows != mun6 or rows != mun7:
         die(f"duplicacao municipal rows={rows} mun6={mun6} mun7={mun7}",20)
-    if rows < 5570 or ufs != 27 or regioes != 5:
-        die(f"cobertura territorial inesperada rows={rows} ufs={ufs} regioes={regioes}",20)
+    if rows < 5570 or ufs != 27 or regioes != 5 or nomes_regioes != 5 or miss_regiao:
+        die(
+            f"cobertura territorial inesperada rows={rows} ufs={ufs} regioes={regioes} "
+            f"nomes_regioes={nomes_regioes} missing_regiao={miss_regiao}",20
+        )
     if miss_reg or miss_mac:
         die(f"municipios sem regionalizacao de saude: regsaud={miss_reg} macsaud={miss_mac}",20)
 
@@ -277,6 +294,8 @@ FROM read_parquet({sqls(str(tmp))});
       f"municipios_7d={mun7}",
       f"ufs={ufs}",
       f"regioes={regioes}",
+      f"nomes_regioes={nomes_regioes}",
+      f"missing_regiao={miss_regiao}",
       f"missing_regiao_saude={miss_reg}",
       f"missing_macrorregiao_saude={miss_mac}",
       f"relationships={'|'.join(rel_available)}",
