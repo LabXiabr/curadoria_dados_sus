@@ -171,7 +171,8 @@ def main() -> int:
                     header=true,
                     all_varchar=true,
                     sample_size=-1,
-                    null_padding=true
+                    null_padding=true,
+                    parallel=false
                 )"""
                 run_duck(f"""
 COPY (
