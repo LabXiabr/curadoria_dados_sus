@@ -157,8 +157,8 @@ def main() -> int:
         schema=r["table_schema"]; table=r["table_name"]
         uf=r["source_uf"] or "unknown"; comp=r["source_competencia"] or "unknown"
         dest=(lake/"bronze"/r["system"].lower()/r["subsystem"].lower()/
-              f"uf={uf}"/f"competencia={comp}"/f"source_schema={schema}"/
-              f"source_table={table}"/"part-000.parquet")
+              f"uf={uf}"/f"competencia={comp}"/f"source_profile={args.profile.upper()}"/
+              f"source_schema={schema}"/f"source_table={table}"/"part-000.parquet")
         dest.parent.mkdir(parents=True,exist_ok=True)
         partial=dest.with_name(dest.name+f".partial.{os.getpid()}")
         rows_pg=psql_count(cfg,schema,table)
