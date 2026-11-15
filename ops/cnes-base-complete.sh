@@ -15,15 +15,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
-TERR_GATE="$LAKE_ROOT/state/reference/territorio_current_complete.ok"
+STATE="$LAKE_ROOT/state/cnes"
+mkdir -p "$STATE"
 
-[[ -f "$TERR_GATE" ]] || {
-    echo "ERRO: dimensao territorial corrente ainda nao homologada: $TERR_GATE" >&2
-    exit 20
-}
-
-echo "=== CNES 0/3: GATE TERRITORIAL ==="
-cat "$TERR_GATE"
+echo "=== CNES 0/3: PREFLIGHT ==="
+"$ROOT/ops/cnes-preflight.sh"
 
 echo
 echo "=== CNES 1/3: RAW ==="
@@ -41,4 +37,17 @@ echo "=== CNES 3/3: QC TERRITORIAL ==="
 python3 "$ROOT/ops/qc-cnes-territorio.py" --competencia "$comp"
 
 echo
-echo "CNES_BASE_COMPLETE_OK competencia=$comp"
+TERR_GATE="$LAKE_ROOT/state/reference/territorio_current_complete.ok"
+terr_snapshot="$(sed -n 's/^snapshot=//p' "$TERR_GATE" | head -1)"
+marker="$STATE/base_complete_${comp}.ok"
+{
+    echo "competencia=$comp"
+    echo "timestamp=$(date -Is)"
+    echo "territorio_snapshot=$terr_snapshot"
+    echo "raw_marker=$STATE/raw_base_${comp}.ok"
+    echo "bronze_marker=$STATE/qc_bronze_${comp}.ok"
+    echo "territorio_qc_marker=$STATE/qc_territorio_${comp}.ok"
+    echo "status=complete"
+} > "$marker"
+
+echo "CNES_BASE_COMPLETE_OK competencia=$comp marker=$marker"
