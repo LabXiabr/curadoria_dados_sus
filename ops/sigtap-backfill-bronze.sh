@@ -81,114 +81,9 @@ fi
 cat "$local_names" "$remote_names" | sort -u > "$all_names"
 
 sed -nE 's/^(TabelaUnificada_([0-9]{6}).*\.zip)$/\2\t\1/p' "$all_names" \
-    | sort -t 
-mv "$canon.filtered" "$canon"
-
-n_target="$(wc -l < "$canon")"
-(( n_target > 0 )) || { echo "ERRO: nenhuma competencia encontrada." >&2; exit 4; }
-echo "Competencias alvo: $n_target ($(head -1 "$canon" | cut -f1) .. $(tail -1 "$canon" | cut -f1))"
-
-while IFS=$'\t' read -r comp zipname; do
-    [[ -f "$RAW/$zipname" ]] && continue
-    if grep -Fxq "$zipname" "$remote_names"; then
-        echo "DOWNLOAD $comp $zipname"
-        partial="$RAW/$zipname.partial.$$"
-        rm -f "$partial"
-        curl --fail --location --silent --show-error --retry 4 --retry-delay 3 \
-            --remote-time --output "$partial" "$FTP_BASE/$zipname"
-        unzip -tq "$partial" >/dev/null
-        mv "$partial" "$RAW/$zipname"
-    else
-        echo "ERRO: ZIP canonico ausente localmente e nao disponivel no FTP: $zipname" >&2
-        exit 5
-    fi
-done < "$canon"
-
-ok=0
-skip=0
-fail=0
-report="$STATE/bronze_backfill_${ts}.tsv"
-printf 'competencia\tzip\tstatus\tmarker\n' > "$report"
-
-while IFS=$'\t' read -r comp zipname; do
-    marker="$STATE/qc_raw_bronze_${comp}.ok"
-    marker_zip=""
-    if [[ -f "$marker" ]]; then
-        marker_zip="$(sed -n 's/^zip=//p' "$marker" | head -1)"
-    fi
-
-    if [[ "$marker_zip" == "$zipname" && -f "$LAKE_ROOT/bronze/sigtap/tb_procedimento/competencia=$comp/part-000.parquet" ]]; then
-        echo "SKIP homologado $comp $zipname"
-        printf '%s\t%s\t%s\t%s\n' "$comp" "$zipname" "already_qc_ok" "$marker" >> "$report"
-        ((skip+=1))
-        continue
-    fi
-
-    echo "=== BRONZE $comp $zipname ==="
-    if SIGTAP_OFFLINE=1 "$RUN" --competencia "$comp" --source-zip "$zipname" --offline && "$QC" "$comp" "$zipname"; then
-        new_marker_zip="$(sed -n 's/^zip=//p' "$marker" | head -1 2>/dev/null || true)"
-        if [[ "$new_marker_zip" != "$zipname" ]]; then
-            echo "ERRO $comp: marker aponta $new_marker_zip, esperado $zipname" >&2
-            printf '%s\t%s\t%s\t%s\n' "$comp" "$zipname" "marker_zip_mismatch" "$marker" >> "$report"
-            ((fail+=1))
-        else
-            printf '%s\t%s\t%s\t%s\n' "$comp" "$zipname" "qc_ok" "$marker" >> "$report"
-            ((ok+=1))
-        fi
-    else
-        printf '%s\t%s\t%s\t%s\n' "$comp" "$zipname" "failed" "$marker" >> "$report"
-        ((fail+=1))
-    fi
-done < "$canon"
-
-echo
-echo "Relatorio: $report"
-echo "novas=$ok ja_homologadas=$skip falhas=$fail total=$n_target"
-
-gate_fail=0
-while IFS=$'\t' read -r comp zipname; do
-    marker="$STATE/qc_raw_bronze_${comp}.ok"
-    [[ -f "$marker" ]] || { echo "FALTA marker $comp" >&2; ((gate_fail+=1)); continue; }
-    marker_zip="$(sed -n 's/^zip=//p' "$marker" | head -1)"
-    [[ "$marker_zip" == "$zipname" ]] || { echo "FALTA rehomologar $comp: $marker_zip != $zipname" >&2; ((gate_fail+=1)); }
-done < "$canon"
-
-if (( fail > 0 || gate_fail > 0 )); then
-    echo "BRONZE_INCOMPLETA falhas=$fail gate=$gate_fail" >&2
-    exit 20
-fi
-
-first_target="$(head -1 "$canon" | cut -f1)"
-last_target="$(tail -1 "$canon" | cut -f1)"
-
-if [[ "$n_target" == "$n_all" && "$first_target" == "$first_all" && "$last_target" == "$last_all" ]]; then
-    {
-        echo "timestamp=$(date -Is)"
-        echo "from=$first_target"
-        echo "to=$last_target"
-        echo "competencias=$n_target"
-        echo "report=$report"
-    } > "$STATE/bronze_complete.ok"
-    echo "BRONZE_COMPLETE_OK $STATE/bronze_complete.ok"
-else
-    range_marker="$STATE/bronze_range_${first_target}_${last_target}.ok"
-    {
-        echo "timestamp=$(date -Is)"
-        echo "from=$first_target"
-        echo "to=$last_target"
-        echo "competencias=$n_target"
-        echo "report=$report"
-        echo "scope=partial_range"
-    } > "$range_marker"
-    echo "BRONZE_RANGE_OK $range_marker"
-fi
-\t' -k1,1 -k2,2 \
+    | sort -t $'\t' -k1,1 -k2,2 \
     | awk -F'\t' '{best[$1]=$2} END {for (c in best) print c "\t" best[c]}' \
     | sort -k1,1 > "$canon"
-
-n_all="$(wc -l < "$canon")"
-first_all="$(head -1 "$canon" | cut -f1)"
-last_all="$(tail -1 "$canon" | cut -f1)"
 
 awk -F'\t' -v a="$FROM" -v b="$TO" '$1>=a && $1<=b' "$canon" > "$canon.filtered"
 mv "$canon.filtered" "$canon"
@@ -267,12 +162,18 @@ if (( fail > 0 || gate_fail > 0 )); then
     exit 20
 fi
 
+first_target="$(head -1 "$canon" | cut -f1)"
+last_target="$(tail -1 "$canon" | cut -f1)"
+range_marker="$STATE/bronze_range_${first_target}_${last_target}.ok"
+
 {
     echo "timestamp=$(date -Is)"
-    echo "from=$FROM"
-    echo "to=$TO"
+    echo "from=$first_target"
+    echo "to=$last_target"
     echo "competencias=$n_target"
     echo "report=$report"
-} > "$STATE/bronze_complete.ok"
+    echo "scope=range"
+} > "$range_marker"
 
-echo "BRONZE_COMPLETE_OK $STATE/bronze_complete.ok"
+echo "BRONZE_RANGE_OK $range_marker"
+echo "Completude global: rode ops/qc-sigtap-global.sh"
