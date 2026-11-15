@@ -53,6 +53,12 @@ def main() -> int:
         "fact_estabelecimento_servico": lake/"silver"/"cnes"/"fact_estabelecimento_servico"/"current.parquet",
         "fact_estabelecimento_equipamento": lake/"silver"/"cnes"/"fact_estabelecimento_equipamento"/"current.parquet",
         "fact_estabelecimento_leito": lake/"silver"/"cnes"/"fact_estabelecimento_leito"/"current.parquet",
+        "dim_tipo_estabelecimento": lake/"silver"/"cnes"/"dim_tipo_estabelecimento"/"current.parquet",
+        "dim_natureza_juridica": lake/"silver"/"cnes"/"dim_natureza_juridica"/"current.parquet",
+        "dim_profissional": lake/"silver"/"cnes"/"dim_profissional"/"current.parquet",
+        "fact_equipe": lake/"silver"/"cnes"/"fact_equipe"/"current.parquet",
+        "bridge_estabelecimento_equipe_profissional": lake/"silver"/"cnes"/"bridge_estabelecimento_equipe_profissional"/"current.parquet",
+        "fact_profissional_vinculo": lake/"silver"/"cnes"/"fact_profissional_vinculo"/"current.parquet",
     }
     missing=[str(p) for p in paths.values() if not p.is_file()]
     if missing:
@@ -129,6 +135,19 @@ SELECT * FROM read_parquet({p['fact_estabelecimento_equipamento']});
 CREATE OR REPLACE VIEW cnes.fact_estabelecimento_leito AS
 SELECT * FROM read_parquet({p['fact_estabelecimento_leito']});
 
+CREATE OR REPLACE VIEW cnes.dim_tipo_estabelecimento AS
+SELECT * FROM read_parquet({p['dim_tipo_estabelecimento']});
+CREATE OR REPLACE VIEW cnes.dim_natureza_juridica AS
+SELECT * FROM read_parquet({p['dim_natureza_juridica']});
+CREATE OR REPLACE VIEW cnes.dim_profissional AS
+SELECT * FROM read_parquet({p['dim_profissional']});
+CREATE OR REPLACE VIEW cnes.fact_equipe AS
+SELECT * FROM read_parquet({p['fact_equipe']});
+CREATE OR REPLACE VIEW cnes.bridge_estabelecimento_equipe_profissional AS
+SELECT * FROM read_parquet({p['bridge_estabelecimento_equipe_profissional']});
+CREATE OR REPLACE VIEW cnes.fact_profissional_vinculo AS
+SELECT * FROM read_parquet({p['fact_profissional_vinculo']});
+
 CREATE OR REPLACE VIEW cnes.vw_estabelecimento_drill AS
 SELECT
   e.co_unidade_key,
@@ -157,12 +176,24 @@ JOIN cnes.vw_estabelecimento_drill d
   ON d.co_unidade_key=f.co_unidade_key;
 
 CREATE OR REPLACE VIEW cnes.vw_leito_drill AS
-SELECT
-  d.*,
-  f.* EXCLUDE (co_unidade_key, co_cnes_key)
+SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
 FROM cnes.fact_estabelecimento_leito f
-JOIN cnes.vw_estabelecimento_drill d
-  ON d.co_unidade_key=f.co_unidade_key;
+JOIN cnes.vw_estabelecimento_drill d ON d.co_unidade_key=f.co_unidade_key;
+
+CREATE OR REPLACE VIEW cnes.vw_equipe_drill AS
+SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
+FROM cnes.fact_equipe f
+JOIN cnes.vw_estabelecimento_drill d ON d.co_unidade_key=f.co_unidade_key;
+
+CREATE OR REPLACE VIEW cnes.vw_equipe_profissional_drill AS
+SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
+FROM cnes.bridge_estabelecimento_equipe_profissional f
+JOIN cnes.vw_estabelecimento_drill d ON d.co_unidade_key=f.co_unidade_key;
+
+CREATE OR REPLACE VIEW cnes.vw_profissional_vinculo_drill AS
+SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
+FROM cnes.fact_profissional_vinculo f
+JOIN cnes.vw_estabelecimento_drill d ON d.co_unidade_key=f.co_unidade_key;
 """
     sql_path.write_text(sql,encoding="utf-8")
 

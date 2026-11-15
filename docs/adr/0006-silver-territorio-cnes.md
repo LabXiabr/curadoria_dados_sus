@@ -19,8 +19,10 @@ território resolvido com segurança:
 - `RA_DF:<IBGE11>`: Região Administrativa do Distrito Federal, somente quando
   o código territorial oficial estiver resolvido.
 
-Até a crosswalk CNES-DF -> RA ser homologada, estabelecimentos do DF permanecem
-ligados a `MUN:5300108`. Nenhuma RA é inferida do prefixo de `CO_UNIDADE`.
+A crosswalk CNES-DF -> RA usa o produto oficial "Localidades do Brasil" do
+IBGE. Os códigos operacionais CNES do DF são conciliados por nome normalizado
+(com aliases explícitos documentados) e resultam em `RA_DF:<IBGE11>`.
+Nenhuma RA é inferida do prefixo de `CO_UNIDADE`.
 
 ## Hierarquia principal de drill
 

@@ -1,12 +1,13 @@
 layer	object	source_tables	grain	purpose
-dimension	dim_territorio	reference/municipio_contexto|reference/territorio/rl_municip_divadm|reference/territorio/tb_divadm	1 row por menor territorio resolvido (municipio; futuramente RA_DF)	Dimensao Silver conformada e larga para drill territorial; chave canonica co_territorio_key
+dimension	dim_territorio	reference/municipio_contexto|reference/ra_df	1 row por menor territorio resolvido (municipio ou RA_DF)	Dimensao Silver conformada e larga para drill territorial; chave canonica co_territorio_key
 dimension	dim_estabelecimento	tb_estabelecimento	1 row per CO_CNES per official snapshot	Estabelecimento corrente; co_territorio_key referencia logicamente dim_territorio; atributos territoriais duplicados por conveniencia ad hoc
 fact	fact_estabelecimento_servico	rl_estab_serv_class	CO_CNES x servico x classificacao x snapshot	Oferta de servicos/classificacoes por estabelecimento
 fact	fact_estabelecimento_equipamento	rl_estab_equipamento	CO_CNES x equipamento x snapshot	Equipamentos existentes/em uso por estabelecimento
 fact	fact_estabelecimento_leito	rl_estab_complementar	CO_CNES x CO_LEITO x CO_TIPO_LEITO x snapshot	Leitos por estabelecimento; nao confundir com NU_LEITOS de instalacao fisica/SIPAC
 fact	fact_equipe	tb_equipe	1 row per equipe x snapshot	Cadastro de equipes
 bridge	bridge_estabelecimento_equipe_profissional	rl_estab_equipe_prof	CO_CNES x equipe x profissional x snapshot	Vinculo estabelecimento-equipe-profissional
-fact	fact_profissional_vinculo	tb_dados_profissional_sus|tb_carga_horaria_sus	profissional x CO_CNES x vinculo x snapshot	Vinculos e carga horaria de profissionais
+dimension	dim_profissional	tb_dados_profissional_sus	1 row por CO_PROFISSIONAL_SUS x snapshot	Cadastro de profissionais; Silver local privada
+fact	fact_profissional_vinculo	tb_carga_horaria_sus	profissional x CO_CNES x CBO x vinculo x snapshot	Vinculos e carga horaria de profissionais
 dimension	dim_servico	tb_servico_especializado|tb_classificacao_servico	codigo de dominio	Dominio de servicos e classificacoes
 dimension	dim_equipamento	tb_equipamento|tb_tipo_equipamento	codigo de dominio	Dominio de equipamentos
 dimension	dim_tipo_estabelecimento	tb_tipo_estabelecimento	codigo de dominio	Dominio de tipo de estabelecimento
@@ -36,4 +37,10 @@ view	vw_leito_drill	fact_estabelecimento_leito|vw_estabelecimento_drill	grain do
 
 # geography_policy	CO_MUNICIPIO_GESTOR=localidade_operacional_cnes_preservada	municipio_ibge=dim_territorio	DF_parent_municipio=5300108	DF_submunicipal=RA_DF_quando_resolvida
 
-# geography_resolution	fora_DF=municipio_IBGE	DF=municipio_5300108_ate_RA_resolvida	co_ra_ibge=nao_inferir_de_CO_UNIDADE
+# geography_resolution	fora_DF=municipio_IBGE	DF=bridge_localidade_cnes_ra_df+IBGE_Localidades_2022	co_ra_ibge=jamais_inferir_de_CO_UNIDADE
+
+# df_ra_source	IBGE_Localidades_do_Brasil_2022	codigo_RA=11_digitos	crosswalk=nome_normalizado+aliases_explicitos
+
+# professional_policy	dim_profissional=privada	fact_profissional_vinculo=tb_carga_horaria_sus	co_profissional_sus_key=CO_PROFISSIONAL_SUS
+
+# team_policy	co_ine_key=CO_EQUIPE	co_equipe_rel_key=CO_MUNICIPIO+CO_AREA+SEQ_EQUIPE

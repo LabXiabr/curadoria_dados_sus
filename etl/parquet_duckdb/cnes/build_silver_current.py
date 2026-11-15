@@ -16,11 +16,16 @@ CORE = [
     ("dim_equipamento", "tb_equipamento", None),
     ("dim_tipo_equipamento", "tb_tipo_equipamento", None),
     ("dim_leito", "tb_leito", None),
+    ("dim_tipo_estabelecimento", "tb_tipo_estabelecimento", None),
+    ("dim_natureza_juridica", "tb_natureza_juridica", None),
+    ("dim_profissional", "tb_dados_profissional_sus", None),
     ("fact_estabelecimento_servico", "rl_estab_serv_class", "CO_UNIDADE"),
     ("fact_estabelecimento_equipamento", "rl_estab_equipamento", "CO_UNIDADE"),
     ("fact_estabelecimento_leito", "rl_estab_complementar", "CO_UNIDADE"),
+    ("fact_equipe", "tb_equipe", "CO_UNIDADE"),
+    ("bridge_estabelecimento_equipe_profissional", "rl_estab_equipe_prof", "CO_UNIDADE"),
+    ("fact_profissional_vinculo", "tb_carga_horaria_sus", "CO_UNIDADE"),
 ]
-
 def die(msg: str, code: int = 20):
     print(f"ERRO: {msg}", file=sys.stderr)
     raise SystemExit(code)
@@ -85,14 +90,15 @@ def main() -> int:
     state=lake/"state"/"cnes"
     terr_dim=lake/"silver"/"reference"/"dim_territorio"/"current.parquet"
     terr_all=lake/"silver"/"reference"/"territorio"/"tb_municip"/"current.parquet"
+    df_xwalk=lake/"silver"/"cnes"/"bridge_localidade_cnes_ra_df"/"current.parquet"
 
     bm=state/f"qc_bronze_{args.competencia}.ok"
     tm=state/f"qc_territorio_{args.competencia}.ok"
     base=state/f"base_complete_{args.competencia}.ok"
     if not bm.is_file() or not tm.is_file() or not base.is_file():
         die("CNES Bronze/base/territorio ainda nao homologado")
-    if not terr_dim.is_file() or not terr_all.is_file():
-        die("dimensao territorial conformada ausente")
+    if not terr_dim.is_file() or not terr_all.is_file() or not df_xwalk.is_file():
+        die("dimensao territorial/crosswalk DF ausente")
 
     bmeta=read_marker(bm)
     tmeta=read_marker(tm)
@@ -118,52 +124,47 @@ def main() -> int:
     END"""
 
     copy_query(f"""
-WITH territory AS (
-  SELECT
-    co_municipio AS mun_key,
-    co_territorio_key, tp_territorio, nr_nivel_drill,
-    co_municipio, co_municipio_ibge, no_municipio,
-    co_uf, sg_uf, no_uf, co_regiao, no_regiao,
-    in_capital, in_amazonia_legal, in_semiarido, in_frontzn,
-    co_regiao_saude, no_regiao_saude,
-    co_macrorregiao_saude, no_macrorregiao_saude,
-    co_microrregiao_ibge, no_microrregiao_ibge,
-    co_regiao_metropolitana, no_regiao_metropolitana,
-    co_territorio_cidadania, no_territorio_cidadania,
-    co_pndr, no_pndr, co_dsei, no_dsei,
-    co_ra_ibge, no_ra
+WITH municipality_map AS (
+  SELECT co_municipio AS mun_key, co_territorio_key
   FROM read_parquet({qs(str(terr_dim))})
   WHERE tp_territorio='MUNICIPIO'
   UNION ALL
-  SELECT
-    co_municipio_ibge AS mun_key,
-    co_territorio_key, tp_territorio, nr_nivel_drill,
-    co_municipio, co_municipio_ibge, no_municipio,
-    co_uf, sg_uf, no_uf, co_regiao, no_regiao,
-    in_capital, in_amazonia_legal, in_semiarido, in_frontzn,
-    co_regiao_saude, no_regiao_saude,
-    co_macrorregiao_saude, no_macrorregiao_saude,
-    co_microrregiao_ibge, no_microrregiao_ibge,
-    co_regiao_metropolitana, no_regiao_metropolitana,
-    co_territorio_cidadania, no_territorio_cidadania,
-    co_pndr, no_pndr, co_dsei, no_dsei,
-    co_ra_ibge, no_ra
+  SELECT co_municipio_ibge AS mun_key, co_territorio_key
   FROM read_parquet({qs(str(terr_dim))})
   WHERE tp_territorio='MUNICIPIO'
+),
+xwalk AS (
+  SELECT co_localidade_cnes, co_ra_ibge
+  FROM read_parquet({qs(str(df_xwalk))})
+  WHERE match_status='matched'
 ),
 catalog AS (
   SELECT DISTINCT trim(cast(CO_MUNICIP as varchar)) AS mun6
   FROM read_parquet({qs(str(terr_all))})
 ),
 src AS (
-  SELECT
-    e.*,
-    {munraw} AS _municipio_gestor_cnes,
-    {munkey} AS _municipio_match_key
+  SELECT e.*, {munraw} AS _municipio_gestor_cnes, {munkey} AS _municipio_match_key
   FROM read_parquet({qs(str(estab))}) e
+),
+resolved AS (
+  SELECT src.*,
+    CASE
+      WHEN substr(src._municipio_gestor_cnes,1,2)='53' AND x.co_ra_ibge IS NOT NULL
+        THEN 'RA_DF:' || x.co_ra_ibge
+      ELSE m.co_territorio_key
+    END AS _co_territorio_key,
+    CASE
+      WHEN substr(src._municipio_gestor_cnes,1,2)='53' AND x.co_ra_ibge IS NOT NULL THEN 1
+      ELSE 0
+    END AS _df_ra_matched
+  FROM src
+  LEFT JOIN municipality_map m ON m.mun_key=src._municipio_match_key
+  LEFT JOIN xwalk x ON x.co_localidade_cnes=CASE
+    WHEN length(src._municipio_gestor_cnes)>=6 THEN substr(src._municipio_gestor_cnes,1,6)
+    ELSE src._municipio_gestor_cnes END
 )
 SELECT
-  src.* EXCLUDE (_municipio_gestor_cnes, _municipio_match_key),
+  src.* EXCLUDE (_municipio_gestor_cnes,_municipio_match_key,_co_territorio_key,_df_ra_matched),
   trim(cast(src.{qi(c_unidade)} as varchar)) AS co_unidade_key,
   trim(cast(src.{qi(c_cnes)} as varchar)) AS co_cnes_key,
   src._municipio_gestor_cnes AS co_localidade_gestor_cnes,
@@ -171,8 +172,8 @@ SELECT
   t.tp_territorio AS tp_territorio_resolvido,
   t.nr_nivel_drill AS nr_nivel_territorio_resolvido,
   CASE
-    WHEN substr(src._municipio_gestor_cnes,1,2)='53' THEN 'df_parent_brasilia'
-    WHEN t.mun_key IS NOT NULL THEN 'active'
+    WHEN src._df_ra_matched=1 THEN 'df_ra_resolved'
+    WHEN t.co_territorio_key IS NOT NULL THEN 'active'
     WHEN c.mun6 IS NOT NULL THEN 'historical_catalog'
     ELSE 'unmatched'
   END AS territory_status,
@@ -184,23 +185,21 @@ SELECT
   t.no_uf AS no_uf_territorio,
   t.co_regiao AS co_regiao_territorio,
   t.no_regiao AS no_regiao_territorio,
-  t.in_capital, t.in_amazonia_legal, t.in_semiarido, t.in_frontzn,
-  t.co_regiao_saude, t.no_regiao_saude,
-  t.co_macrorregiao_saude, t.no_macrorregiao_saude,
-  t.co_microrregiao_ibge, t.no_microrregiao_ibge,
-  t.co_regiao_metropolitana, t.no_regiao_metropolitana,
-  t.co_territorio_cidadania, t.no_territorio_cidadania,
-  t.co_pndr, t.no_pndr, t.co_dsei, t.no_dsei,
-  t.co_ra_ibge, t.no_ra,
+  t.in_capital,t.in_amazonia_legal,t.in_semiarido,t.in_frontzn,
+  t.co_regiao_saude,t.no_regiao_saude,
+  t.co_macrorregiao_saude,t.no_macrorregiao_saude,
+  t.co_microrregiao_ibge,t.no_microrregiao_ibge,
+  t.co_regiao_metropolitana,t.no_regiao_metropolitana,
+  t.co_territorio_cidadania,t.no_territorio_cidadania,
+  t.co_pndr,t.no_pndr,t.co_dsei,t.no_dsei,
+  t.co_ra_ibge,t.no_ra,
   {qs(args.competencia)}::VARCHAR AS _silver_competencia,
   current_timestamp AS _silver_built_at
-FROM src
-LEFT JOIN territory t ON t.mun_key=src._municipio_match_key
-LEFT JOIN catalog c
-  ON c.mun6=CASE
-      WHEN length(src._municipio_match_key)=7 THEN substr(src._municipio_match_key,1,6)
-      ELSE src._municipio_match_key
-    END
+FROM resolved src
+LEFT JOIN read_parquet({qs(str(terr_dim))}) t ON t.co_territorio_key=src._co_territorio_key
+LEFT JOIN catalog c ON c.mun6=CASE
+  WHEN length(src._municipio_match_key)=7 THEN substr(src._municipio_match_key,1,6)
+  ELSE src._municipio_match_key END
 """,out_estab)
 
     marker=state/"silver_current.ok"
@@ -239,6 +238,11 @@ WHERE e.co_territorio_key IS NULL
    OR e.co_territorio_key=''
    OR t.co_territorio_key IS NULL;
 """,True).strip())
+    df_not_ra=int(duck(f"""
+SELECT count(*) FROM read_parquet({qs(str(out_estab))})
+WHERE substr(co_localidade_gestor_cnes,1,2)='53'
+  AND coalesce(tp_territorio_resolvido,'')<>'RA_DF';
+""",True).strip())
     if (
         source_estab != silver_estab
         or dup_unidade
@@ -246,11 +250,13 @@ WHERE e.co_territorio_key IS NULL
         or unmatched
         or missing_territory_key
         or territory_orphan
+        or df_not_ra
     ):
         die(
             f"dim_estabelecimento QC falhou source={source_estab} silver={silver_estab} "
             f"dup_unidade={dup_unidade} dup_cnes={dup_cnes} unmatched={unmatched} "
-            f"missing_territory_key={missing_territory_key} territory_orphan={territory_orphan}",
+            f"missing_territory_key={missing_territory_key} territory_orphan={territory_orphan} "
+            f"df_not_ra={df_not_ra}",
             30,
         )
 
@@ -267,33 +273,44 @@ WHERE e.co_territorio_key IS NULL
         dest=silver/obj/"current.parquet"
         src_rows=count(src)
 
+        src_cols={c.upper():c for c in columns(src)}
+        extras=[]
+        if "CO_PROFISSIONAL_SUS" in src_cols:
+            extras.append(f"trim(cast(s.{qi(src_cols['CO_PROFISSIONAL_SUS'])} as varchar)) AS co_profissional_sus_key")
+        if "CO_EQUIPE" in src_cols:
+            extras.append(f"nullif(trim(cast(s.{qi(src_cols['CO_EQUIPE'])} as varchar)),'') AS co_ine_key")
+        if all(k in src_cols for k in ("CO_MUNICIPIO","CO_AREA","SEQ_EQUIPE")):
+            extras.append(
+                "'EQUIPE_REL:' || "
+                f"trim(cast(s.{qi(src_cols['CO_MUNICIPIO'])} as varchar)) || ':' || "
+                f"trim(cast(s.{qi(src_cols['CO_AREA'])} as varchar)) || ':' || "
+                f"trim(cast(s.{qi(src_cols['SEQ_EQUIPE'])} as varchar)) AS co_equipe_rel_key"
+            )
+        extras_sql=(",\n       " + ",\n       ".join(extras)) if extras else ""
+
         if cnes_col is None:
             copy_query(f"""
-SELECT *,
+SELECT s.*{extras_sql},
        {qs(args.competencia)}::VARCHAR AS _silver_competencia,
        current_timestamp AS _silver_built_at
-FROM read_parquet({qs(str(src))})
+FROM read_parquet({qs(str(src))}) s
 """,dest)
             orphan=0
         else:
             actual=require_col(src,cnes_col)
             copy_query(f"""
-SELECT
-       s.*,
+SELECT s.*,
        trim(cast(s.{qi(actual)} as varchar)) AS co_unidade_key,
-       d.co_cnes_key,
+       d.co_cnes_key{extras_sql},
        {qs(args.competencia)}::VARCHAR AS _silver_competencia,
        current_timestamp AS _silver_built_at
 FROM read_parquet({qs(str(src))}) s
 LEFT JOIN read_parquet({qs(str(out_estab))}) d
-  ON trim(cast(s.{qi(actual)} as varchar)) = d.co_unidade_key
+  ON trim(cast(s.{qi(actual)} as varchar))=d.co_unidade_key
 """,dest)
             orphan=int(duck(f"""
-SELECT count(*)
-FROM read_parquet({qs(str(dest))})
-WHERE co_unidade_key IS NOT NULL
-  AND co_unidade_key<>''
-  AND co_cnes_key IS NULL;
+SELECT count(*) FROM read_parquet({qs(str(dest))})
+WHERE co_unidade_key IS NOT NULL AND co_unidade_key<>'' AND co_cnes_key IS NULL;
 """,True).strip())
 
         silver_rows=count(dest)
@@ -328,9 +345,9 @@ WHERE co_unidade_key IS NOT NULL
         f"territorio_snapshot={tmeta.get('territorio_snapshot','')}",
         f"objects={len(report)}",
         f"report={report_path}",
-        "scope=current_core_no_professional_silver_yet",
+        "scope=current_core_with_team_professional_silver",
         "visibility=private_until_public_contract",
-        "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_key_not_null;territory_referential_qc;df_parent_brasilia_preserves_cnes_locality;fact_orphans_zero",
+        "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_key_not_null;territory_referential_qc;df_ra_resolved;fact_orphans_zero",
         "status=complete",
         ""
     ]),encoding="utf-8")
