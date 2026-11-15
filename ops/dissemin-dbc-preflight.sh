@@ -1,18 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-for c in python3 duckdb Rscript; do
-  command -v "$c" >/dev/null || { echo "ERRO: comando ausente: $c" >&2; exit 3; }
-done
-
-Rscript -e 'if (!requireNamespace("microdatasus", quietly=TRUE)) quit(status=42)' || {
-  rc=$?
-  if [[ $rc -eq 42 ]]; then
-    echo "ERRO: pacote R microdatasus ausente" >&2
-  else
-    echo "ERRO: falha no preflight R/microdatasus rc=$rc" >&2
-  fi
-  exit "$rc"
+command -v wine >/dev/null || {
+  echo "ERRO: wine ausente; recomposicao DBC futura depende da ETL Wine existente" >&2
+  exit 3
 }
 
-echo "DISSEMIN_DBC_PREFLIGHT_OK"
+echo "DISSEMIN_DBC_WINE_PREFLIGHT_OK"
+echo "nota=fluxo atual de migracao usa PostgreSQL; Wine somente para recomposicao DBC"
