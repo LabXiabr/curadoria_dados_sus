@@ -15,6 +15,7 @@ BEGIN {
 }
 {
     sub(/\r$/, "", $0)
+    if (length($0) == 0) next
     pos = 1
 
     for (i = 1; i <= n_w; i++) {
