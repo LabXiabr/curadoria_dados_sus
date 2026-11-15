@@ -155,7 +155,8 @@ def main() -> int:
 
         uf=r.get("source_uf","") or "unknown"; out_comp=comp or "unknown"
         dest=(lake/"silver"/system.lower()/obj/f"uf={uf}"/f"competencia={out_comp}"/
-              f"source_schema={r['table_schema']}"/f"source_table={r['table_name']}"/"part-000.parquet")
+              f"source_profile={r['profile']}"/f"source_schema={r['table_schema']}"/
+              f"source_table={r['table_name']}"/"part-000.parquet")
         dest.parent.mkdir(parents=True,exist_ok=True)
         partial=dest.with_name(dest.name+f".partial.{os.getpid()}")
 
