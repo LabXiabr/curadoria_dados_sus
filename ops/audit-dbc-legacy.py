@@ -53,6 +53,7 @@ def main():
     ap.add_argument("--home-manifest", type=Path)
     ap.add_argument("--sdb-manifest", type=Path)
     ap.add_argument("--out", type=Path, default=Path("/dados/abertos/suslake/state/dissemin/dbc_legacy_overlap.tsv"))
+    ap.add_argument("--conflicts-out", type=Path, default=Path("/dados/abertos/suslake/state/dissemin/dbc_legacy_conflicts.tsv"))
     args = ap.parse_args()
 
     hm = args.home_manifest or latest("dbc_from_home_sha256_*.txt")
@@ -93,6 +94,33 @@ def main():
                 f"{home_hash[h][0]}\t{sdb_hash[h][0]}\n"
             )
 
+    with args.conflicts_out.open("w", encoding="utf-8") as f:
+        f.write(
+            "relative_path\thome_sha256\tsdb_sha256\t"
+            "home_bytes\tsdb_bytes\thome_mtime\tsdb_mtime\tsame_size\n"
+        )
+        for p,h in sorted(home.items()):
+            if p not in sdb or sdb[p] == h:
+                continue
+            hp=args.home_root/p
+            sp=args.sdb_root/p
+            try:
+                hs=hp.stat()
+                hb=hs.st_size
+                hmti=int(hs.st_mtime)
+            except FileNotFoundError:
+                hb=0; hmti=0
+            try:
+                ss=sp.stat()
+                sb=ss.st_size
+                smti=int(ss.st_mtime)
+            except FileNotFoundError:
+                sb=0; smti=0
+            f.write(
+                f"{p}\t{h}\t{sdb[p]}\t{hb}\t{sb}\t"
+                f"{hmti}\t{smti}\t{1 if hb == sb and hb > 0 else 0}\n"
+            )
+
     print(f"home_manifest={hm}")
     print(f"sdb_manifest={sm}")
     print(f"home_files={len(home)}")
@@ -107,6 +135,7 @@ def main():
     print(f"minimum_redundant_bytes_in_sdb={duplicate_bytes_sdb}")
     print(f"minimum_redundant_human={human(duplicate_bytes_sdb)}")
     print(f"overlap_report={args.out}")
+    print(f"conflict_report={args.conflicts_out}")
     print("status=audit_only_no_files_deleted")
 
 if __name__ == "__main__":
