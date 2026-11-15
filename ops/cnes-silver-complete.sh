@@ -7,6 +7,8 @@ LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
 STATE="$LAKE_ROOT/state/cnes"
 mkdir -p "$STATE"
 
+"$ROOT/ops/cnes-preflight.sh"
+
 [[ "$COMP" =~ ^[0-9]{6}$ ]] || {
   echo "Uso: $0 YYYYMM" >&2
   exit 2
