@@ -10,7 +10,7 @@ BRONZE="$LAKE_ROOT/bronze/sigtap"
 STATE="$LAKE_ROOT/state/sigtap"
 WORKROOT="$LAKE_ROOT/work/sigtap_qc"
 
-for c in unzip python3 duckdb sha256sum sort awk sed; do
+for c in unzip python3 duckdb sha256sum sort awk sed paste; do
     command -v "$c" >/dev/null 2>&1 || {
         echo "ERRO: comando ausente: $c" >&2
         exit 2
@@ -79,7 +79,7 @@ while IFS= read -r -d '' txt; do
 
     fields_file="$work/${table}.fields"
     rows_raw="$(
-        python3 - "$txt" "$lf" "$raw_hashes" "$fields_file" <<\'PY\'
+        python3 - "$txt" "$lf" "$raw_hashes" "$fields_file" <<'PY'
 import hashlib, re, sys
 
 txt, layout, out, fields_out = sys.argv[1:5]
