@@ -61,47 +61,79 @@ git pull --ff-only origin develop
 
 A política de volatilidade e reconstrução lossless está em `systems/sigtap/temporal_policy.md`.
 
+## Referencias territoriais e demograficas
 
-## CNES e referencias territoriais
+A geografia de referencia do lake e independente de CNES/SIA/SIH.
 
-### CNES mensal
+### Base territorial DATASUS
 
-A fonte Raw preferencial e o snapshot oficial `BASE_DE_DADOS_CNES_AAAAMM.ZIP`.
-A Bronze completa e local/privada, pois o pacote pode conter tabelas com
-identificadores de profissionais.
+Fonte principal para municipio, UF, regiao, regioes de saude e demais
+classificacoes territoriais usadas pelo DATASUS/TABNET.
+
+```bash
+./ops/territorio-complete.sh --year 2026
+```
+
+Raw:
+
+```text
+raw/reference/territorio/year=2026/snapshot=AAAAMM/<zip oficial>
+```
+
+Bronze: todas as tabelas CSV do snapshot.
+
+Silver: uma `current.parquet` por tabela em
+`silver/reference/territorio/<tabela>/`. Carregar snapshot historico nao
+regride a referencia corrente.
+
+### Regionalizacao de saude corrente
+
+O conjunto especifico do Portal de Dados Abertos do SUS e mantido em paralelo
+para Regiao de Saude e Macrorregiao de Saude e serve tambem para QC da base
+territorial.
+
+```bash
+./ops/regionalizacao-saude-complete.sh
+```
+
+Divergencias entre as duas fontes devem ser reportadas; nenhuma das fontes
+sobrescreve silenciosamente a outra.
+
+### Populacao detalhada POPSVS
+
+Fonte principal para populacao por municipio, ano, sexo e idade:
+
+```bash
+./ops/popsvs-complete.sh --from 2000 --to 2025
+```
+
+Saida Silver:
+
+```text
+silver/reference/populacao_idade_sexo/ano=AAAA/part-000.parquet
+```
+
+O projeto `LabXiabr/tabnet-populacao` permanece como extracao independente
+para conferir totais municipais do TabNet.
+
+Politica de fontes: `systems/reference/source_policy.md`.
+
+## CNES
+
+A fonte Raw preferencial do CNES e o snapshot oficial
+`BASE_DE_DADOS_CNES_AAAAMM.ZIP`. A Bronze completa e local/privada.
 
 ```bash
 ./ops/cnes-base-complete.sh --competencia latest
 ```
 
-Antes da primeira carga, aplicar `ops/apache/labx-suslake-private.conf` no Apache.
+Antes da primeira carga, aplicar `ops/apache/labx-suslake-private.conf`.
 
 ### CEP Brasil
 
-`CEP_BRASIL.ZIP` e observado periodicamente e versionado por SHA-256. Apenas
-uma copia de cada conteudo e preservada. `CEP.txt` e `CEPALTERADO.txt` sao
-convertidos para Bronze, e a versao corrente e materializada na Silver.
+`CEP_BRASIL.ZIP` e versionado por SHA-256 e convertido para referencias
+especificas do SCNES:
 
 ```bash
 ./ops/cnes-cep-complete.sh
-```
-
-### Municipio
-
-A referencia municipal corrente e derivada de `tb_municipio` da Bronze CNES.
-O campo de populacao do CNES e mantido apenas como atributo operacional; nao
-substitui a serie demografica selecionada.
-
-```bash
-python3 etl/parquet_duckdb/reference/build_municipio.py
-```
-
-### Populacao DATASUS TabNet
-
-O pipeline reutiliza o projeto publico `LabXiabr/tabnet-populacao`, preserva
-a resposta/metadados da consulta no Raw, a extracao normalizada na Bronze e a
-serie corrente por ano na Silver.
-
-```bash
-./ops/populacao-tabnet-to-lake.sh --ano 2024
 ```
