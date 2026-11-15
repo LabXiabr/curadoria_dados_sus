@@ -231,7 +231,7 @@ SELECT
         f"dim_estabelecimento_rows={estab}",
         f"vw_estabelecimento_drill_rows={drill}",
         f"territory_orphans={orphans}",
-        "views=cnes.dim_territorio|cnes.dim_estabelecimento|cnes.fact_estabelecimento_servico|cnes.fact_estabelecimento_equipamento|cnes.fact_estabelecimento_leito|cnes.vw_estabelecimento_drill|cnes.vw_servico_drill|cnes.vw_equipamento_drill|cnes.vw_leito_drill",
+        "views=cnes.dim_territorio|cnes.dim_estabelecimento|cnes.dim_tipo_estabelecimento|cnes.dim_natureza_juridica|cnes.dim_profissional|cnes.fact_estabelecimento_servico|cnes.fact_estabelecimento_equipamento|cnes.fact_estabelecimento_leito|cnes.fact_equipe|cnes.bridge_estabelecimento_equipe_profissional|cnes.fact_profissional_vinculo|cnes.vw_estabelecimento_drill|cnes.vw_servico_drill|cnes.vw_equipamento_drill|cnes.vw_leito_drill|cnes.vw_equipe_drill|cnes.vw_equipe_profissional_drill|cnes.vw_profissional_vinculo_drill",
         "storage=views_only_no_fact_materialization",
         ""
     ]),encoding="utf-8")
