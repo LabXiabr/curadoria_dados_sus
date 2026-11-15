@@ -15,13 +15,18 @@ echo "TERRITORIO_OK"
 cat "$TERR"
 
 if [[ -d /etc/apache2 ]]; then
-  conf=/etc/apache2/conf-enabled/labx-suslake-private.conf
-  if [[ ! -e "$conf" ]]; then
-    echo "ERRO: protecao Apache do suslake privado nao esta habilitada: $conf" >&2
-    echo "Instale ops/apache/labx-suslake-private.conf antes de carregar CNES Bronze." >&2
+  conf=/etc/apache2/conf-available/labx-suslake-private.conf
+  vhost=/etc/apache2/conf-available/labx-public-parquet.conf
+  if [[ ! -f "$conf" ]]; then
+    echo "ERRO: fragmento privado ausente: $conf" >&2
     exit 21
   fi
-  echo "APACHE_PRIVATE_CONF_OK $conf"
+  if [[ ! -f "$vhost" ]] || ! grep -Fq       "IncludeOptional /etc/apache2/conf-available/labx-suslake-private.conf" "$vhost"; then
+    echo "ERRO: vhost :8766 nao inclui o guard privado" >&2
+    echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
+    exit 21
+  fi
+  echo "APACHE_PRIVATE_CONF_OK $conf included_by=$vhost"
 
   command -v curl >/dev/null 2>&1 || {
     echo "ERRO: curl ausente; nao foi possivel testar protecao HTTP" >&2
