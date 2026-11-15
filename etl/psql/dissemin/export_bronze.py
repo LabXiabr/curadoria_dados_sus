@@ -96,6 +96,7 @@ def main() -> int:
     ap.add_argument("--inventory",type=Path)
     ap.add_argument("--system",action="append")
     ap.add_argument("--subsystem",action="append")
+    ap.add_argument("--uf",action="append")
     ap.add_argument("--schema",action="append")
     ap.add_argument("--table",action="append")
     ap.add_argument("--from",dest="comp_from")
@@ -114,6 +115,7 @@ def main() -> int:
 
     wanted_systems={x.upper() for x in (args.system or [])}
     wanted_subs={x.upper() for x in (args.subsystem or [])}
+    wanted_ufs={x.upper() for x in (args.uf or [])}
     wanted_schema=set(args.schema or []); wanted_table=set(args.table or [])
     selected=[]
     for r in read_tsv(inv):
@@ -124,6 +126,7 @@ def main() -> int:
         if wanted_table and r["table_name"] not in wanted_table: continue
         uf,comp=infer_period(r["system"],r["subsystem"],r["table_name"])
         r=dict(r); r["source_uf"]=uf; r["source_competencia"]=comp
+        if wanted_ufs and uf.upper() not in wanted_ufs: continue
         if (args.comp_from or args.comp_to) and not comp: continue
         if args.comp_from and comp<args.comp_from: continue
         if args.comp_to and comp>args.comp_to: continue
