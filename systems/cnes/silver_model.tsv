@@ -2,7 +2,7 @@ layer	object	source_tables	grain	purpose
 dimension	dim_estabelecimento	tb_estabelecimento	1 row per CO_CNES per official snapshot	Estabelecimento corrente com chaves territoriais e classificacoes reutilizaveis
 fact	fact_estabelecimento_servico	rl_estab_serv_class	CO_CNES x servico x classificacao x snapshot	Oferta de servicos/classificacoes por estabelecimento
 fact	fact_estabelecimento_equipamento	rl_estab_equipamento	CO_CNES x equipamento x snapshot	Equipamentos existentes/em uso por estabelecimento
-fact	fact_estabelecimento_leito	<to_resolve_from_profile>	CO_CNES x tipo_leito x snapshot	Leitos por estabelecimento
+fact	fact_estabelecimento_leito	rl_estab_complementar	CO_CNES x CO_LEITO x CO_TIPO_LEITO x snapshot	Leitos por estabelecimento; nao confundir com NU_LEITOS de instalacao fisica/SIPAC
 fact	fact_equipe	tb_equipe	1 row per equipe x snapshot	Cadastro de equipes
 bridge	bridge_estabelecimento_equipe_profissional	rl_estab_equipe_prof	CO_CNES x equipe x profissional x snapshot	Vinculo estabelecimento-equipe-profissional
 fact	fact_profissional_vinculo	tb_dados_profissional_sus|tb_carga_horaria_sus	profissional x CO_CNES x vinculo x snapshot	Vinculos e carga horaria de profissionais
