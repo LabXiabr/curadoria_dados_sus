@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 PARSER="$ROOT/etl/parquet_duckdb/sigtap/fwf_to_csv.awk"
+LAYOUT_NORMALIZER="$ROOT/etl/parquet_duckdb/sigtap/normalize_layout.py"
 
 FTP_BASE="${SIGTAP_FTP_BASE:-ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads}"
 LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
@@ -40,7 +41,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-for c in bash curl unzip awk sed sort sha256sum iconv duckdb; do
+for c in bash curl unzip awk sed sort sha256sum iconv duckdb python3; do
     command -v "$c" >/dev/null 2>&1 || {
         echo "ERRO: comando ausente: $c" >&2
         exit 3
@@ -145,6 +146,8 @@ unzip -q "$zip" -d "$work/extract"
 registry="$STATE/layout_registry_${competencia}_${ts}.tsv"
 report="$STATE/layout_${competencia}_${ts}.tsv"
 resolved="$work/resolved.tsv"
+layoutnorm="$work/layout_norm"
+mkdir -p "$layoutnorm"
 
 printf 'competencia\ttable\tordinal\tcolumn\twidth\tstart\tend\tsource_type\tsource_zip\tsha256_zip\n' > "$registry"
 printf 'table\tfile\trows\tmin_len\tmax_len\texpected_len\tlayout_file\tstatus\n' > "$report"
@@ -156,42 +159,20 @@ while IFS= read -r -d '' lf; do
     base="$(basename "$lf")"
     table="$(printf '%s' "${base%_layout.*}" | tr '[:upper:]' '[:lower:]')"
 
-    if ! awk -F',' '
-        NR==1 {next}
-        {
-            gsub(/\r/,"")
-            if ($0 ~ /^[[:space:]]*$/) next
-            width=$2+0
-            start=$3+0
-            end=$4+0
-            if (width != end-start+1) {
-                printf "LAYOUT_WIDTH_ERROR line=%d width=%d start=%d end=%d raw=%s\n", NR,width,start,end,$0 > "/dev/stderr"
-                exit 11
-            }
-            if (seen && start != prev_end+1) {
-                printf "LAYOUT_GAP_ERROR line=%d prev_end=%d start=%d raw=%s\n", NR,prev_end,start,$0 > "/dev/stderr"
-                exit 12
-            }
-            prev_end=end
-            seen=1
-        }
-    ' "$lf"; then
+    norm="$layoutnorm/$table.tsv"
+    if ! python3 "$LAYOUT_NORMALIZER" "$lf" > "$norm"; then
         echo "ERRO layout oficial inconsistente: $base" >&2
         ((layout_issues+=1))
         continue
     fi
 
-    awk -F',' -v c="$competencia" -v t="$table" -v z="$selected" -v h="$zip_sha" '
+    awk -F'\t' -v c="$competencia" -v t="$table" -v z="$selected" -v h="$zip_sha" '
         NR==1 {next}
         {
-            gsub(/\r/,"")
-            if ($0 ~ /^[[:space:]]*$/) next
-            ordinal+=1
-            col=tolower($1)
             printf "%s\t%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-                   c,t,ordinal,col,$2,$3,$4,$5,z,h
+                   c,t,NR-1,$1,$2,$3,$4,$5,z,h
         }
-    ' "$lf" >> "$registry"
+    ' "$norm" >> "$registry"
 done < <(find "$work/extract" -type f -iname '*_layout.txt' -print0 | sort -z)
 
 (( layout_issues == 0 )) || {
@@ -239,30 +220,20 @@ while IFS= read -r -d '' txt; do
         continue
     fi
 
-    widths="$(
-        awk -F',' '
-            NR>1 {
-                gsub(/\r/,"")
-                if ($0 ~ /^[[:space:]]*$/) next
-                if (seen) printf "|"
-                printf "%s",$2
-                seen=1
-            }
-        ' "$lf"
-    )"
-    fields="$(
-        awk -F',' '
-            NR>1 {
-                gsub(/\r/,"")
-                if ($0 ~ /^[[:space:]]*$/) next
-                if (seen) printf "|"
-                printf "%s",tolower($1)
-                seen=1
-            }
-        ' "$lf"
-    )"
-    expected="$(awk -F',' 'NR>1 {gsub(/\r/,""); if ($0 !~ /^[[:space:]]*$/) v=$4+0} END {print v+0}' "$lf")"
-    last_start="$(awk -F',' 'NR>1 {gsub(/\r/,""); if ($0 !~ /^[[:space:]]*$/) v=$3+0} END {print v+0}' "$lf")"
+    norm="$layoutnorm/$table.tsv"
+    [[ -s "$norm" ]] || {
+        printf '%s\t%s\t%s\t%s\t%s\t\t\tmissing_normalized_layout\n' \
+            "$table" "$base" "$rows" "$minlen" "$maxlen" >> "$report"
+        printf '%s\t%s\t%s\t\t\t\tmissing_normalized_layout\n' \
+            "$table" "$base" "$rows" >> "$resolved"
+        ((issues+=1))
+        continue
+    }
+
+    widths="$(awk -F'\t' 'NR>1 {if (seen) printf "|"; printf "%s",$2; seen=1}' "$norm")"
+    fields="$(awk -F'\t' 'NR>1 {if (seen) printf "|"; printf "%s",$1; seen=1}' "$norm")"
+    expected="$(awk -F'\t' 'NR>1 {v=$4+0} END {print v+0}' "$norm")"
+    last_start="$(awk -F'\t' 'NR>1 {v=$3+0} END {print v+0}' "$norm")"
 
     if [[ "$rows" == "0" ]]; then
         status="ok"
