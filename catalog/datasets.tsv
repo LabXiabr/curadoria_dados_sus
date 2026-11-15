@@ -9,3 +9,4 @@ ciha_bronze	CIHA	bronze	auto	public_parquet	suslake/bronze/ciha/	first_dir	ciha	
 cnes_bronze	CNES	bronze	auto	public_parquet	suslake/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze; views por primeiro diretorio quando publicada
 sinasc_bronze	SINASC	bronze	auto	public_parquet	suslake/bronze/sinasc/	first_dir	sinasc		.*\.parquet$	SINASC Bronze; views por primeiro diretorio quando publicada
 sinan_bronze	SINAN	bronze	auto	public_parquet	suslake/bronze/sinan/	first_dir	sinan		.*\.parquet$	SINAN Bronze; views por primeiro diretorio quando publicada
+sigtap_silver	SIGTAP	silver	auto	public_parquet	suslake/silver/sigtap/	first_dir	sigtap_silver		^temporal\.parquet$	SIGTAP Silver temporal lossless; uma view por tabela quando publicada

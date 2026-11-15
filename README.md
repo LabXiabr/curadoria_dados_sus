@@ -45,3 +45,18 @@ Exemplo:
 ```bash
 python3 ops/build-duckdb-public-catalog.py --database ~/duckdb/bureta.duckdb
 ```
+
+## SIGTAP completa e temporal
+
+A Bronze histórica completa é construída competência a competência com QC independente Raw→Bronze. A Silver temporal só inicia quando toda competência Raw canônica estiver homologada para o mesmo ZIP selecionado.
+
+Execução completa na bureta:
+
+```bash
+cd /dados/abertos/repos/curadoria_dados_sus
+git switch develop
+git pull --ff-only origin develop
+./ops/sigtap-complete.sh
+```
+
+A política de volatilidade e reconstrução lossless está em `systems/sigtap/temporal_policy.md`.
