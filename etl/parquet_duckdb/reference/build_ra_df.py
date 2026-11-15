@@ -28,8 +28,28 @@ COPY (
         trim(LONG_LOCALIDADE) AS nu_longitude_ra,
         _source_year,_source_sha256,current_timestamp AS _built_at
  FROM read_parquet({qs(str(src))})
- WHERE CD_UF='53' AND regexp_matches(CD_LOCALIDADE,'^[0-9]{{11}}$')
-   AND regexp_matches(upper(strip_accents(coalesce(CT_LOCALIDADE,'') || ' ' || coalesce(SCT_LOCALIDADE,''))),'REGIAO ADMINISTRATIVA')
+ WHERE CD_UF='53'
+   AND regexp_matches(trim(CD_LOCALIDADE),'^[0-9]{{11}}
+)
+TO {qs(str(tmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
+""")
+    stats=duck(f"SELECT count(*),count(DISTINCT co_ra_ibge),count(*) FILTER (WHERE co_ra_ibge IS NULL OR no_ra IS NULL OR no_ra='') FROM read_parquet({qs(str(tmp))});",True).strip()
+    rows,uniq,missing=map(int,next(csv.reader([stats])))
+    if not (30 <= rows <= 40) or rows!=uniq or missing:
+        tmp.unlink(missing_ok=True); die(
+            f"QC RA-DF falhou rows={rows} unique={uniq} missing={missing}; esperado 30..40 RAs",20
+        )
+    os.replace(tmp,out)
+    marker=state/"ra_df_current.ok"
+    marker.write_text("\n".join([
+      f"timestamp={subprocess.run(['date','+%Y%m%d_%H%M%S'],text=True,capture_output=True,check=True).stdout.strip()}",
+      f"rows={rows}",f"path={out}","key=RA_DF:co_ra_ibge",
+      "source=IBGE_Localidades_do_Brasil_2022",
+      "selection_rule=CD_UF_53_and_CD_LOCALIDADE_11_digits",""
+    ]),encoding="utf-8")
+    print(f"RA_DF_OK rows={rows} path={out}"); print(f"marker={marker}"); return 0
+if __name__=="__main__": raise SystemExit(main())
+)
 )
 TO {qs(str(tmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
 """)

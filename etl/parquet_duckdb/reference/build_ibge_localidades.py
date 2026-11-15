@@ -81,8 +81,28 @@ TO {qs(str(tmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
     stats=duck(f"""
 SELECT count(*),
        count(*) FILTER (
-         WHERE CD_UF='53' AND regexp_matches(CD_LOCALIDADE,'^[0-9]{{11}}$')
-           AND regexp_matches(upper(strip_accents(coalesce(CT_LOCALIDADE,'') || ' ' || coalesce(SCT_LOCALIDADE,''))),'REGIAO ADMINISTRATIVA')
+         WHERE CD_UF='53'
+           AND regexp_matches(trim(CD_LOCALIDADE),'^[0-9]{{11}}
+FROM read_parquet({qs(str(tmp))});
+""",True).strip()
+    rows,ra_df=map(int,next(csv.reader([stats])))
+    if rows<80000 or not (30 <= ra_df <= 40):
+        tmp.unlink(missing_ok=True); die(
+            f"cobertura inesperada rows={rows} ra_df_11d={ra_df}; esperado 30..40",20
+        )
+    os.replace(tmp,out)
+    marker=state/"ibge_localidades_current.ok"
+    marker.write_text("\n".join([
+      f"timestamp={subprocess.run(['date','+%Y%m%d_%H%M%S'],text=True,capture_output=True,check=True).stdout.strip()}",
+      f"year={args.year}",f"rows={rows}",f"ra_df={ra_df}",f"path={out}",
+      f"source_sha256={meta.get('sha256','')}",
+      "scope=atributos_nao_geometricos_Localidades_do_Brasil",
+      "ra_df_rule=CD_UF_53_and_CD_LOCALIDADE_11_digits",""
+    ]),encoding="utf-8")
+    print(f"IBGE_LOCALIDADES_SILVER_OK rows={rows} ra_df={ra_df}")
+    print(f"path={out}"); print(f"marker={marker}"); return 0
+if __name__=="__main__": raise SystemExit(main())
+)
        )
 FROM read_parquet({qs(str(tmp))});
 """,True).strip()

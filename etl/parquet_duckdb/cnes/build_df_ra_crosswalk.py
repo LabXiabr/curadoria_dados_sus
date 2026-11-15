@@ -28,15 +28,31 @@ def main()->int:
     if not re.fullmatch(r"\d{6}",args.competencia): die("competencia deve ser YYYYMM",2)
     lake=Path(args.lake_root)
     estab=lake/"bronze"/"cnes"/"tb_estabelecimento"/f"competencia={args.competencia}"/"part-000.parquet"
-    mun=lake/"bronze"/"cnes"/"tb_municipio"/f"competencia={args.competencia}"/"part-000.parquet"
     ra=lake/"silver"/"reference"/"ra_df"/"current.parquet"
     out=lake/"silver"/"cnes"/"bridge_localidade_cnes_ra_df"/"current.parquet"; state=lake/"state"/"cnes"
-    for p in (estab,mun,ra):
+    for p in (estab,ra):
         if not p.is_file(): die(f"arquivo ausente: {p}",4)
-    ec,mc=cols(estab),cols(mun)
+
+    ec=cols(estab)
     e_mun=choose(ec,"CO_MUNICIPIO_GESTOR","CO_MUNICIP_GESTOR"); e_cnes=choose(ec,"CO_CNES")
-    m_code=choose(mc,"CO_MUNICIPIO","CO_MUNICIP","CO_MUN"); m_name=choose(mc,"NO_MUNICIPIO","DS_NOME","NM_MUNICIPIO","NO_MUNICIP")
-    if not all([e_mun,e_cnes,m_code,m_name]): die(f"schema nao resolvido estab={sorted(ec.values())} mun={sorted(mc.values())}",5)
+    if not all([e_mun,e_cnes]):
+        die(f"schema estabelecimento nao resolvido: {sorted(ec.values())}",5)
+
+    candidates=[]
+    for p in sorted((lake/"bronze"/"cnes").glob(f"*/competencia={args.competencia}/part-000.parquet")):
+        mc=cols(p)
+        m_code=choose(mc,"CO_MUNICIPIO","CO_MUNICIP","CO_MUN")
+        m_name=choose(mc,"NO_MUNICIPIO","DS_NOME","NM_MUNICIPIO","NO_MUNICIP")
+        if not all([m_code,m_name]):
+            continue
+        table=p.parents[1].name
+        score=(100 if "municip" in table.lower() else 0) + (10 if table.lower().startswith("tb_") else 0)
+        candidates.append((score,table,p,mc,m_code,m_name))
+    if not candidates:
+        die("nenhuma tabela Bronze CNES com codigo+nome de municipio/localidade foi encontrada",5)
+    candidates.sort(key=lambda x:(-x[0],x[1]))
+    _,mun_table,mun,mc,m_code,m_name=candidates[0]
+    print(f"CNES_DF_RA_DOMAIN table={mun_table} path={mun}")
     raw=f"regexp_replace(trim(cast(e.{qi(e_mun)} as varchar)), '[^0-9]', '', 'g')"
     used=duck(f"""
 SELECT CASE WHEN length({raw})>=6 THEN substr({raw},1,6) ELSE {raw} END,count(*),min(trim(cast(e.{qi(e_cnes)} as varchar)))
@@ -77,7 +93,9 @@ GROUP BY 1 ORDER BY 1;
     marker.write_text("\n".join([
       f"competencia={args.competencia}",f"timestamp={subprocess.run(['date','+%Y%m%d_%H%M%S'],text=True,capture_output=True,check=True).stdout.strip()}",
       f"localidades={len(rows)}",f"matched={matched}",f"path={out}",f"detail={detail}",
-      "source_ra=IBGE_Localidades_do_Brasil_2022","policy=name_exact_normalized_plus_explicit_aliases;never_CO_UNIDADE_prefix",""
+      f"cnes_locality_domain_table={mun_table}",
+      "source_ra=IBGE_Localidades_do_Brasil_2022",
+      "policy=name_exact_normalized_plus_explicit_aliases;never_CO_UNIDADE_prefix",""
     ]),encoding="utf-8")
     print(f"CNES_DF_RA_CROSSWALK_OK localidades={len(rows)} matched={matched}"); print(f"detail={detail}"); print(f"marker={marker}"); return 0
 if __name__=="__main__": raise SystemExit(main())
