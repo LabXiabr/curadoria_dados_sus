@@ -49,3 +49,4 @@ SINAN	fact_sinan_agravo	id_unidade_notificadora	source_identifier	ID_UNIDADE		ne
 SINAN	fact_sinan_agravo	dt_inicio_sintomas	event_date	DT_SIN_PRI		defined	Quando presente
 SINAN	fact_sinan_agravo	sg_sexo	person_attribute	CS_SEXO		defined	
 SINAN	fact_sinan_agravo	nu_idade	person_attribute	NU_IDADE_N|NU_IDADE		defined	Codificacao muda por era
+SIA	fact_sia_*	nu_cnspcn	person_identifier	CNSPCN|NU_CNSPCN|AP_CNSPCN|CNS_PAC		defined	CNS do paciente; PA pode ser enriquecida por autorizacao APAC com proveniencia
