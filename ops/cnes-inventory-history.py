@@ -20,14 +20,15 @@ def marker(path: Path) -> dict[str, str]:
             out[k] = v
     return out
 
-def comps_from_dirs(root: Path) -> set[str]:
+def comps_from_raw_zips(root: Path) -> set[str]:
     out = set()
     if not root.is_dir():
         return out
-    for p in root.glob("competencia=*"):
-        if not p.is_dir():
+    for p in root.glob("competencia=*/BASE_DE_DADOS_CNES_*.ZIP"):
+        if not p.is_file():
             continue
-        comp = p.name.split("=", 1)[1]
+        parent = p.parent.name
+        comp = parent.split("=", 1)[1] if "=" in parent else ""
         if RE_COMP.fullmatch(comp):
             out.add(comp)
     return out
@@ -71,7 +72,7 @@ def main() -> int:
     silver = lake / "silver" / "cnes"
 
     comps = set()
-    comps |= comps_from_dirs(raw)
+    comps |= comps_from_raw_zips(raw)
     comps |= comps_from_markers(state, "raw_base")
     comps |= comps_from_markers(state, "qc_bronze")
     comps |= comps_from_markers(state, "base_complete")
