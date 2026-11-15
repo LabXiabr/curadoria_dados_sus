@@ -149,24 +149,24 @@ QUALIFY row_number() OVER (
 
     # Relacionamentos genéricos: todos agregados para garantir uma linha por município.
     specs=[
-      ("regiao_saude","rl_municip_regsaud","tb_regsaud","CO_REGSAUD",("DS_NOME","DS_NOMEPAD","DS_ABREV")),
-      ("macrorregiao_saude","rl_municip_macsaud","tb_macsaud","CO_MACSAUD",("DS_ABREV","DS_NOME","DS_NOMEPAD")),
-      ("microrregiao_ibge","rl_municip_micibge","tb_micibge","CO_MICIBGE",("DS_NOME","DS_NOMEPAD","DS_ABREV")),
-      ("regiao_metropolitana","rl_municip_regmetr","tb_regmetr","CO_REGMETR",("DS_NOME","DS_NOMEPAD","DS_ABREV")),
-      ("territorio_cidadania","rl_municip_terrcid","tb_terrcid","CO_TERRCID",("DS_NOME","DS_NOMEPAD","DS_ABREV")),
-      ("pndr","rl_municip_pndr","tb_pndr","CO_PNDR",("DS_NOME","DS_NOMEPAD","DS_ABREV")),
-      ("divisao_administrativa","rl_municip_divadm","tb_divadm","CO_DIVADM",("DS_NOME","DS_NOMEPAD","DS_ABREV")),
-      ("dsei","rl_municip_dsei","tb_dsei","CO_DSEI",("DS_NOME","DS_NOMEPAD","DS_ABREV")),
+      ("regiao_saude","rl_municip_regsaud","tb_regsaud",("CO_REGSAUD",),("DS_NOME","DS_NOMEPAD","DS_ABREV")),
+      ("macrorregiao_saude","rl_municip_macsaud","tb_macsaud",("CO_MACSAUD",),("DS_ABREV","DS_NOME","DS_NOMEPAD")),
+      ("microrregiao_ibge","rl_municip_micibge","tb_micibge",("CO_MICIBGE",),("DS_NOME","DS_NOMEPAD","DS_ABREV")),
+      ("regiao_metropolitana","rl_municip_regmetr","tb_regmetr",("CO_REGMETR","CO_REGMET","CO_REGMETRO","CO_RMETR"),("DS_NOME","DS_NOMEPAD","DS_ABREV")),
+      ("territorio_cidadania","rl_municip_terrcid","tb_terrcid",("CO_TERRCID",),("DS_NOME","DS_NOMEPAD","DS_ABREV")),
+      ("pndr","rl_municip_pndr","tb_pndr",("CO_PNDR",),("DS_NOME","DS_NOMEPAD","DS_ABREV")),
+      ("divisao_administrativa","rl_municip_divadm","tb_divadm",("CO_DIVADM",),("DS_NOME","DS_NOMEPAD","DS_ABREV")),
+      ("dsei","rl_municip_dsei","tb_dsei",("CO_DSEI",),("DS_NOME","DS_NOMEPAD","DS_ABREV")),
     ]
 
     rel_available=[]
-    for slug,rel,dim,key,label_cands in specs:
+    for slug,rel,dim,key_cands,label_cands in specs:
         if rel not in schemas or dim not in schemas:
             continue
         rc=schemas[rel]; dc=schemas[dim]
         rm=choose(rc,"CO_MUNICIP","CO_MUNINIP")
-        rk=choose(rc,key)
-        dk=choose(dc,key)
+        rk=choose(rc,*key_cands)
+        dk=choose(dc,*key_cands)
         dn=choose(dc,*label_cands)
         if not all([rm,rk,dk]):
             continue
