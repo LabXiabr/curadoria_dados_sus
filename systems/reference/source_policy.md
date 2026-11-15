@@ -108,3 +108,17 @@ Após a primeira carga territorial, gerar uma visão
 confirmadas no schema real do snapshot. Essa visão deve combinar códigos e
 nomes de município/UF/região e classificações territoriais, mantendo colunas de
 proveniência por fonte.
+
+
+## Memória temporal e integração com sistemas
+
+A memória territorial consolidada é uma derivação, não a fonte primária.
+Ela deve ser construída somente depois que todos os snapshots disponíveis
+estiverem homologados por `territorio_backfill_complete.ok`.
+
+O Git preserva a lógica, os contratos de chave e os scripts de reconstrução.
+Os ZIPs oficiais, Bronze por snapshot e Parquet derivados permanecem no lake.
+
+A integração futura com CNES, SIA, SIH, CIH/CIHA, SIM, SINAN, SINASC e SIPNI
+segue `systems/reference/integration_contract.md` e
+`systems/reference/system_temporal_keys.tsv`.
