@@ -59,11 +59,20 @@ https://dados.labx.ia.br/files/raw/
 A allowlist fica em `catalog/raw_publication.tsv` e o inventário concreto
 gerado fica em `/dados/abertos/raw/catalog.tsv`.
 
-Publicação inicial:
+Publicação completa:
 
 ```bash
 ./ops/publish-raw-artifacts.py
 ```
+
+Publicação seletiva do CNES após o QC global:
+
+```bash
+./ops/publish-raw-artifacts.py --dataset cnes
+```
+
+O snapshot mensal CNES só é publicado quando o respectivo
+`state/cnes/qc_global_AAAAMM.ok` estiver validado.
 
 Isso não cria nova camada: os arquivos continuam sendo Raw. O caminho público
 é apenas uma projeção dos mesmos inodes preservados em `suslake/raw/`.
@@ -186,9 +195,10 @@ silver/reference/dim_territorio/current.parquet
 ```
 
 A chave `co_territorio_key` identifica o menor território resolvido com
-segurança (`MUN:<IBGE7>`; futuramente `RA_DF:<IBGE11>`). A hierarquia
-principal para drill é Região -> UF -> Macrorregião de Saúde -> Região de
-Saúde -> Município -> RA-DF. Classificações como DSEI, microrregião IBGE,
+segurança (`MUN:<IBGE7>` ou `RA_DF:<IBGE11>`). Para drill passando por
+Macrorregião de Saúde usa-se uma chave de Região de Saúde dentro da Macro,
+pois a Região de Saúde canônica pode atravessar Macrorregiões (caso Central
+de Rondônia). Classificações como DSEI, microrregião IBGE,
 região metropolitana, PNDR e Território da Cidadania são hierarquias
 alternativas, não níveis obrigatórios dessa cadeia.
 

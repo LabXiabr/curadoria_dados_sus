@@ -32,6 +32,36 @@ def read_policy(path: Path) -> list[dict[str,str]]:
     with path.open(encoding="utf-8",newline="") as f:
         return list(csv.DictReader(f,delimiter="\t"))
 
+def read_marker(path: Path) -> dict[str,str]:
+    out={}
+    if not path.is_file():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if "=" in line:
+            k,v=line.split("=",1)
+            out[k]=v
+    return out
+
+def gate_allows(rule: dict[str,str], src: Path, lake: Path) -> tuple[bool,str]:
+    policy=(rule.get("gate_policy") or "").strip()
+    if not policy:
+        return True,""
+
+    if policy=="cnes_global_qc_by_competencia":
+        m=re.match(r"^BASE_DE_DADOS_CNES_(\d{6})\.ZIP$",src.name,re.I)
+        if not m:
+            # Referencias CNES sem competencia no nome sao artefatos oficiais
+            # independentes do snapshot mensal.
+            return True,""
+        comp=m.group(1)
+        marker=lake/"state"/"cnes"/f"qc_global_{comp}.ok"
+        meta=read_marker(marker)
+        if meta.get("competencia")!=comp or meta.get("status")!="validated":
+            return False,f"gate CNES ausente/invalido: {marker}"
+        return True,f"qc_global_{comp}.ok"
+
+    raise RuntimeError(f"gate_policy desconhecida: {policy}")
+
 def iter_matches(root: Path, pattern: str):
     # pathlib.glob suporta ** e mantem a politica declarativa simples.
     for p in sorted(root.glob(pattern)):
@@ -151,7 +181,14 @@ def main() -> int:
         if not matches:
             die(f"nenhum arquivo para {rule['dataset_id']} pattern={rule['glob']}",5)
 
+        published_for_rule=0
         for src in matches:
+            allowed,gate_note=gate_allows(rule,src,lake)
+            if not allowed:
+                print(f"RAW_PUBLIC_SKIP dataset={rule['dataset_id']} file={src.name} reason={gate_note}")
+                continue
+            if gate_note:
+                print(f"RAW_PUBLIC_GATE_OK dataset={rule['dataset_id']} file={src.name} gate={gate_note}")
             rel=relative_target(rule["dataset_id"],src_root,src,rule["public_prefix"])
             dst=public/rel
             hardlink(src,dst)
@@ -171,9 +208,19 @@ def main() -> int:
                 "published_at":now,
                 "description":rule["description"],
             })
+            published_for_rule+=1
 
     rows.sort(key=lambda r:(r["dataset_id"],r["public_path"]))
+    current_rows=list(rows)
     catalog=public/"catalog.tsv"
+
+    # Publicacao seletiva deve preservar datasets ja catalogados.
+    if wanted and catalog.is_file():
+        with catalog.open(encoding="utf-8",newline="") as f:
+            previous=list(csv.DictReader(f,delimiter="\t"))
+        retained=[r for r in previous if r.get("dataset_id") not in wanted]
+        rows=retained+rows
+        rows.sort(key=lambda r:(r["dataset_id"],r["public_path"]))
     tmp=public/f".catalog.tsv.partial.{os.getpid()}"
     fields=[
         "dataset_id","system","filename","bytes","sha256","source_url",
@@ -186,12 +233,16 @@ def main() -> int:
     os.replace(tmp,catalog)
 
     if not args.skip_http_qc:
-        http_qc(public,rows,args.http_host,args.http_base)
+        http_qc(public,current_rows,args.http_host,args.http_base)
 
     by_ds={}
-    for r in rows:
+    for r in current_rows:
         by_ds[r["dataset_id"]]=by_ds.get(r["dataset_id"],0)+1
-    print("RAW_PUBLIC_OK files="+str(len(rows))+" catalog="+str(catalog))
+    print(
+        "RAW_PUBLIC_OK published_files="+str(len(current_rows))
+        +" catalog_files="+str(len(rows))
+        +" catalog="+str(catalog)
+    )
     for ds,n in sorted(by_ds.items()):
         print(f"dataset={ds} files={n}")
     print("url=https://dados.labx.ia.br/files/raw/")

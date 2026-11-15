@@ -51,16 +51,22 @@ O diretório `/files/repos/curadoria_dados_sus/` contém código, políticas e
 documentação do projeto; não substitui o inventário dos artefatos efetivamente
 publicados.
 
-## Primeira publicação
+## Datasets publicados
 
-Inicialmente são projetados:
+A projeção inclui:
 
 - Base Territorial DATASUS;
 - POPSVS;
-- SIGTAP.
+- SIGTAP;
+- CNES.
 
-Outros sistemas são acrescentados à allowlist quando seus layouts Raw e
-caminhos canônicos estiverem estabilizados no lake.
+Para CNES, o snapshot mensal `BASE_DE_DADOS_CNES_AAAAMM.ZIP` só é projetado
+quando existe `state/cnes/qc_global_AAAAMM.ok` com status `validated`.
+Arquivos oficiais de referência CNES sem competência no nome, como CEP e
+Município Brasil, são projetados independentemente desse gate.
+
+A publicação seletiva com `--dataset` preserva no `catalog.tsv` os datasets
+já publicados; somente as linhas do dataset selecionado são substituídas.
 
 ## Segurança operacional
 
