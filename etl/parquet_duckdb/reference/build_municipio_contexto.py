@@ -116,12 +116,17 @@ def main() -> int:
     u_key=choose(ucols,"CO_UF")
     u_sigla=choose(ucols,"DS_SIGLA","UF")
     u_nome=choose(ucols,"DS_NOMEPAD","DS_NOME")
+    if not u_key:
+        die(f"schema tb_uf sem CO_UF: {sorted(ucols)}",5)
     ctes.append(f"""uf AS (
 SELECT cast({qi(u_key)} as varchar) AS co_uf,
        {text_expr('u',u_sigla)} AS sg_uf_dim,
        {text_expr('u',u_nome)} AS no_uf
 FROM read_parquet({sqls(str(path('tb_uf')))}) u
-QUALIFY row_number() OVER (PARTITION BY cast({qi(u_key)} as varchar) ORDER BY 1)=1
+QUALIFY row_number() OVER (
+  PARTITION BY cast({qi(u_key)} as varchar)
+  ORDER BY cast({qi(u_key)} as varchar)
+)=1
 )""")
     joins.append(f"LEFT JOIN uf ON uf.co_uf = cast(m.{qi(c_uf)} as varchar)")
 
@@ -129,11 +134,16 @@ QUALIFY row_number() OVER (PARTITION BY cast({qi(u_key)} as varchar) ORDER BY 1)
     rcols=schemas["tb_regiao"]
     r_key=choose(rcols,"CO_REGIAO")
     r_nome=choose(rcols,"DS_NOMEPAD","DS_NOME","DS_ABREV")
+    if not r_key:
+        die(f"schema tb_regiao sem CO_REGIAO: {sorted(rcols)}",5)
     ctes.append(f"""regiao AS (
 SELECT cast({qi(r_key)} as varchar) AS co_regiao,
        {text_expr('r',r_nome)} AS no_regiao
 FROM read_parquet({sqls(str(path('tb_regiao')))}) r
-QUALIFY row_number() OVER (PARTITION BY cast({qi(r_key)} as varchar) ORDER BY 1)=1
+QUALIFY row_number() OVER (
+  PARTITION BY cast({qi(r_key)} as varchar)
+  ORDER BY cast({qi(r_key)} as varchar)
+)=1
 )""")
     joins.append(f"LEFT JOIN regiao ON regiao.co_regiao = cast(m.{qi(c_reg)} as varchar)")
 
