@@ -28,7 +28,7 @@ if [[ -d /etc/apache2 ]]; then
     exit 21
   fi
   if ! grep -Fq '<Directory "/dados/abertos/suslake/silver/cnes">' "$conf" \
-     || ! grep -Fq '^<LocationMatch "^/files/suslake/silver/cnes(/|$)">' "$conf"; then
+     || ! grep -Fq '<LocationMatch "^/files/suslake/silver/cnes(/|$)">' "$conf"; then
     echo "ERRO: guard Silver CNES ausente/desatualizado em $conf" >&2
     echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
     exit 21
