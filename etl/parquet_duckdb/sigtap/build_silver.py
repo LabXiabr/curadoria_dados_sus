@@ -248,6 +248,10 @@ def main():
     state = lake/"state"/"sigtap"
     silver.mkdir(parents=True, exist_ok=True); state.mkdir(parents=True, exist_ok=True)
 
+    global_qc = state / "bronze_global_qc.ok"
+    if not global_qc.is_file():
+        die(f"QC global da Bronze ausente: {global_qc}. Rode ops/qc-sigtap-global.sh antes da Silver.", 20)
+
     canonical = canonical_raw(raw)
     if not canonical: die(f"nenhum ZIP Raw SIGTAP em {raw}")
 
