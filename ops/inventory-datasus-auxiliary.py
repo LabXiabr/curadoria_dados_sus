@@ -36,6 +36,8 @@ def main() -> int:
     totals = Counter()
 
     for m in sorted(state.glob("*_current.ok")):
+        if m.name == "inventory_current.ok":
+            continue
         meta = marker(m)
         source_id = meta.get("source_id", m.name.removesuffix("_current.ok"))
         system = meta.get("system", "")
