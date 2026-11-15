@@ -87,8 +87,9 @@ def main() -> int:
         if wanted_systems and r["system"].upper() not in wanted_systems: continue
         if wanted_subs and r["subsystem"].upper() not in wanted_subs: continue
         comp=r.get("source_competencia","")
-        if args.comp_from and comp and comp<args.comp_from: continue
-        if args.comp_to and comp and comp>args.comp_to: continue
+        if (args.comp_from or args.comp_to) and not comp: continue
+        if args.comp_from and comp<args.comp_from: continue
+        if args.comp_to and comp>args.comp_to: continue
         selected.append(r)
     selected.sort(key=lambda r:(r["system"],r["subsystem"],r.get("source_competencia",""),r["table_schema"],r["table_name"]))
     if args.max_tables>0: selected=selected[:args.max_tables]
