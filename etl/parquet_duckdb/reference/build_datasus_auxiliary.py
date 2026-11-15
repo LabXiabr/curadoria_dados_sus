@@ -62,10 +62,30 @@ def slug(v: str) -> str:
 def is_dbf(data: bytes) -> bool:
     if len(data) < 33 or data[0] not in DBF_VERSIONS:
         return False
+
+    # Evita falso positivo em CNV textual iniciado por digito ASCII
+    # (por exemplo byte 0x30, que tambem e uma versao DBF valida).
+    month = data[2]
+    day = data[3]
+    if not (1 <= month <= 12 and 1 <= day <= 31):
+        return False
+
     nrec = struct.unpack("<I", data[4:8])[0]
     hlen = struct.unpack("<H", data[8:10])[0]
     rlen = struct.unpack("<H", data[10:12])[0]
-    return 33 <= hlen <= len(data) and rlen >= 1 and nrec < 2_000_000_000
+
+    if hlen < 33 or hlen > len(data) or rlen < 1:
+        return False
+    if (hlen - 33) % 32 != 0:
+        return False
+    if data[hlen - 1] != 0x0D:
+        return False
+    if nrec >= 2_000_000_000:
+        return False
+
+    # O EOF 0x1A e opcional; o payload minimo precisa caber.
+    minimum = hlen + nrec * rlen
+    return minimum <= len(data)
 
 def parse_dbf(data: bytes) -> tuple[list[dict[str, str]], list[dict[str, str]], dict[str, int | str]]:
     if not is_dbf(data):
