@@ -12,3 +12,5 @@ dimension	dim_tipo_estabelecimento	tb_tipo_estabelecimento	codigo de dominio	Dom
 dimension	dim_natureza_juridica	tb_natureza_juridica	codigo de dominio	Dominio de natureza juridica
 
 # key_policy	CO_UNIDADE=chave_relacional_interna	CO_CNES=identificador_cnes_publico	facts_join_on=CO_UNIDADE
+
+# unidade_semantics	CO_UNIDADE=candidato_13d(municipio6+CNES7)	prefixo_municipal=derivado_auditoria_nao_autoritativo	geografia=CO_MUNICIPIO_GESTOR+dim_territorial
