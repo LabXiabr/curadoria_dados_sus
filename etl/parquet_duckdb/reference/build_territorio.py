@@ -63,6 +63,73 @@ def detect_delim(text: str) -> str:
         counts = {d: text.count(d) for d in (";", ",", "\t", "|")}
         return max(counts, key=counts.get)
 
+def dbf_field_names(zf: zipfile.ZipFile, csv_name: str) -> list[str]:
+    stem = Path(csv_name).stem.lower()
+    matches = [
+        x for x in zf.infolist()
+        if not x.is_dir()
+        and Path(x.filename).stem.lower() == stem
+        and Path(x.filename).suffix.lower() == ".dbf"
+    ]
+    if not matches:
+        return []
+
+    with zf.open(matches[0], "r") as f:
+        header = f.read(32)
+        if len(header) != 32:
+            return []
+        header_len = int.from_bytes(header[8:10], "little")
+        remaining = max(0, header_len - 33)
+        fields = []
+        read = 0
+        while read < remaining:
+            desc = f.read(32)
+            if len(desc) < 32 or desc[:1] == b"\r":
+                break
+            read += 32
+            name = desc[0:11].split(b"\x00", 1)[0].decode("ascii", errors="ignore").strip()
+            if name:
+                fields.append(name)
+        return fields
+
+def norm_col(v: str) -> str:
+    return re.sub(r"[^A-Z0-9_]+", "_", v.strip().upper()).strip("_")
+
+def source_has_header(path: Path, delim: str, expected: list[str]) -> bool:
+    if not expected:
+        return True
+    with path.open("r", encoding="utf-8", newline="") as f:
+        r = csv.reader(f, delimiter=delim)
+        try:
+            first = next(r)
+        except StopIteration:
+            return True
+    return [norm_col(x) for x in first] == [norm_col(x) for x in expected]
+
+def normalize_csv_header(path: Path, delim: str, expected: list[str], work: Path) -> tuple[Path, str]:
+    if not expected or source_has_header(path, delim, expected):
+        return path, "source"
+
+    out = work / (path.stem + "__header.csv")
+    with path.open("r", encoding="utf-8", newline="") as src, \
+         out.open("w", encoding="utf-8", newline="") as dst:
+        reader = csv.reader(src, delimiter=delim)
+        writer = csv.writer(dst, delimiter=delim, lineterminator="\n")
+        writer.writerow(expected)
+        for row in reader:
+            writer.writerow(row)
+    return out, "synthesized_from_dbf"
+
+def count_rows(path: Path, delim: str, header: bool = True) -> int:
+    with path.open("r", encoding="utf-8", newline="") as f:
+        r = csv.reader(f, delimiter=delim)
+        if header:
+            try:
+                next(r)
+            except StopIteration:
+                return 0
+        return sum(1 for row in r if row and any(x.strip() for x in row))
+
 def recode(zf: zipfile.ZipFile, info: zipfile.ZipInfo, out: Path) -> tuple[str, str]:
     with zf.open(info, "r") as f:
         sample = f.read(262144)
@@ -73,15 +140,6 @@ def recode(zf: zipfile.ZipFile, info: zipfile.ZipInfo, out: Path) -> tuple[str, 
         with out.open("w", encoding="utf-8", newline="") as dst:
             shutil.copyfileobj(src, dst, length=1024 * 1024)
     return enc, delim
-
-def count_rows(path: Path, delim: str) -> int:
-    with path.open("r", encoding="utf-8", newline="") as f:
-        r = csv.reader(f, delimiter=delim)
-        try:
-            next(r)
-        except StopIteration:
-            return 0
-        return sum(1 for row in r if row and any(x.strip() for x in row))
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Base territorial DATASUS -> Bronze/Silver Parquet")
@@ -148,7 +206,12 @@ def main() -> int:
 
                 src = work / f"{table}.csv"
                 enc, delim = recode(zf, info, src)
-                rows_src = count_rows(src, delim)
+                expected_fields = dbf_field_names(zf, info.filename)
+                has_header = source_has_header(src, delim, expected_fields)
+                rows_src = count_rows(src, delim, header=has_header)
+                ingest_src, header_mode = normalize_csv_header(
+                    src, delim, expected_fields, work
+                )
 
                 destdir = bronze_root / table / f"snapshot={snapshot}"
                 destdir.mkdir(parents=True, exist_ok=True)
@@ -164,12 +227,13 @@ COPY (
          {sqls(info.filename)}::VARCHAR AS _source_file,
          current_timestamp AS _ingested_at
   FROM read_csv_auto(
-      {sqls(str(src))},
+      {sqls(str(ingest_src))},
       delim={sqls(delim)},
       header=true,
       all_varchar=true,
       sample_size=-1,
-      null_padding=true
+      null_padding=true,
+      parallel=false
   )
 )
 TO {sqls(str(partial))} (FORMAT PARQUET, COMPRESSION ZSTD);
@@ -195,18 +259,23 @@ TO {sqls(str(ctmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
                     os.replace(ctmp, current)
 
                 report_rows.append((
-                    table, info.filename, enc, delim, rows_src,
+                    table, info.filename, enc, delim, header_mode,
+                    len(expected_fields), rows_src,
                     info.file_size, f"{info.CRC:08x}", str(dest),
                     str(current) if publish_current else ""
                 ))
-                print(f"[{idx}/{len(entries)}] OK {table} rows={rows_src}")
+                print(
+                    f"[{idx}/{len(entries)}] OK {table} rows={rows_src} "
+                    f"header={header_mode} cols={len(expected_fields) or 'csv'}"
+                )
 
         ts = subprocess.run(["date", "+%Y%m%d_%H%M%S"], text=True,
                             capture_output=True, check=True).stdout.strip()
         report = state / f"territorio_{snapshot}_{ts}.tsv"
         with report.open("w", encoding="utf-8", newline="") as f:
             w = csv.writer(f, delimiter="\t", lineterminator="\n")
-            w.writerow(["table", "source_file", "encoding", "delimiter", "rows",
+            w.writerow(["table", "source_file", "encoding", "delimiter",
+                        "header_mode", "expected_columns", "rows",
                         "source_bytes", "source_crc32", "bronze", "silver_current"])
             w.writerows(report_rows)
 
