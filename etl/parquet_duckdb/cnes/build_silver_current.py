@@ -104,6 +104,7 @@ def main() -> int:
     estab=bronze/"tb_estabelecimento"/f"competencia={args.competencia}"/"part-000.parquet"
     if not estab.is_file():
         die(f"tb_estabelecimento ausente: {estab}")
+    c_unidade=require_col(estab,"CO_UNIDADE")
     c_cnes=require_col(estab,"CO_CNES")
     c_mun=require_col(estab,"CO_MUNICIPIO_GESTOR")
     out_estab=silver/"dim_estabelecimento"/"current.parquet"
@@ -153,6 +154,7 @@ src AS (
 )
 SELECT
   src.* EXCLUDE (_municipio_match_key),
+  trim(cast(src.{qi(c_unidade)} as varchar)) AS co_unidade_key,
   trim(cast(src.{qi(c_cnes)} as varchar)) AS co_cnes_key,
   CASE
     WHEN t.mun_key IS NOT NULL THEN 'active'
@@ -185,8 +187,18 @@ LEFT JOIN catalog c
     END
 """,out_estab)
 
+    marker=state/"silver_current.ok"
+    marker.unlink(missing_ok=True)
+
     source_estab=count(estab)
     silver_estab=count(out_estab)
+    dup_unidade=int(duck(f"""
+SELECT count(*) FROM (
+  SELECT co_unidade_key
+  FROM read_parquet({qs(str(out_estab))})
+  GROUP BY 1 HAVING count(*)>1
+);
+""",True).strip())
     dup_cnes=int(duck(f"""
 SELECT count(*) FROM (
   SELECT co_cnes_key
@@ -198,16 +210,16 @@ SELECT count(*) FROM (
 SELECT count(*) FROM read_parquet({qs(str(out_estab))})
 WHERE territory_status='unmatched';
 """,True).strip())
-    if source_estab != silver_estab or dup_cnes or unmatched:
+    if source_estab != silver_estab or dup_unidade or dup_cnes or unmatched:
         die(
             f"dim_estabelecimento QC falhou source={source_estab} silver={silver_estab} "
-            f"dup_cnes={dup_cnes} unmatched={unmatched}",30
+            f"dup_unidade={dup_unidade} dup_cnes={dup_cnes} unmatched={unmatched}",30
         )
 
     report=[{
         "object":"dim_estabelecimento","source":"tb_estabelecimento",
         "source_rows":source_estab,"silver_rows":silver_estab,
-        "orphan_cnes":0,"status":"ok"
+        "orphan_unidade":0,"status":"ok"
     }]
 
     for obj,src_table,cnes_col in CORE:
@@ -228,19 +240,22 @@ FROM read_parquet({qs(str(src))})
         else:
             actual=require_col(src,cnes_col)
             copy_query(f"""
-SELECT s.*,
-       trim(cast(s.{qi(actual)} as varchar)) AS co_cnes_key,
+SELECT
+       s.*,
+       trim(cast(s.{qi(actual)} as varchar)) AS co_unidade_key,
+       d.co_cnes_key,
        {qs(args.competencia)}::VARCHAR AS _silver_competencia,
        current_timestamp AS _silver_built_at
 FROM read_parquet({qs(str(src))}) s
+LEFT JOIN read_parquet({qs(str(out_estab))}) d
+  ON trim(cast(s.{qi(actual)} as varchar)) = d.co_unidade_key
 """,dest)
             orphan=int(duck(f"""
 SELECT count(*)
-FROM read_parquet({qs(str(dest))}) f
-LEFT JOIN read_parquet({qs(str(out_estab))}) d USING(co_cnes_key)
-WHERE f.co_cnes_key IS NOT NULL
-  AND f.co_cnes_key<>''
-  AND d.co_cnes_key IS NULL;
+FROM read_parquet({qs(str(dest))})
+WHERE co_unidade_key IS NOT NULL
+  AND co_unidade_key<>''
+  AND co_cnes_key IS NULL;
 """,True).strip())
 
         silver_rows=count(dest)
@@ -249,16 +264,23 @@ WHERE f.co_cnes_key IS NOT NULL
         report.append({
             "object":obj,"source":src_table,
             "source_rows":src_rows,"silver_rows":silver_rows,
-            "orphan_cnes":orphan,"status":"ok"
+            "orphan_unidade":orphan,"status":"ok"
         })
-        print(f"CNES_SILVER {obj} rows={silver_rows} orphan_cnes={orphan}")
+        print(f"CNES_SILVER {obj} rows={silver_rows} orphan_unidade={orphan}")
 
     ts=subprocess.run(["date","+%Y%m%d_%H%M%S"],text=True,capture_output=True,check=True).stdout.strip()
     report_path=state/f"silver_current_{args.competencia}_{ts}.tsv"
     with report_path.open("w",encoding="utf-8",newline="") as f:
-        fields=["object","source","source_rows","silver_rows","orphan_cnes","status"]
+        fields=["object","source","source_rows","silver_rows","orphan_unidade","status"]
         w=csv.DictWriter(f,fieldnames=fields,delimiter="\t",lineterminator="\n")
         w.writeheader(); w.writerows(report)
+
+    orphan_total=sum(int(r["orphan_unidade"]) for r in report)
+    if orphan_total:
+        die(
+            f"Silver CNES bloqueada: orphan_unidade_total={orphan_total}; "
+            f"veja {report_path}",32
+        )
 
     marker=state/"silver_current.ok"
     marker.write_text("\n".join([
@@ -270,7 +292,7 @@ WHERE f.co_cnes_key IS NOT NULL
         f"report={report_path}",
         "scope=current_core_no_professional_silver_yet",
         "visibility=private_until_public_contract",
-        "qc=lossless_row_count;unique_establishment_cnes;territory_no_unmatched;fact_orphans_reported",
+        "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_no_unmatched;fact_orphans_zero",
         "status=complete",
         ""
     ]),encoding="utf-8")
