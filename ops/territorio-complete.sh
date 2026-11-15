@@ -21,3 +21,4 @@ args=(--year "$YEAR")
 
 "$ROOT/ops/territorio-acquire.sh" "${args[@]}"
 python3 "$ROOT/etl/parquet_duckdb/reference/build_territorio.py"
+python3 "$ROOT/etl/parquet_duckdb/reference/build_municipio_contexto.py"
