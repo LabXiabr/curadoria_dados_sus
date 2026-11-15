@@ -238,6 +238,19 @@ A Bronze mensal em Parquet passa a ser a fonte relacional canônica dos dados
 abertos CNES. O plano para retirar tabelas equivalentes do PostgreSQL está em
 `systems/cnes/postgresql_retirement.md`.
 
+
+Inventário da cobertura temporal do lake e das projeções públicas:
+
+```bash
+./ops/cnes-inventory-history.py
+```
+
+Inventário somente leitura das tabelas PostgreSQL candidatas à retirada:
+
+```bash
+./ops/cnes-audit-psql-retirement.sh
+```
+
 Execução isolada:
 
 ```bash
