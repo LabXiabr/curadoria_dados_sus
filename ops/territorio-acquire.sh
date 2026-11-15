@@ -73,7 +73,7 @@ fi
 
 sha="$(sha256sum "$dest" | awk '{print $1}')"
 bytes="$(stat -c %s "$dest")"
-marker="$STATE/territorio_latest.ok"
+snapshot_marker="$STATE/territorio_${snapshot}.raw.ok"
 {
   echo "year=$YEAR"
   echo "snapshot=$snapshot"
@@ -83,7 +83,15 @@ marker="$STATE/territorio_latest.ok"
   echo "bytes=$bytes"
   echo "sha256=$sha"
   echo "path=$dest"
-} > "$marker"
+} > "$snapshot_marker"
+
+latest="$STATE/territorio_latest.ok"
+latest_snapshot=""
+[[ -f "$latest" ]] && latest_snapshot="$(sed -n 's/^snapshot=//p' "$latest" | head -1)"
+if [[ -z "$latest_snapshot" || "$snapshot" > "$latest_snapshot" || "$snapshot" == "$latest_snapshot" ]]; then
+  cp "$snapshot_marker" "$latest"
+fi
 
 echo "TERRITORIO_RAW_OK year=$YEAR snapshot=$snapshot bytes=$bytes sha256=$sha"
-echo "marker=$marker"
+echo "marker=$snapshot_marker"
+echo "latest=$latest"
