@@ -27,9 +27,9 @@ if [[ -d /etc/apache2 ]]; then
     echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
     exit 21
   fi
-  if ! grep -Fq '<Directory "/dados/abertos/suslake/silver/cnes">' "$conf" \
-     || ! grep -Fq '<LocationMatch "^/files/suslake/silver/cnes(/|$)">' "$conf"; then
-    echo "ERRO: guard Silver CNES ausente/desatualizado em $conf" >&2
+  if ! grep -Fq '<Directory "/dados/abertos/suslake">' "$conf" \
+     || ! grep -Fq '<LocationMatch "^/files/suslake(?:/|$)">' "$conf"; then
+    echo "ERRO: guard geral da suslake ausente/desatualizado em $conf" >&2
     echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
     exit 21
   fi
@@ -63,9 +63,9 @@ if [[ -d /etc/apache2 ]]; then
   fi
   echo "APACHE_CNES_SILVER_PRIVATE_OK $silver_private_url -> HTTP $silver_private_code"
 
-  public_file="$LAKE_ROOT/silver/sigtap/tb_procedimento/temporal.parquet"
+  public_file="/dados/abertos/silver/sigtap/tb_procedimento/temporal.parquet"
   if [[ -f "$public_file" ]]; then
-    public_url="$HTTP_BASE/suslake/silver/sigtap/tb_procedimento/temporal.parquet"
+    public_url="$HTTP_BASE/silver/sigtap/tb_procedimento/temporal.parquet"
     public_code="$(
       curl -sS -o /dev/null -w '%{http_code}'         -H "Host: $HTTP_HOST"         "$public_url"
     )"
