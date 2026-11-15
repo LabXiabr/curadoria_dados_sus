@@ -94,12 +94,12 @@ COPY (
         {sqls(sha)}::VARCHAR AS _source_sha256,
         {sqls(zp.name)}::VARCHAR AS _source_file,
         current_timestamp AS _ingested_at
- FROM read_csv(
+ FROM read_csv_auto(
       {sqls(str(src))},
       delim='\\t',
       header=false,
       all_varchar=true,
-      columns={{ {', '.join(sqls('column'+str(i)) + ': VARCHAR' for i in range(len(cols)))} }}
+      sample_size=-1
  )
 )
 TO {sqls(str(partial))} (FORMAT PARQUET, COMPRESSION ZSTD);
