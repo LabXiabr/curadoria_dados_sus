@@ -211,16 +211,17 @@ GROUP BY 1
           f"x_{slug}.qt_{slug} AS {qi('qt_'+slug)}",
         ]
 
+    ctes_sql=",\n".join(ctes)
+    select_sql=",\n  ".join(select)
+    joins_sql=" ".join(joins)
     sql=f"""
 WITH
-{',
-'.join(ctes)}
+{ctes_sql}
 SELECT
-  {',
-  '.join(select)},
+  {select_sql},
   current_timestamp AS _built_at
 FROM read_parquet({sqls(str(path('tb_municip')))}) m
-{' '.join(joins)}
+{joins_sql}
 WHERE upper(trim(cast(m.{qi(c_status)} as varchar)))='ATIVO'
 ORDER BY cast(m.{qi(c_mundv)} as varchar)
 """
