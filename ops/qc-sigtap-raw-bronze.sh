@@ -77,16 +77,55 @@ while IFS= read -r -d '' txt; do
     raw_hashes="$work/${table}.raw.hashes"
     pq_hashes="$work/${table}.pq.hashes"
 
+    fields_file="$work/${table}.fields"
     rows_raw="$(
-        python3 - "$txt" "$lf" "$raw_hashes" <<'PY'
-import csv, hashlib, sys
+        python3 - "$txt" "$lf" "$raw_hashes" "$fields_file" <<\'PY\'
+import hashlib, re, sys
 
-txt, layout, out = sys.argv[1:4]
+txt, layout, out, fields_out = sys.argv[1:5]
+
+replace_re = re.compile(
+    r"^REPLACE\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*,\s*CHR\(\s*\d+\s*\)\s*,\s*NULL\s*\)$",
+    re.I,
+)
+
+def normalize_field(expr):
+    expr = expr.strip()
+    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", expr):
+        return expr.lower()
+    m = replace_re.fullmatch(expr)
+    if m:
+        return m.group(1).lower()
+    raise RuntimeError(f"expressao de coluna nao suportada: {expr}")
 
 cols = []
+prev_end = None
 with open(layout, "r", encoding="latin-1", newline="") as f:
-    for row in csv.DictReader(f):
-        cols.append((int(row["Inicio"]), int(row["Fim"])))
+    for lineno, raw in enumerate(f, start=1):
+        line = raw.rstrip("\r\n")
+        if lineno == 1 or not line.strip():
+            continue
+        parts = [x.strip() for x in line.split(",")]
+        if len(parts) < 5:
+            raise RuntimeError(f"layout linha {lineno}: menos de 5 campos")
+        field_expr = ",".join(parts[:-4]).strip()
+        width_s, start_s, end_s, _source_type = parts[-4:]
+        width, start, end = int(width_s), int(start_s), int(end_s)
+        if width != end - start + 1:
+            raise RuntimeError(
+                f"layout linha {lineno}: width={width} start={start} end={end}"
+            )
+        if prev_end is not None and start != prev_end + 1:
+            raise RuntimeError(
+                f"layout linha {lineno}: gap prev_end={prev_end} start={start}"
+            )
+        field = normalize_field(field_expr)
+        cols.append((field, start, end))
+        prev_end = end
+
+with open(fields_out, "w", encoding="utf-8") as f:
+    for field, _, _ in cols:
+        f.write(field + "\n")
 
 hashes = []
 rows = 0
@@ -97,7 +136,7 @@ with open(txt, "rb") as f:
         if not line:
             continue
         vals = []
-        for start, end in cols:
+        for _field, start, end in cols:
             b = line[start-1:end].strip(b" ")
             vals.append(b.decode("latin-1"))
         canonical = "".join(f"{len(v)}:{v}\x1f" for v in vals)
@@ -113,17 +152,7 @@ print(rows)
 PY
     )"
 
-    fields="$(
-        awk -F',' '
-            NR>1 {
-                gsub(/\r/,"")
-                if ($0 ~ /^[[:space:]]*$/) next
-                if (seen) printf "|"
-                printf "%s",tolower($1)
-                seen=1
-            }
-        ' "$lf"
-    )"
+    fields="$(paste -sd '|' "$fields_file")"
 
     IFS='|' read -r -a cols <<< "$fields"
     expr="concat("
