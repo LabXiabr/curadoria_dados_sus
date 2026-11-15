@@ -14,12 +14,31 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "=== CNES 1/2: RAW ==="
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+TERR_GATE="$LAKE_ROOT/state/reference/territorio_current_complete.ok"
+
+[[ -f "$TERR_GATE" ]] || {
+    echo "ERRO: dimensao territorial corrente ainda nao homologada: $TERR_GATE" >&2
+    exit 20
+}
+
+echo "=== CNES 0/3: GATE TERRITORIAL ==="
+cat "$TERR_GATE"
+
+echo
+echo "=== CNES 1/3: RAW ==="
 out="$("$ROOT/ops/cnes-acquire-base.sh" --competencia "$COMP")"
 printf '%s\n' "$out"
 comp="$(printf '%s\n' "$out" | sed -nE 's/^CNES_RAW_OK competencia=([0-9]{6}).*/\1/p' | tail -1)"
 [[ -n "$comp" ]] || { echo "ERRO: nao foi possivel obter competencia adquirida" >&2; exit 10; }
 
 echo
-echo "=== CNES 2/2: BRONZE ==="
+echo "=== CNES 2/3: BRONZE ==="
 python3 "$ROOT/etl/parquet_duckdb/cnes/build_bronze.py" --competencia "$comp"
+
+echo
+echo "=== CNES 3/3: QC TERRITORIAL ==="
+python3 "$ROOT/ops/qc-cnes-territorio.py" --competencia "$comp"
+
+echo
+echo "CNES_BASE_COMPLETE_OK competencia=$comp"
