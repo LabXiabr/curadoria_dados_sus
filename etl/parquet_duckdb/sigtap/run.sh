@@ -164,8 +164,14 @@ while IFS= read -r -d '' lf; do
             width=$2+0
             start=$3+0
             end=$4+0
-            if (width != end-start+1) exit 11
-            if (seen && start != prev_end+1) exit 12
+            if (width != end-start+1) {
+                printf "LAYOUT_WIDTH_ERROR line=%d width=%d start=%d end=%d raw=%s\n", NR,width,start,end,$0 > "/dev/stderr"
+                exit 11
+            }
+            if (seen && start != prev_end+1) {
+                printf "LAYOUT_GAP_ERROR line=%d prev_end=%d start=%d raw=%s\n", NR,prev_end,start,$0 > "/dev/stderr"
+                exit 12
+            }
             prev_end=end
             seen=1
         }
