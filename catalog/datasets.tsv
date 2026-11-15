@@ -6,11 +6,14 @@ sigtap_bronze	SIGTAP	bronze	published	public_parquet	suslake/bronze/sigtap/	firs
 sia_bronze	SIA	bronze	auto	public_parquet	suslake/bronze/sia/	first_dir	sia		.*\.parquet$	SIA Bronze; views por primeiro diretorio quando publicada
 sih_bronze	SIH	bronze	auto	public_parquet	suslake/bronze/sih/	first_dir	sih		.*\.parquet$	SIH Bronze; views por primeiro diretorio quando publicada
 ciha_bronze	CIHA	bronze	auto	public_parquet	suslake/bronze/ciha/	first_dir	ciha		.*\.parquet$	CIHA Bronze; views por primeiro diretorio quando publicada
-cnes_bronze	CNES	bronze	auto	public_parquet	suslake/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze; views por primeiro diretorio quando publicada
+cnes_bronze	CNES	bronze	private	public_parquet	suslake/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze completa local; nao publicar diretamente
 sinasc_bronze	SINASC	bronze	auto	public_parquet	suslake/bronze/sinasc/	first_dir	sinasc		.*\.parquet$	SINASC Bronze; views por primeiro diretorio quando publicada
 sinan_bronze	SINAN	bronze	auto	public_parquet	suslake/bronze/sinan/	first_dir	sinan		.*\.parquet$	SINAN Bronze; views por primeiro diretorio quando publicada
 sigtap_silver	SIGTAP	silver	auto	public_parquet	suslake/silver/sigtap/	first_dir	sigtap_silver		^temporal\.parquet$	SIGTAP Silver temporal lossless; uma view por tabela quando publicada
 reference_cep_cnes	REFERENCE	silver	published	public_parquet	suslake/silver/reference/cep_cnes/	single	reference	cep_cnes	^current\.parquet$	CEP Brasil corrente do SCNES; Raw/Bronze preservam versoes por hash
 reference_cep_cnes_alterado	REFERENCE	silver	published	public_parquet	suslake/silver/reference/cep_cnes_alterado/	single	reference	cep_cnes_alterado	^current\.parquet$	Tabela CEPALTERADO corrente do SCNES; versao por hash preservada na Bronze
-reference_municipio	REFERENCE	silver	published	public_parquet	suslake/silver/reference/municipio/	single	reference	municipio	^current\.parquet$	Dominio municipal corrente derivado de TB_MUNICIPIO CNES
-reference_populacao	REFERENCE	silver	published	public_parquet	suslake/silver/reference/populacao/	single	reference	populacao	^part-.*\.parquet$	Populacao municipal por ano via DATASUS TabNet POPSVS
+reference_populacao_tabnet_qc	REFERENCE	silver	published	public_parquet	suslake/silver/reference/populacao/	single	reference	populacao_tabnet_qc	^part-.*\.parquet$	Totais municipais extraidos via TabNet; uso preferencial como QC independente do POPSVS
+
+reference_territorio	REFERENCE	silver	published	public_parquet	suslake/silver/reference/territorio/	first_dir	reference		^current\.parquet$	Tabelas territoriais correntes DATASUS: municipio UF regioes e relacionamentos
+reference_regionalizacao_saude	REFERENCE	silver	published	public_parquet	suslake/silver/reference/regionalizacao_saude/	first_dir	reference		^current\.parquet$	Regionalizacao de saude corrente do Portal de Dados Abertos do SUS
+reference_populacao_idade_sexo	REFERENCE	silver	published	public_parquet	suslake/silver/reference/populacao_idade_sexo/	single	reference	populacao_idade_sexo	^part-.*\.parquet$	POPSVS 2000-2025 por municipio ano sexo e idade
