@@ -6,8 +6,8 @@ fact	fact_estabelecimento_equipamento	rl_estab_equipamento	CO_CNES x equipamento
 fact	fact_estabelecimento_leito	rl_estab_complementar	CO_CNES x CO_LEITO x CO_TIPO_LEITO x snapshot	Leitos por estabelecimento; nao confundir com NU_LEITOS de instalacao fisica/SIPAC
 fact	fact_equipe	tb_equipe	1 row per equipe x snapshot	Cadastro de equipes
 bridge	bridge_estabelecimento_equipe_profissional	rl_estab_equipe_prof	CO_CNES x equipe x profissional x snapshot	Vinculo estabelecimento-equipe-profissional
-fact	fact_profissional_vinculo	tb_dados_profissional_sus	grain nativo da fonte por profissional x estabelecimento x snapshot	Cadastro/vinculo profissional no estabelecimento; sem assumir unicidade global de CO_PROFISSIONAL_SUS
-fact	fact_profissional_carga_horaria	tb_carga_horaria_sus	grain nativo da fonte por profissional x estabelecimento x CBO/vinculo x snapshot	Carga horaria e vinculos profissionais
+dimension	dim_profissional	tb_dados_profissional_sus	1 row por CO_PROFISSIONAL_SUS x snapshot	Cadastro de profissionais; CO_PROFISSIONAL_SUS validado como chave unica na competencia
+fact	fact_profissional_vinculo	tb_carga_horaria_sus	profissional x CO_UNIDADE x CBO/vinculo x snapshot	Carga horaria e vinculo do profissional com o estabelecimento
 dimension	dim_servico	tb_servico_especializado|tb_classificacao_servico	codigo de dominio	Dominio de servicos e classificacoes
 dimension	dim_equipamento	tb_equipamento|tb_tipo_equipamento	codigo de dominio	Dominio de equipamentos
 dimension	dim_tipo_estabelecimento	tb_tipo_estabelecimento	codigo de dominio	Dominio de tipo de estabelecimento
@@ -41,6 +41,6 @@ view	vw_leito_drill	fact_estabelecimento_leito|vw_estabelecimento_drill	grain do
 
 # df_ra_source	IBGE_Localidades_do_Brasil_2022	codigo_RA=11_digitos	crosswalk=nome_normalizado+aliases_explicitos
 
-# professional_policy	fact_profissional_vinculo=tb_dados_profissional_sus	fact_profissional_carga_horaria=tb_carga_horaria_sus	co_profissional_sus_key=CO_PROFISSIONAL_SUS	nao_assumir_CO_PROFISSIONAL_SUS_unico_sem_QC
+# professional_policy	dim_profissional=tb_dados_profissional_sus	fact_profissional_vinculo=tb_carga_horaria_sus	co_profissional_sus_key=CO_PROFISSIONAL_SUS	CO_PROFISSIONAL_SUS_unico_por_competencia=hard_gate
 
 # team_policy	co_ine_key=CO_EQUIPE	co_equipe_rel_key=CO_MUNICIPIO+CO_AREA+SEQ_EQUIPE

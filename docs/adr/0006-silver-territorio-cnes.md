@@ -180,7 +180,12 @@ sem correspondência única. `CO_UNIDADE` nunca é usado para inferir RA.
 
 ## Profissionais
 
-`tb_dados_profissional_sus` e `tb_carga_horaria_sus` são preservadas como
-fatos Silver relacionados ao estabelecimento. Não se cria uma
-`dim_profissional` diretamente dessas tabelas sem demonstrar primeiro a
-unicidade e o grain real de `CO_PROFISSIONAL_SUS`.
+O dicionário oficial do CNES define `TB_DADOS_PROFISSIONAL_SUS` como a tabela
+de profissionais e `CO_PROFISSIONAL_SUS` como sua chave primária. A Silver,
+portanto, materializa `dim_profissional` diretamente dessa fonte e exige
+unicidade e não nulidade de `co_profissional_sus_key` como hard gate.
+
+`TB_CARGA_HORARIA_SUS` contém `CO_UNIDADE`, `CO_PROFISSIONAL_SUS`,
+`CO_CBO`, vínculo e carga horária. Ela alimenta
+`fact_profissional_vinculo`, que se relaciona a `dim_estabelecimento` por
+`co_unidade_key` e ao profissional por `co_profissional_sus_key`.

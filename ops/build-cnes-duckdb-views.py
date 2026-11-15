@@ -99,18 +99,14 @@ def main() -> int:
             / "bridge_estabelecimento_equipe_profissional"
             / "current.parquet"
         ),
+        "dim_profissional": (
+            lake / "silver" / "cnes" / "dim_profissional" / "current.parquet"
+        ),
         "fact_profissional_vinculo": (
             lake
             / "silver"
             / "cnes"
             / "fact_profissional_vinculo"
-            / "current.parquet"
-        ),
-        "fact_profissional_carga_horaria": (
-            lake
-            / "silver"
-            / "cnes"
-            / "fact_profissional_carga_horaria"
             / "current.parquet"
         ),
     }
@@ -204,11 +200,11 @@ SELECT * FROM read_parquet({p["fact_equipe"]});
 CREATE OR REPLACE VIEW cnes.bridge_estabelecimento_equipe_profissional AS
 SELECT * FROM read_parquet({p["bridge_estabelecimento_equipe_profissional"]});
 
+CREATE OR REPLACE VIEW cnes.dim_profissional AS
+SELECT * FROM read_parquet({p["dim_profissional"]});
+
 CREATE OR REPLACE VIEW cnes.fact_profissional_vinculo AS
 SELECT * FROM read_parquet({p["fact_profissional_vinculo"]});
-
-CREATE OR REPLACE VIEW cnes.fact_profissional_carga_horaria AS
-SELECT * FROM read_parquet({p["fact_profissional_carga_horaria"]});
 
 CREATE OR REPLACE VIEW cnes.vw_estabelecimento_drill AS
 SELECT
@@ -257,11 +253,6 @@ FROM cnes.fact_profissional_vinculo f
 JOIN cnes.vw_estabelecimento_drill d
   ON d.co_unidade_key=f.co_unidade_key;
 
-CREATE OR REPLACE VIEW cnes.vw_profissional_carga_horaria_drill AS
-SELECT d.*, f.* EXCLUDE (co_unidade_key, co_cnes_key)
-FROM cnes.fact_profissional_carga_horaria f
-JOIN cnes.vw_estabelecimento_drill d
-  ON d.co_unidade_key=f.co_unidade_key;
 """
 
     sql_path.write_text(sql, encoding="utf-8")
@@ -328,8 +319,8 @@ SELECT
                     "cnes.fact_estabelecimento_leito|"
                     "cnes.fact_equipe|"
                     "cnes.bridge_estabelecimento_equipe_profissional|"
+                    "cnes.dim_profissional|"
                     "cnes.fact_profissional_vinculo|"
-                    "cnes.fact_profissional_carga_horaria|"
                     "cnes.vw_estabelecimento_drill|"
                     "cnes.vw_servico_drill|"
                     "cnes.vw_equipamento_drill|"
@@ -337,7 +328,6 @@ SELECT
                     "cnes.vw_equipe_drill|"
                     "cnes.vw_equipe_profissional_drill|"
                     "cnes.vw_profissional_vinculo_drill|"
-                    "cnes.vw_profissional_carga_horaria_drill"
                 ),
                 "storage=views_only_no_fact_materialization",
                 "",

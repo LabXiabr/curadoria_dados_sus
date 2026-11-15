@@ -47,13 +47,30 @@ def main()->int:
             objects+=1
             if r["status"]!="ok" or int(r["source_rows"])!=int(r["silver_rows"]) or int(r["orphan_unidade"])!=0:
                 bad.append(r["object"])
-    required_professional=[
-        silver/"fact_profissional_vinculo"/"current.parquet",
-        silver/"fact_profissional_carga_horaria"/"current.parquet",
-    ]
-    for p in required_professional:
-        if not p.is_file():
-            bad.append(p.parent.name+"_missing")
+    prof=silver/"dim_profissional"/"current.parquet"
+    vinc=silver/"fact_profissional_vinculo"/"current.parquet"
+    if not prof.is_file():
+        bad.append("dim_profissional_missing")
+        dup_prof=-1
+        missing_prof=-1
+    else:
+        missing_prof=int(duck(f"""
+SELECT count(*) FROM read_parquet({qs(str(prof))})
+WHERE co_profissional_sus_key IS NULL OR co_profissional_sus_key='';
+""").strip())
+        dup_prof=int(duck(f"""
+SELECT count(*) FROM (
+  SELECT co_profissional_sus_key
+  FROM read_parquet({qs(str(prof))})
+  GROUP BY 1 HAVING count(*)>1
+);
+""").strip())
+        if missing_prof:
+            bad.append("dim_profissional_missing_key")
+        if dup_prof:
+            bad.append("dim_profissional_duplicate_key")
+    if not vinc.is_file():
+        bad.append("fact_profissional_vinculo_missing")
     marker=state/f"qc_global_{args.competencia}.ok"; marker.unlink(missing_ok=True)
     if bad:
         print("CNES_GLOBAL_QC_FAIL findings="+"|".join(bad),file=sys.stderr); return 20
@@ -61,8 +78,14 @@ def main()->int:
       f"competencia={args.competencia}",
       f"timestamp={subprocess.run(['date','+%Y%m%d_%H%M%S'],text=True,capture_output=True,check=True).stdout.strip()}",
       f"objects={objects}",
+      f"dim_profissional_missing_key={missing_prof}",
+      f"dim_profissional_duplicate_key={dup_prof}",
       "status=validated",""
     ]),encoding="utf-8")
-    print(f"CNES_GLOBAL_QC_OK objects={objects}")
+    print(
+        f"CNES_GLOBAL_QC_OK objects={objects} "
+        f"dim_profissional_missing_key={missing_prof} "
+        f"dim_profissional_duplicate_key={dup_prof}"
+    )
     print(f"marker={marker}"); return 0
 if __name__=="__main__": raise SystemExit(main())

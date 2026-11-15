@@ -18,13 +18,13 @@ CORE = [
     ("dim_leito", "tb_leito", None),
     ("dim_tipo_estabelecimento", "tb_tipo_estabelecimento", None),
     ("dim_natureza_juridica", "tb_natureza_juridica", None),
-    ("fact_profissional_vinculo", "tb_dados_profissional_sus", "CO_UNIDADE"),
+    ("dim_profissional", "tb_dados_profissional_sus", None),
     ("fact_estabelecimento_servico", "rl_estab_serv_class", "CO_UNIDADE"),
     ("fact_estabelecimento_equipamento", "rl_estab_equipamento", "CO_UNIDADE"),
     ("fact_estabelecimento_leito", "rl_estab_complementar", "CO_UNIDADE"),
     ("fact_equipe", "tb_equipe", "CO_UNIDADE"),
     ("bridge_estabelecimento_equipe_profissional", "rl_estab_equipe_prof", "CO_UNIDADE"),
-    ("fact_profissional_carga_horaria", "tb_carga_horaria_sus", "CO_UNIDADE"),
+    ("fact_profissional_vinculo", "tb_carga_horaria_sus", "CO_UNIDADE"),
 ]
 def die(msg: str, code: int = 20):
     print(f"ERRO: {msg}", file=sys.stderr)
@@ -316,6 +316,29 @@ WHERE co_unidade_key IS NOT NULL AND co_unidade_key<>'' AND co_cnes_key IS NULL;
         silver_rows=count(dest)
         if src_rows != silver_rows:
             die(f"{obj}: source_rows={src_rows} silver_rows={silver_rows}",31)
+
+        if obj=="dim_profissional":
+            require_col(src,"CO_PROFISSIONAL_SUS")
+            missing_prof=int(duck(f"""
+SELECT count(*)
+FROM read_parquet({qs(str(dest))})
+WHERE co_profissional_sus_key IS NULL OR co_profissional_sus_key='';
+""",True).strip())
+            dup_prof=int(duck(f"""
+SELECT count(*) FROM (
+  SELECT co_profissional_sus_key
+  FROM read_parquet({qs(str(dest))})
+  GROUP BY 1
+  HAVING count(*)>1
+);
+""",True).strip())
+            if missing_prof or dup_prof:
+                die(
+                    f"dim_profissional QC falhou missing_key={missing_prof} "
+                    f"duplicate_key={dup_prof}",
+                    33,
+                )
+
         report.append({
             "object":obj,"source":src_table,
             "source_rows":src_rows,"silver_rows":silver_rows,
