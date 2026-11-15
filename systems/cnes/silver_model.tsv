@@ -26,6 +26,8 @@ view	vw_leito_drill	fact_estabelecimento_leito|vw_estabelecimento_drill	grain do
 
 # hierarchy_primary	REGIAO>UF>MACRORREGIAO_SAUDE>REGIAO_SAUDE>MUNICIPIO>RA_DF
 
+# hierarchy_keys	REGIAO:<co_regiao>	UF:<co_uf>	MACRO_SAUDE:<co_uf>:<co_macro>	REG_SAUDE:<co_uf>:<co_regiao_saude>	MUN:<IBGE7>	RA_DF:<IBGE11>
+
 # hierarchy_alternative	MICRORREGIAO_IBGE	REGIAO_METROPOLITANA	DSEI	PNDR	TERRITORIO_CIDADANIA
 
 # denormalization_policy	dim_territorio=canonica	dim_estabelecimento=atributos_territoriais_largos_duplicados_para_conveniencia	facts=nao_duplicam_territorio

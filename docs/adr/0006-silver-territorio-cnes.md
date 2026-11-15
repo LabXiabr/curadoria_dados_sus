@@ -39,6 +39,19 @@ A dimensão é achatada: a linha do menor território resolvido contém também 
 atributos dos níveis superiores. Isso permite `ROLLUP`, `GROUPING SETS` e
 consultas ad hoc sem percorrer uma cadeia de tabelas.
 
+Para evitar colisões de códigos locais entre UFs, a dimensão também expõe
+chaves qualificadas:
+
+- `REGIAO:<co_regiao>`;
+- `UF:<co_uf>`;
+- `MACRO_SAUDE:<co_uf>:<co_macrorregiao_saude>`;
+- `REG_SAUDE:<co_uf>:<co_regiao_saude>`;
+- `MUN:<IBGE7>`;
+- `RA_DF:<IBGE11>`.
+
+Consultas nacionais devem preferir essas chaves quando precisarem identificar
+univocamente um nível, ainda que os nomes continuem disponíveis para exibição.
+
 Microrregião IBGE, Região Metropolitana/RIDE, DSEI, PNDR e Território da
 Cidadania são classificações/hierarquias alternativas. Não devem ser
 interpretadas como níveis intermediários obrigatórios da hierarquia principal.

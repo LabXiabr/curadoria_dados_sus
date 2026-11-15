@@ -107,6 +107,14 @@ SELECT
   'MUNICIPIO'::VARCHAR AS tp_territorio,
   5::INTEGER AS nr_nivel_drill,
   NULL::VARCHAR AS co_territorio_pai_key,
+  CASE WHEN co_regiao IS NOT NULL AND co_regiao<>'' THEN 'REGIAO:' || co_regiao END AS co_regiao_key,
+  CASE WHEN co_uf IS NOT NULL AND co_uf<>'' THEN 'UF:' || co_uf END AS co_uf_key,
+  CASE WHEN co_macrorregiao_saude IS NOT NULL AND co_macrorregiao_saude<>''
+       THEN 'MACRO_SAUDE:' || co_uf || ':' || co_macrorregiao_saude END AS co_macrorregiao_saude_key,
+  CASE WHEN co_regiao_saude IS NOT NULL AND co_regiao_saude<>''
+       THEN 'REG_SAUDE:' || co_uf || ':' || co_regiao_saude END AS co_regiao_saude_key,
+  'MUN:' || co_municipio_ibge AS co_municipio_key,
+  NULL::VARCHAR AS co_ra_key,
   c.*,
   NULL::VARCHAR AS co_ra_referencia,
   NULL::VARCHAR AS no_ra_referencia,
@@ -123,6 +131,14 @@ SELECT
   'RA_DF'::VARCHAR AS tp_territorio,
   6::INTEGER AS nr_nivel_drill,
   'MUN:5300108'::VARCHAR AS co_territorio_pai_key,
+  CASE WHEN b.co_regiao IS NOT NULL AND b.co_regiao<>'' THEN 'REGIAO:' || b.co_regiao END AS co_regiao_key,
+  CASE WHEN b.co_uf IS NOT NULL AND b.co_uf<>'' THEN 'UF:' || b.co_uf END AS co_uf_key,
+  CASE WHEN b.co_macrorregiao_saude IS NOT NULL AND b.co_macrorregiao_saude<>''
+       THEN 'MACRO_SAUDE:' || b.co_uf || ':' || b.co_macrorregiao_saude END AS co_macrorregiao_saude_key,
+  CASE WHEN b.co_regiao_saude IS NOT NULL AND b.co_regiao_saude<>''
+       THEN 'REG_SAUDE:' || b.co_uf || ':' || b.co_regiao_saude END AS co_regiao_saude_key,
+  'MUN:' || b.co_municipio_ibge AS co_municipio_key,
+  'RA_DF:' || r.co_ra_ibge AS co_ra_key,
   b.*,
   r.co_ra_referencia,
   r.no_ra_referencia,
