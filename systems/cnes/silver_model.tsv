@@ -1,6 +1,6 @@
 layer	object	source_tables	grain	purpose
-dimension	dim_territorio	reference/municipio_contexto|reference/territorio/rl_municip_divadm|reference/territorio/tb_divadm	1 row per municipio IBGE plus DF administrative division	Territorio conformado: municipios e, no DF, divisao administrativa/RA como nivel submunicipal; codigo IBGE da RA somente quando resolvido na referencia
-dimension	dim_estabelecimento	tb_estabelecimento	1 row per CO_CNES per official snapshot	Estabelecimento corrente; preserva localidade gestora CNES e usa geografia conformada sem derivar territorio de CO_UNIDADE
+dimension	dim_territorio	reference/municipio_contexto|reference/territorio/rl_municip_divadm|reference/territorio/tb_divadm	1 row por menor territorio resolvido (municipio; futuramente RA_DF)	Dimensao Silver conformada e larga para drill territorial; chave canonica co_territorio_key
+dimension	dim_estabelecimento	tb_estabelecimento	1 row per CO_CNES per official snapshot	Estabelecimento corrente; co_territorio_key referencia logicamente dim_territorio; atributos territoriais duplicados por conveniencia ad hoc
 fact	fact_estabelecimento_servico	rl_estab_serv_class	CO_CNES x servico x classificacao x snapshot	Oferta de servicos/classificacoes por estabelecimento
 fact	fact_estabelecimento_equipamento	rl_estab_equipamento	CO_CNES x equipamento x snapshot	Equipamentos existentes/em uso por estabelecimento
 fact	fact_estabelecimento_leito	rl_estab_complementar	CO_CNES x CO_LEITO x CO_TIPO_LEITO x snapshot	Leitos por estabelecimento; nao confundir com NU_LEITOS de instalacao fisica/SIPAC
@@ -11,11 +11,27 @@ dimension	dim_servico	tb_servico_especializado|tb_classificacao_servico	codigo d
 dimension	dim_equipamento	tb_equipamento|tb_tipo_equipamento	codigo de dominio	Dominio de equipamentos
 dimension	dim_tipo_estabelecimento	tb_tipo_estabelecimento	codigo de dominio	Dominio de tipo de estabelecimento
 dimension	dim_natureza_juridica	tb_natureza_juridica	codigo de dominio	Dominio de natureza juridica
+view	vw_estabelecimento_drill	dim_estabelecimento|dim_territorio	1 row por estabelecimento	Hierarquia territorial pronta para ROLLUP/GROUPING SETS no DuckDB
+view	vw_servico_drill	fact_estabelecimento_servico|vw_estabelecimento_drill	grain do fato de servico	Fato de servico enriquecido virtualmente com hierarquia territorial
+view	vw_equipamento_drill	fact_estabelecimento_equipamento|vw_estabelecimento_drill	grain do fato de equipamento	Fato de equipamento enriquecido virtualmente com hierarquia territorial
+view	vw_leito_drill	fact_estabelecimento_leito|vw_estabelecimento_drill	grain do fato de leito	Fato de leito enriquecido virtualmente com hierarquia territorial
 
-# key_policy	CO_UNIDADE=chave_relacional_interna_opaca	CO_CNES=identificador_cnes_publico_7d	facts_join_on=CO_UNIDADE
+# layer_policy	territorio_hierarquia=Silver	views_semanticas=Silver	agregados_indicadores=Gold
+
+# key_policy	CO_UNIDADE=chave_relacional_interna_opaca	CO_CNES=identificador_cnes_publico_7d	facts_join_on=CO_UNIDADE	estabelecimento_territorio_join_on=co_territorio_key
+
+# referential_policy	Parquet_sem_FK_fisica	integridade=QC_pipeline	fact_CO_UNIDADE_to_dim_estabelecimento=hard_gate	dim_estabelecimento_to_dim_territorio=hard_gate
+
+# territorio_key	MUN:<IBGE7>=municipio	RA_DF:<IBGE11>=RA_resolvida	regra=menor_territorio_resolvido_com_seguranca
+
+# hierarchy_primary	REGIAO>UF>MACRORREGIAO_SAUDE>REGIAO_SAUDE>MUNICIPIO>RA_DF
+
+# hierarchy_alternative	MICRORREGIAO_IBGE	REGIAO_METROPOLITANA	DSEI	PNDR	TERRITORIO_CIDADANIA
+
+# denormalization_policy	dim_territorio=canonica	dim_estabelecimento=atributos_territoriais_largos_duplicados_para_conveniencia	facts=nao_duplicam_territorio
 
 # unidade_semantics	numeric13_suffix7=CO_CNES_observado	numeric13_prefix6=nao_autoritativo_para_territorio	non_numeric13=valor_legitimo_preservar_como_varchar
 
-# geography_policy	CO_MUNICIPIO_GESTOR=localidade_operacional_cnes_preservada	municipio_ibge=dim_territorio	DF_parent_municipio=5300108	DF_submunicipal=divisao_administrativa_RA
+# geography_policy	CO_MUNICIPIO_GESTOR=localidade_operacional_cnes_preservada	municipio_ibge=dim_territorio	DF_parent_municipio=5300108	DF_submunicipal=RA_DF_quando_resolvida
 
-# geography_resolution	fora_DF=municipio_IBGE	DF=municipio_5300108_mais_RA_quando_resolvida	co_ra_ibge=nao_inferir_de_CO_UNIDADE
+# geography_resolution	fora_DF=municipio_IBGE	DF=municipio_5300108_ate_RA_resolvida	co_ra_ibge=nao_inferir_de_CO_UNIDADE

@@ -38,7 +38,9 @@ def choose(cols: dict[str,str], *cands: str) -> str | None:
     return None
 
 def main() -> int:
-    ap=argparse.ArgumentParser(description="Constroi dimensao territorial conformada: municipios + divisoes administrativas do DF")
+    ap=argparse.ArgumentParser(
+        description="Constroi dimensao territorial Silver conformada e hierarquica"
+    )
     ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
     args=ap.parse_args()
 
@@ -73,7 +75,6 @@ def main() -> int:
     rel_code=f"trim(cast(r.{qi(rk)} as varchar))"
     dim_name=f"nullif(trim(cast(d.{qi(dn)} as varchar)),'')"
     ra_ibge=f"CASE WHEN regexp_matches({rel_code}, '^530010[0-9]{{5}}$') THEN {rel_code} END"
-    territory_key=f"coalesce({ra_ibge}, 'DF_DIVADM:' || {rel_code})"
 
     tmp=out.with_name(out.name+f".partial.{os.getpid()}")
     tmp.unlink(missing_ok=True)
@@ -85,105 +86,116 @@ WITH brasilia AS (
   WHERE co_municipio='530010' OR co_municipio_ibge='5300108'
   QUALIFY row_number() OVER (ORDER BY co_municipio_ibge)=1
 ),
-df_div AS (
+df_ref AS (
   SELECT DISTINCT
-    {rel_code} AS co_divisao_administrativa,
-    {dim_name} AS no_divisao_administrativa,
-    {ra_ibge} AS co_ra_ibge,
-    {territory_key} AS co_territorio
+    {rel_code} AS co_ra_referencia,
+    {dim_name} AS no_ra_referencia,
+    {ra_ibge} AS co_ra_ibge
   FROM read_parquet({qs(str(rel))}) r
   LEFT JOIN read_parquet({qs(str(dim))}) d
     ON trim(cast(d.{qi(dk)} as varchar))={rel_code}
   WHERE trim(cast(r.{qi(rm)} as varchar))='530010'
     AND {rel_code}<>''
+),
+ra_resolvida AS (
+  SELECT *
+  FROM df_ref
+  WHERE co_ra_ibge IS NOT NULL
 )
 SELECT
-  co_municipio_ibge AS co_territorio,
+  'MUN:' || co_municipio_ibge AS co_territorio_key,
   'MUNICIPIO'::VARCHAR AS tp_territorio,
-  NULL::VARCHAR AS co_territorio_pai,
-  co_municipio,
-  co_municipio_ibge,
-  no_municipio,
-  co_uf,
-  sg_uf,
-  no_uf,
-  co_regiao,
-  no_regiao,
-  co_regiao_saude,
-  no_regiao_saude,
-  co_macrorregiao_saude,
-  no_macrorregiao_saude,
-  NULL::VARCHAR AS co_divisao_administrativa,
-  NULL::VARCHAR AS no_divisao_administrativa,
+  5::INTEGER AS nr_nivel_drill,
+  NULL::VARCHAR AS co_territorio_pai_key,
+  c.*,
+  NULL::VARCHAR AS co_ra_referencia,
+  NULL::VARCHAR AS no_ra_referencia,
   NULL::VARCHAR AS co_ra_ibge,
-  'DATASUS_BASE_TERRITORIAL_TB_MUNICIP'::VARCHAR AS fonte_codigo,
-  current_timestamp AS _built_at
-FROM read_parquet({qs(str(ctx))})
+  NULL::VARCHAR AS no_ra,
+  'DATASUS_BASE_TERRITORIAL_MUNICIPIO_CONTEXTO'::VARCHAR AS fonte_territorio,
+  current_timestamp AS _territorio_built_at
+FROM read_parquet({qs(str(ctx))}) c
 
 UNION ALL
 
 SELECT
-  d.co_territorio,
+  'RA_DF:' || r.co_ra_ibge AS co_territorio_key,
   'RA_DF'::VARCHAR AS tp_territorio,
-  '5300108'::VARCHAR AS co_territorio_pai,
-  b.co_municipio,
-  b.co_municipio_ibge,
-  b.no_municipio,
-  b.co_uf,
-  b.sg_uf,
-  b.no_uf,
-  b.co_regiao,
-  b.no_regiao,
-  b.co_regiao_saude,
-  b.no_regiao_saude,
-  b.co_macrorregiao_saude,
-  b.no_macrorregiao_saude,
-  d.co_divisao_administrativa,
-  d.no_divisao_administrativa,
-  d.co_ra_ibge,
-  'DATASUS_BASE_TERRITORIAL_TB_DIVADM'::VARCHAR AS fonte_codigo,
-  current_timestamp AS _built_at
-FROM df_div d
+  6::INTEGER AS nr_nivel_drill,
+  'MUN:5300108'::VARCHAR AS co_territorio_pai_key,
+  b.*,
+  r.co_ra_referencia,
+  r.no_ra_referencia,
+  r.co_ra_ibge,
+  r.no_ra_referencia AS no_ra,
+  'DATASUS_BASE_TERRITORIAL_DIVADM_IBGE11'::VARCHAR AS fonte_territorio,
+  current_timestamp AS _territorio_built_at
+FROM ra_resolvida r
 CROSS JOIN brasilia b
 )
 TO {qs(str(tmp))} (FORMAT PARQUET, COMPRESSION ZSTD);
 """)
 
     stats=duck(f"""
+WITH dfref AS (
+  SELECT DISTINCT
+    {rel_code} AS co_ref,
+    {ra_ibge} AS co_ra_ibge
+  FROM read_parquet({qs(str(rel))}) r
+  WHERE trim(cast(r.{qi(rm)} as varchar))='530010'
+    AND {rel_code}<>''
+)
 SELECT
-  count(*) AS rows,
-  count(*) FILTER (WHERE tp_territorio='MUNICIPIO') AS municipios,
-  count(*) FILTER (WHERE tp_territorio='RA_DF') AS df_divisoes,
-  count(*) FILTER (WHERE tp_territorio='RA_DF' AND co_ra_ibge IS NOT NULL) AS df_ra_ibge_resolvidas,
-  count(*) FILTER (WHERE tp_territorio='RA_DF' AND co_ra_ibge IS NULL) AS df_ra_ibge_pendentes,
-  count(*) - count(DISTINCT co_territorio) AS duplicate_keys
-FROM read_parquet({qs(str(tmp))});
+  (SELECT count(*) FROM read_parquet({qs(str(tmp))})) AS rows,
+  (SELECT count(*) FROM read_parquet({qs(str(tmp))}) WHERE tp_territorio='MUNICIPIO') AS municipios,
+  (SELECT count(*) FROM read_parquet({qs(str(tmp))}) WHERE tp_territorio='RA_DF') AS df_ra_rows,
+  (SELECT count(*) FROM dfref) AS df_ref_codes,
+  (SELECT count(*) FROM dfref WHERE co_ra_ibge IS NOT NULL) AS df_ra_ibge_resolvidas,
+  (SELECT count(*) FROM dfref WHERE co_ra_ibge IS NULL) AS df_ra_ibge_pendentes,
+  (SELECT count(*) - count(DISTINCT co_territorio_key) FROM read_parquet({qs(str(tmp))})) AS duplicate_keys,
+  (SELECT count(*) FROM read_parquet({qs(str(tmp))}) WHERE co_territorio_key IS NULL OR co_territorio_key='') AS missing_keys;
 """,True).strip()
     vals=list(map(int,next(csv.reader([stats]))))
-    keys=["rows","municipios","df_divisoes","df_ra_ibge_resolvidas","df_ra_ibge_pendentes","duplicate_keys"]
+    keys=[
+        "rows","municipios","df_ra_rows","df_ref_codes",
+        "df_ra_ibge_resolvidas","df_ra_ibge_pendentes",
+        "duplicate_keys","missing_keys"
+    ]
     s=dict(zip(keys,vals))
 
-    if s["municipios"] != 5571 or s["df_divisoes"] < 1 or s["duplicate_keys"] != 0:
+    if (
+        s["municipios"] != 5571
+        or s["df_ra_rows"] != s["df_ra_ibge_resolvidas"]
+        or s["duplicate_keys"] != 0
+        or s["missing_keys"] != 0
+    ):
         tmp.unlink(missing_ok=True)
         die(f"QC territorio conformado falhou: {s}")
 
     os.replace(tmp,out)
-    ts=subprocess.run(["date","+%Y%m%d_%H%M%S"],text=True,capture_output=True,check=True).stdout.strip()
+    ts=subprocess.run(
+        ["date","+%Y%m%d_%H%M%S"],
+        text=True,capture_output=True,check=True
+    ).stdout.strip()
     marker=state/"territorio_conformado_current.ok"
     marker.write_text("\n".join([
         f"timestamp={ts}",
         *(f"{k}={v}" for k,v in s.items()),
         f"path={out}",
-        "scope=municipios_IBGE_mais_divisoes_administrativas_DF",
-        "policy=co_ra_ibge_somente_quando_codigo_de_referencia_for_11d_530010xxxxx;sem_inferencia_por_CO_UNIDADE",
+        "layer=silver",
+        "grain=menor_territorio_resolvido_com_seguranca",
+        "key=MUN:IBGE7|RA_DF:IBGE11",
+        "hierarquia_principal=REGIAO>UF>MACRORREGIAO_SAUDE>REGIAO_SAUDE>MUNICIPIO>RA_DF",
+        "alternative_hierarchies=MICRORREGIAO_IBGE|REGIAO_METROPOLITANA|DSEI|PNDR|TERRITORIO_CIDADANIA",
+        "policy=RA_DF_so_entra_na_dimensao_quando_codigo_IBGE11_estiver_resolvido;sem_inferencia_por_CO_UNIDADE",
         ""
     ]),encoding="utf-8")
 
     print("TERRITORIO_CONFORMADO " + " ".join(f"{k}={v}" for k,v in s.items()))
     if s["df_ra_ibge_pendentes"]:
         print(
-            "WARN: ha divisoes administrativas do DF sem codigo IBGE 11d resolvido "
-            f"na referencia: {s['df_ra_ibge_pendentes']}"
+            "WARN: referencia atual possui itens DF ainda nao promovidos a RA_DF: "
+            f"{s['df_ra_ibge_pendentes']}"
         )
     print(f"path={out}")
     print(f"marker={marker}")

@@ -155,6 +155,28 @@ municipais confirmados na fonte incluem capital, Amazônia Legal e semiárido.
 `IN_FRONTZN` é preservado com nome semântico conservador até confirmação
 documental de seu significado exato no snapshot corrente.
 
+A Silver conformada para análise fica em:
+
+```text
+silver/reference/dim_territorio/current.parquet
+```
+
+A chave `co_territorio_key` identifica o menor território resolvido com
+segurança (`MUN:<IBGE7>`; futuramente `RA_DF:<IBGE11>`). A hierarquia
+principal para drill é Região -> UF -> Macrorregião de Saúde -> Região de
+Saúde -> Município -> RA-DF. Classificações como DSEI, microrregião IBGE,
+região metropolitana, PNDR e Território da Cidadania são hierarquias
+alternativas, não níveis obrigatórios dessa cadeia.
+
+O CNES Silver usa integridade referencial lógica validada por QC:
+`fact_* -> dim_estabelecimento -> dim_territorio`. Parquet não possui FK
+física. O contrato completo está em
+`docs/adr/0006-silver-territorio-cnes.md`.
+
+O pipeline CNES também cria o catálogo privado
+`silver/cnes/cnes.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
+fatos virtualmente sem duplicar a geografia nas tabelas factuais.
+
 Execução isolada:
 
 ```bash

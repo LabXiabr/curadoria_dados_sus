@@ -14,10 +14,8 @@ mkdir -p "$STATE"
   exit 2
 }
 
-TERR_CONFORM="$LAKE_ROOT/state/reference/territorio_conformado_current.ok"
-if [[ ! -f "$TERR_CONFORM" ]]; then
-  python3 "$ROOT/etl/parquet_duckdb/reference/build_territorio_conformado.py"
-fi
+# Dimensao pequena: reconstruir sempre para que contrato e schema Silver acompanhem o codigo.
+python3 "$ROOT/etl/parquet_duckdb/reference/build_territorio_conformado.py"
 
 for f in \
   "$STATE/base_complete_${COMP}.ok" \
@@ -31,3 +29,4 @@ done
 python3 "$ROOT/ops/qc-cnes-df-territorio.py" --competencia "$COMP"
 python3 "$ROOT/ops/cnes-profile-bronze.py" --competencia "$COMP"
 python3 "$ROOT/etl/parquet_duckdb/cnes/build_silver_current.py" --competencia "$COMP"
+python3 "$ROOT/ops/build-cnes-duckdb-views.py"

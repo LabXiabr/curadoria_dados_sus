@@ -83,7 +83,7 @@ def main() -> int:
     bronze=lake/"bronze"/"cnes"
     silver=lake/"silver"/"cnes"
     state=lake/"state"/"cnes"
-    ctx=lake/"silver"/"reference"/"municipio_contexto"/"current.parquet"
+    terr_dim=lake/"silver"/"reference"/"dim_territorio"/"current.parquet"
     terr_all=lake/"silver"/"reference"/"territorio"/"tb_municip"/"current.parquet"
 
     bm=state/f"qc_bronze_{args.competencia}.ok"
@@ -91,7 +91,7 @@ def main() -> int:
     base=state/f"base_complete_{args.competencia}.ok"
     if not bm.is_file() or not tm.is_file() or not base.is_file():
         die("CNES Bronze/base/territorio ainda nao homologado")
-    if not ctx.is_file() or not terr_all.is_file():
+    if not terr_dim.is_file() or not terr_all.is_file():
         die("dimensao territorial conformada ausente")
 
     bmeta=read_marker(bm)
@@ -121,6 +121,7 @@ def main() -> int:
 WITH territory AS (
   SELECT
     co_municipio AS mun_key,
+    co_territorio_key, tp_territorio, nr_nivel_drill,
     co_municipio, co_municipio_ibge, no_municipio,
     co_uf, sg_uf, no_uf, co_regiao, no_regiao,
     in_capital, in_amazonia_legal, in_semiarido, in_frontzn,
@@ -129,11 +130,14 @@ WITH territory AS (
     co_microrregiao_ibge, no_microrregiao_ibge,
     co_regiao_metropolitana, no_regiao_metropolitana,
     co_territorio_cidadania, no_territorio_cidadania,
-    co_pndr, no_pndr, co_dsei, no_dsei
-  FROM read_parquet({qs(str(ctx))})
+    co_pndr, no_pndr, co_dsei, no_dsei,
+    co_ra_ibge, no_ra
+  FROM read_parquet({qs(str(terr_dim))})
+  WHERE tp_territorio='MUNICIPIO'
   UNION ALL
   SELECT
     co_municipio_ibge AS mun_key,
+    co_territorio_key, tp_territorio, nr_nivel_drill,
     co_municipio, co_municipio_ibge, no_municipio,
     co_uf, sg_uf, no_uf, co_regiao, no_regiao,
     in_capital, in_amazonia_legal, in_semiarido, in_frontzn,
@@ -142,8 +146,10 @@ WITH territory AS (
     co_microrregiao_ibge, no_microrregiao_ibge,
     co_regiao_metropolitana, no_regiao_metropolitana,
     co_territorio_cidadania, no_territorio_cidadania,
-    co_pndr, no_pndr, co_dsei, no_dsei
-  FROM read_parquet({qs(str(ctx))})
+    co_pndr, no_pndr, co_dsei, no_dsei,
+    co_ra_ibge, no_ra
+  FROM read_parquet({qs(str(terr_dim))})
+  WHERE tp_territorio='MUNICIPIO'
 ),
 catalog AS (
   SELECT DISTINCT trim(cast(CO_MUNICIP as varchar)) AS mun6
@@ -161,6 +167,9 @@ SELECT
   trim(cast(src.{qi(c_unidade)} as varchar)) AS co_unidade_key,
   trim(cast(src.{qi(c_cnes)} as varchar)) AS co_cnes_key,
   src._municipio_gestor_cnes AS co_localidade_gestor_cnes,
+  t.co_territorio_key,
+  t.tp_territorio AS tp_territorio_resolvido,
+  t.nr_nivel_drill AS nr_nivel_territorio_resolvido,
   CASE
     WHEN substr(src._municipio_gestor_cnes,1,2)='53' THEN 'df_parent_brasilia'
     WHEN t.mun_key IS NOT NULL THEN 'active'
@@ -182,6 +191,7 @@ SELECT
   t.co_regiao_metropolitana, t.no_regiao_metropolitana,
   t.co_territorio_cidadania, t.no_territorio_cidadania,
   t.co_pndr, t.no_pndr, t.co_dsei, t.no_dsei,
+  t.co_ra_ibge, t.no_ra,
   {qs(args.competencia)}::VARCHAR AS _silver_competencia,
   current_timestamp AS _silver_built_at
 FROM src
@@ -216,10 +226,32 @@ SELECT count(*) FROM (
 SELECT count(*) FROM read_parquet({qs(str(out_estab))})
 WHERE territory_status='unmatched';
 """,True).strip())
-    if source_estab != silver_estab or dup_unidade or dup_cnes or unmatched:
+    missing_territory_key=int(duck(f"""
+SELECT count(*) FROM read_parquet({qs(str(out_estab))})
+WHERE co_territorio_key IS NULL OR co_territorio_key='';
+""",True).strip())
+    territory_orphan=int(duck(f"""
+SELECT count(*)
+FROM read_parquet({qs(str(out_estab))}) e
+LEFT JOIN read_parquet({qs(str(terr_dim))}) t
+  ON t.co_territorio_key=e.co_territorio_key
+WHERE e.co_territorio_key IS NULL
+   OR e.co_territorio_key=''
+   OR t.co_territorio_key IS NULL;
+""",True).strip())
+    if (
+        source_estab != silver_estab
+        or dup_unidade
+        or dup_cnes
+        or unmatched
+        or missing_territory_key
+        or territory_orphan
+    ):
         die(
             f"dim_estabelecimento QC falhou source={source_estab} silver={silver_estab} "
-            f"dup_unidade={dup_unidade} dup_cnes={dup_cnes} unmatched={unmatched}",30
+            f"dup_unidade={dup_unidade} dup_cnes={dup_cnes} unmatched={unmatched} "
+            f"missing_territory_key={missing_territory_key} territory_orphan={territory_orphan}",
+            30,
         )
 
     report=[{
@@ -298,7 +330,7 @@ WHERE co_unidade_key IS NOT NULL
         f"report={report_path}",
         "scope=current_core_no_professional_silver_yet",
         "visibility=private_until_public_contract",
-        "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_no_unmatched;df_parent_brasilia_preserves_cnes_locality;fact_orphans_zero",
+        "qc=lossless_row_count;unique_establishment_unidade_and_cnes;territory_key_not_null;territory_referential_qc;df_parent_brasilia_preserves_cnes_locality;fact_orphans_zero",
         "status=complete",
         ""
     ]),encoding="utf-8")
