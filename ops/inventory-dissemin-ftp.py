@@ -154,6 +154,7 @@ def main() -> int:
             for idx,r in enumerate(roots,start=1):
                 root=r["source_root"]
                 remote=posixpath.join(args.base,root)
+                print(f"[{idx}/{len(roots)}] START {root}", flush=True)
                 try:
                     ftp.cwd(remote)
                     ftp.cwd("/")
@@ -178,6 +179,11 @@ def main() -> int:
                         }
                         w.writerow(row)
                         count+=1; n+=1
+                        if count % 5000 == 0:
+                            print(
+                                f"[{idx}/{len(roots)}] PROGRESS {root} dbc={count} total={n}",
+                                flush=True,
+                            )
                     rw.writerow({"system":r.get("system",""),"source_root":root,"status":"ok","detail":str(count)})
                     print(f"[{idx}/{len(roots)}] OK {root} dbc={count}")
                 except Exception as e:
