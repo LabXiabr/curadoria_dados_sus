@@ -64,16 +64,50 @@ def detect_delimiter(text: str) -> str:
         return ";"
 
 def recode_entry(zf: zipfile.ZipFile, info: zipfile.ZipInfo, dest: Path) -> tuple[str, str]:
+    """
+    Recodifica um CSV do ZIP para UTF-8.
+
+    Alguns arquivos mensais do CNES possuem um prefixo grande valido em UTF-8,
+    mas bytes Windows-1252 apenas mais adiante no arquivo. Portanto a amostra
+    serve somente para ordenar as tentativas; a codificacao so e aceita se a
+    recodificacao integral terminar em modo strict.
+    """
     with zf.open(info, "r") as src:
         sample = src.read(262144)
-    enc = detect_encoding(sample)
-    text_sample = sample.decode(enc, errors="strict")
-    delim = detect_delimiter(text_sample)
-    with zf.open(info, "r") as raw:
-        reader = io.TextIOWrapper(raw, encoding=enc, errors="strict", newline="")
-        with dest.open("w", encoding="utf-8", newline="") as out:
-            shutil.copyfileobj(reader, out, length=1024 * 1024)
-    return enc, delim
+
+    preferred = detect_encoding(sample)
+    candidates = [preferred] + [
+        enc for enc in ("utf-8-sig", "cp1252", "latin-1")
+        if enc != preferred
+    ]
+
+    last_error: UnicodeDecodeError | None = None
+    for enc in candidates:
+        try:
+            text_sample = sample.decode(enc, errors="strict")
+        except UnicodeDecodeError as exc:
+            last_error = exc
+            continue
+
+        delim = detect_delimiter(text_sample)
+        dest.unlink(missing_ok=True)
+
+        try:
+            with zf.open(info, "r") as raw:
+                reader = io.TextIOWrapper(
+                    raw, encoding=enc, errors="strict", newline=""
+                )
+                with dest.open("w", encoding="utf-8", newline="") as out:
+                    shutil.copyfileobj(reader, out, length=1024 * 1024)
+            return enc, delim
+        except UnicodeDecodeError as exc:
+            last_error = exc
+            dest.unlink(missing_ok=True)
+
+    raise RuntimeError(
+        f"{info.filename}: nenhuma codificacao suportada "
+        f"(utf-8-sig/cp1252/latin-1)"
+    ) from last_error
 
 def independent_csv_rows(path: Path, delim: str) -> int:
     with path.open("r", encoding="utf-8", newline="") as f:
