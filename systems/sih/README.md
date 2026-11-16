@@ -65,3 +65,17 @@ por tipagem PostgreSQL são reconstruídos conforme contrato explícito em
 
 A contagem PostgreSQL == Parquet é necessária, mas não suficiente para homologar
 a Bronze.
+
+## AIH lógica, ERLEN e OMOP
+
+A Silver mantém `fact_sih_rd` no grão de segmento e deriva `vw_sih_aih_logica` no grão de uma AIH/internação. Essa view é **candidata a visita**, mas não é ainda uma linha OMOP.
+
+Ordem obrigatória:
+
+1. segmentos RD e atos SP são conformados na Silver;
+2. segmentos da mesma `n_aih` são reunidos na AIH lógica, sem colapsar internações diferentes;
+3. ERLEN_PID liga a AIH lógica a `id_pessoa_erlen`, usando características sociodemográficas e do contato assistencial e podendo incorporar sinais de outras fontes;
+4. somente AIHs com identidade resolvida geram `OMOP.VISIT_OCCURRENCE`;
+5. SP gera `PROCEDURE_OCCURRENCE` associado à visita/pessoa resolvida.
+
+O uso de SIH e SIM para enriquecer PCDT por ML ocorre após a conformação dos eventos e em associação à identidade ERLEN. Internações, diagnósticos, procedimentos e óbitos são sinais longitudinais; não substituem a chave de identidade.
