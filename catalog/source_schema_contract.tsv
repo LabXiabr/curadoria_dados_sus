@@ -1,4 +1,5 @@
 schema_pattern	system	source_family	source_role	bronze_target	silver_target	person_grain	identity_policy	omop_policy	status	notes
+schema_pattern	system	source_family	source_role	bronze_target	silver_target	person_grain	identity_policy	omop_policy	status	notes
 ^cih_200801_201012_cr$	CIH	CR	primary_fact	bronze/cih/cr	fact_cih_cr	person_event	erlen_linkage	visit_procedure_candidate	canonical	CIH historico
 ^ciha_201101__ciha$	CIHA	CIHA	primary_fact	bronze/ciha/ciha	fact_ciha_evento	person_event	erlen_linkage	visit_procedure_candidate	canonical	CIHA 2011+
 ^cnes_200508_(dc|ee|ef|ep|eq|gm|hb|in|lt|pf|rc|sr|st)$	CNES	LEGACY_DBC	historical_reference	bronze/cnes_legacy	legacy_reference_views	not_person	no_person_link	care_site_provider_reference	preserve_legacy	CNES corrente canonico usa snapshot BASE_DE_DADOS_CNES
@@ -9,7 +10,6 @@ schema_pattern	system	source_family	source_role	bronze_target	silver_target	pers
 ^sia_199407_200712_pa$	SIA	PA	primary_fact	bronze/sia/pa	fact_sia_pa	mixed	person_only_when_supported	procedure_or_drug_by_domain	canonical	Era historica PA
 ^sia_200801__(ab|abo|acf|ad|am|amp|an|aq|ar|atd|bi|pa|ps|sad)$	SIA	SIA_2008_PLUS	primary_fact	bronze/sia/<subsystem>	fact_sia_<subsystem>	mixed	source_pseudonym_then_erlen	domain_routed	canonical	Todos os subsistemas observados; multipartes sao UNION ALL logico
 ^sih_199201_200712_(rd|rj)$	SIH	SIH_LEGACY	primary_fact	bronze/sih/<subsystem>	fact_sih_<subsystem>	person_event	erlen_linkage	visit_condition_procedure_candidate	canonical	Era historica SIH
-^sih_200801__(ch|ch_br|cm|cm_br|er|rd|rj|sp)$	SIH	SIH_2008_PLUS	primary_fact	bronze/sih/<subsystem>	fact_sih_<subsystem>	mixed	erlen_linkage	visit_condition_procedure_candidate	canonical_or_metadata	CH/CM e aliases _br preservados; semantica ainda em curadoria
 ^simdofet__(doe|dof|doi|dom|dore)$	SIM	DOFET	primary_or_projection	bronze/sim/<subsystem>	fact_or_view_sim	person_death	erlen_linkage	death	legacy_schema_alias	Nome de schema historico bureta
 ^simdores__do$	SIM	DORES	primary_fact	bronze/sim/do	fact_sim_obito	person_death	erlen_linkage	death	legacy_schema_alias	Nome de schema historico bureta
 ^sim_dofet_(doe|dof|doi|dom|dore)$	SIM	DOFET	primary_or_projection	bronze/sim/<subsystem>	fact_or_view_sim	person_death	erlen_linkage	death	canonical	Nome atual pipeta
@@ -22,3 +22,8 @@ schema_pattern	system	source_family	source_role	bronze_target	silver_target	pers
 ^siscan_.*$	SISCAN	SISCAN	preserved_source	bronze/siscan	fact_siscan_evento	unknown	grain_validation_required	condition_procedure_candidate	preserve_needs_curation	SISCOLO/SISMAMA historico
 ^sisprenatal_.*$	SISPRENATAL	PN	preserved_source	bronze/sisprenatal	fact_sisprenatal_evento	person_event	erlen_linkage	observation_measurement_candidate	preserve_needs_curation	Fonte observada bureta
 ^esusnotifica(finais|prelim)_.*$	ESUSNOTIFICA	DCCR	preserved_source	bronze/esusnotifica	fact_esusnotifica_evento	person_notification	erlen_linkage	condition_observation_candidate	preserve_needs_curation	Fonte observada pipeta
+^sih_200801__rd$	SIH	RD	primary_fact	bronze/sih/rd	fact_sih_rd	person_visit_segment	erlen_linkage	visit_condition_candidate	canonical	RD 2008+
+^sih_200801__sp$	SIH	SP	primary_fact	bronze/sih/sp	fact_sih_sp	professional_act	inherit_rd_person	procedure_candidate	canonical	SP liga ao segmento RD
+^sih_200801__rj$	SIH	RJ	rejected_fact	bronze/sih/rj	fact_sih_rj	unknown_person_bearing	validate_before_erlen	no_omop_until_grain_validation	canonical_needs_identity_qc	AIH rejeitada
+^sih_200801__er$	SIH	ER	error_fact	bronze/sih/er	fact_sih_er	not_assumed_person	no_person_link_until_validated	no_omop_until_grain_validation	canonical_needs_semantic_qc	Rejeicoes/codigos de erro
+^sih_200801__(ch|ch_br|cm|cm_br)$	SIH	CH|CM	metadata_or_aggregate	bronze/sih/<subsystem>		unknown	validate_grain_first	no_omop_until_grain_validation	metadata_only_needs_curation	CH/CM e variantes BR preservados sem inferencia person-level
