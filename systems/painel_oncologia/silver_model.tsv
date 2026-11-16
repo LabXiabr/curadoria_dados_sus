@@ -1,0 +1,2 @@
+layer	object	source	grain	time_anchor	references	identity	status
+fact	fact_painel_oncologia	PO|PO_BR	person_summary_event	dt_diag|dt_trat	CNES|CID|TERRITORIO	CNS_PAC->ERLEN	designed
