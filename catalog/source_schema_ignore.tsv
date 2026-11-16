@@ -1,0 +1,10 @@
+schema_pattern	classification	notes
+^information_schema$	system_catalog	PostgreSQL
+^pg_catalog$	system_catalog	PostgreSQL
+^public$	control_or_derived	Listas de controle, QC e tabelas auxiliares
+^meta$	control_or_derived	Metadados locais
+^bd_.*$	local_derived	Schemas analiticos/derivados locais; nao sao fonte disseminada primaria
+^dm_.*$	local_derived	Dimensoes locais
+^tm_.*$	local_derived	Staging/materializacoes locais
+^qc_.*$	local_qc	Controle de qualidade local
+^monsp$	local_derived	Schema local
