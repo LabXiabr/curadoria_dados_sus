@@ -28,3 +28,7 @@ Rótulos e descrições só são preenchidos quando sustentados por contrato can
 ## Relações
 
 FKs são lógicas em Parquet. O contrato de relacionamento fica em `catalog/relationships.tsv`; CQ deve demonstrar que o join não multiplica fatos indevidamente e deve reportar órfãos por competência.
+
+## Correspondência de nomes
+
+O pareamento `source_field_map` é case-insensitive para nomes físicos PostgreSQL/DBF, mas o nome original observado é preservado no inventário e na Bronze. Isso acomoda, por exemplo, campos `CNES`/`cnes` sem alterar a proveniência.
