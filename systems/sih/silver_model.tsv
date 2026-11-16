@@ -1,6 +1,6 @@
 layer	object	source	grain	time_anchor	references	status
-fact	fact_sih_rd	RD	source_record;business_key_candidate=N_AIH	competencia_processamento|data_internacao	CNES|SIGTAP|TERRITORIO|TAB_SIH	designed
-fact	fact_sih_sp	SP	source_record;link_candidate=SP_NAIH	competencia_processamento	CNES|SIGTAP|TAB_SIH	designed
+fact	fact_sih_rd	RD	rd_segment;logical_aih_key=n_aih;segment_semantic_key=n_aih+dt_saida;segment_source_key=remessa+sequencia	competencia_processamento|dt_internacao|dt_saida	CNES|SIGTAP|TERRITORIO|TAB_SIH	validated_keys
+fact	fact_sih_sp	SP	professional_act;parent_segment_key=sp_naih+sp_dtsaida;source_segment_key=remessa+sequencia	competencia_processamento|sp_dtsaida	CNES|SIGTAP|TAB_SIH|fact_sih_rd	validated_keys
 fact	fact_sih_rj	RJ	source_record	competencia_processamento	TAB_SIH	designed
 fact	fact_sih_er	ER	source_record	competencia_processamento	TAB_SIH	designed
 view	vw_sih_evento_core	fact_sih_*	common_projection	declared_by_query	CNES|SIGTAP|TERRITORIO	designed
