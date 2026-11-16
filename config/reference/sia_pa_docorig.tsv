@@ -1,0 +1,7 @@
+pa_docorig	semantic_name	instrument_type	expected_sigtap_instrument	analytical_grain	authorization_role	gold_target	status	evidence
+A	RAAS_AD	raas_ad	08	person_event	not_apac_parent	person_event	validated_sample	AC/201603
+B	RAAS_PSI	raas_psicossocial	09	person_event	not_apac_parent	person_event	validated_multi_sample	AC/201603;AC/202001;AC/202604
+C	BPA_C	bpac	01	aggregate_production	none	production_aggregate	validated_multi_sample	AC/200801;AC/201204;AC/201603;AC/202604
+I	BPA_I	bpai	02	person_event	optional_not_apac_parent	person_event	validated_multi_sample	AC/200801;AC/201204;AC/201603;AC/202604
+P	APAC_PRINCIPAL	apac	06	person_event	apac_parent	person_event	validated_multi_sample	AC/200801;AC/201204;AC/201603;AC/202604
+S	APAC_SECONDARY	apac	06|07	person_event	apac_parent	person_event	validated_multi_sample	AC/200801;AC/201204;AC/201603;AC/202604
