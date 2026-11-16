@@ -233,6 +233,15 @@ def main() -> int:
         by_upper = {c.upper(): c for c in cols}
         widths = fixed.get(r["subsystem"].upper(), {})
 
+        reserved = {"ID_REGISTRO_FONTE", "NU_LINHA_FONTE"}
+        collision = reserved & set(by_upper)
+        if collision:
+            die(
+                f"{src}: campos tecnicos reservados ja existem: "
+                + ",".join(sorted(collision)),
+                42,
+            )
+
         projection = []
         normalized = []
 
@@ -244,7 +253,21 @@ def main() -> int:
             else:
                 projection.append(qi(c))
 
-        # Detecta valores nao numericos nos campos declarados; nao os mascara.
+        # Lineage tecnico da migracao: a linha de staging e preservada em ordem
+        # Parquet e recebe chave deterministica no contexto da fonte fisica.
+        seed = (
+            f"{r['service']}|{r['schema']}|{r['table']}|{r['dbc']}|"
+        )
+        projection.extend([
+            "__suslake_rn::BIGINT AS nu_linha_fonte",
+            (
+                f"md5({qs(seed)} || cast(__suslake_rn as varchar)) "
+                "AS id_registro_fonte"
+            ),
+        ])
+
+        # Detecta valores incompatíveis nos campos de largura fixa; nao mascara
+        # caracteres nao numericos e nao permite truncamento de valores longos.
         for upper, w in widths.items():
             actual = by_upper.get(upper)
             if not actual:
@@ -254,13 +277,178 @@ def main() -> int:
             bad = int(scalar(
                 f"SELECT count(*) FROM read_parquet({qs(str(src))}) "
                 f"WHERE {q} IS NOT NULL AND {raw}<>'' "
-                f"AND NOT regexp_full_match({raw}, '^[0-9]+$');"
+                f"AND NOT regexp_full_match({raw}, '^[0-9]+        partial = dest.with_name(dest.name + f".partial.{os.getpid()}")
+        partial.unlink(missing_ok=True)
+
+        sql = (
+            "COPY (SELECT "
+            + ", ".join(projection)
+            + " FROM (SELECT *, row_number() OVER () AS __suslake_rn "
+            + f"FROM read_parquet({qs(str(src))})) s) "
+            + f"TO {qs(str(partial))} "
+            + "(FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 122880);"
+        )
+        p = subprocess.run(["duckdb", "-c", sql], text=True, capture_output=True)
+        if p.returncode:
+            partial.unlink(missing_ok=True)
+            raise RuntimeError(p.stderr.strip() or p.stdout.strip())
+
+        dst_rows = count(partial)
+        if dst_rows != src_rows:
+            partial.unlink(missing_ok=True)
+            die(
+                f"promocao alterou grão: {src} staging={src_rows} "
+                f"bronze={dst_rows}",
+                45,
+            )
+
+        os.replace(partial, dest)
+        print(
+            f"[{i}/{len(plan)}] SIH_BRONZE_OK {r['subsystem']} {r['uf']} "
+            f"{r['competencia']} {r['dbc']} rows={dst_rows} "
+            f"normalized={','.join(normalized) or '-'}"
+        )
+
+        report_rows.append({
+            **r,
+            "bronze_path": str(dest),
+            "rows_bronze": str(dst_rows),
+            "normalized_fields": ",".join(normalized),
+            "promotion_status": "OK",
+        })
+
+    outdir = lake / "state" / "sih"
+    outdir.mkdir(parents=True, exist_ok=True)
+    report = outdir / f"bronze_from_staging_{run.name}.tsv"
+    fields = RESULT_FIELDS + [
+        "bronze_path", "rows_bronze", "normalized_fields", "promotion_status"
+    ]
+    with report.open("w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(
+            f, fieldnames=fields, delimiter="\t", lineterminator="\n"
+        )
+        w.writeheader()
+        w.writerows(report_rows)
+
+    marker = outdir / f"bronze_from_staging_{run.name}.ok"
+    marker.write_text(
+        "\n".join([
+            f"run={run}",
+            f"source_results={results_path}",
+            f"files={len(report_rows)}",
+            f"report={report}",
+            "row_count_gate=validated",
+            "fixed_width_contract=systems/sih/fixed_width_fields.tsv",
+            "status=complete",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+
+    print(
+        f"SIH_STAGING_BRONZE_OK files={len(report_rows)} "
+        f"report={report} marker={marker}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+);"
             ) or 0)
             if bad:
                 die(
                     f"{src}: campo {actual} possui {bad} valores nao numericos; "
                     "normalizacao bloqueada",
-                    42,
+                    43,
+                )
+            too_long = int(scalar(
+                f"SELECT count(*) FROM read_parquet({qs(str(src))}) "
+                f"WHERE {q} IS NOT NULL AND {raw}<>'' "
+                f"AND regexp_full_match({raw}, '^[0-9]+        partial = dest.with_name(dest.name + f".partial.{os.getpid()}")
+        partial.unlink(missing_ok=True)
+
+        sql = (
+            "COPY (SELECT "
+            + ", ".join(projection)
+            + f" FROM read_parquet({qs(str(src))})) "
+            + f"TO {qs(str(partial))} "
+            + "(FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 122880);"
+        )
+        p = subprocess.run(["duckdb", "-c", sql], text=True, capture_output=True)
+        if p.returncode:
+            partial.unlink(missing_ok=True)
+            raise RuntimeError(p.stderr.strip() or p.stdout.strip())
+
+        dst_rows = count(partial)
+        if dst_rows != src_rows:
+            partial.unlink(missing_ok=True)
+            die(
+                f"promocao alterou grão: {src} staging={src_rows} "
+                f"bronze={dst_rows}",
+                43,
+            )
+
+        os.replace(partial, dest)
+        print(
+            f"[{i}/{len(plan)}] SIH_BRONZE_OK {r['subsystem']} {r['uf']} "
+            f"{r['competencia']} {r['dbc']} rows={dst_rows} "
+            f"normalized={','.join(normalized) or '-'}"
+        )
+
+        report_rows.append({
+            **r,
+            "bronze_path": str(dest),
+            "rows_bronze": str(dst_rows),
+            "normalized_fields": ",".join(normalized),
+            "promotion_status": "OK",
+        })
+
+    outdir = lake / "state" / "sih"
+    outdir.mkdir(parents=True, exist_ok=True)
+    report = outdir / f"bronze_from_staging_{run.name}.tsv"
+    fields = RESULT_FIELDS + [
+        "bronze_path", "rows_bronze", "normalized_fields", "promotion_status"
+    ]
+    with report.open("w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(
+            f, fieldnames=fields, delimiter="\t", lineterminator="\n"
+        )
+        w.writeheader()
+        w.writerows(report_rows)
+
+    marker = outdir / f"bronze_from_staging_{run.name}.ok"
+    marker.write_text(
+        "\n".join([
+            f"run={run}",
+            f"source_results={results_path}",
+            f"files={len(report_rows)}",
+            f"report={report}",
+            "row_count_gate=validated",
+            "fixed_width_contract=systems/sih/fixed_width_fields.tsv",
+            "status=complete",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+
+    print(
+        f"SIH_STAGING_BRONZE_OK files={len(report_rows)} "
+        f"report={report} marker={marker}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+) "
+                f"AND length({raw}) > {w};"
+            ) or 0)
+            if too_long:
+                die(
+                    f"{src}: campo {actual} possui {too_long} valores com "
+                    f"mais de {w} digitos; truncamento bloqueado",
+                    44,
                 )
 
         partial = dest.with_name(dest.name + f".partial.{os.getpid()}")
