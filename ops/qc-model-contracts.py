@@ -12,7 +12,11 @@ def die(msg: str) -> None:
 
 def validate_tsv(path: Path) -> tuple[int, int]:
     with path.open(encoding="utf-8", newline="") as f:
-        rows = [row for row in csv.reader(f, delimiter="\t") if any(x != "" for x in row)]
+        rows = [
+            row for row in csv.reader(f, delimiter="\t")
+            if any(x != "" for x in row)
+            and not (row and row[0].lstrip().startswith("#"))
+        ]
     if not rows:
         die(f"TSV vazio: {path}")
     width = len(rows[0])
