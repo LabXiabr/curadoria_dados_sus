@@ -1,0 +1,8 @@
+system	object	entity_level	key_role	fields	context_fields	cardinality	status	evidence
+SIH	fact_sih_rd	aih	logical	nu_aih		1:N_segments	validated	AC/201204;MG/202604
+SIH	fact_sih_rd	segment	semantic	nu_aih,dt_saida	sg_uf,competencia_processamento	unique_within_partition	validated	AC/201204;MG/202604
+SIH	fact_sih_rd	segment	source	remessa,sequencia	sg_uf,competencia_processamento	unique_within_partition	validated	AC/201204;MG/202604
+SIH	fact_sih_sp	segment	semantic	nu_aih,dt_saida	sg_uf,competencia_processamento	many_rows_per_segment	validated	AC/201204;MG/202604
+SIH	fact_sih_sp	segment	source	remessa,sequencia	sg_uf,competencia_processamento	many_rows_per_segment	validated	AC/201204;MG/202604
+SIA	fact_sia_pa	logical_partition	partition	system,subsystem,sg_uf,competencia_producao		union_all_physical_sources	validated	MG/202604 multipart PA
+SIA	fact_sia_subsystem	logical_partition	partition	system,subsystem,sg_uf,competencia_producao		union_all_physical_sources	validated	MG/202604 multipart BI
