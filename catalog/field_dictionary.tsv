@@ -26,3 +26,5 @@ dt_obito	Data do obito	Data do evento de obito	death_date	date		quasi_identifier
 qt_aprovada	Quantidade aprovada	Quantidade aprovada do procedimento na fonte de producao	measure	numeric		public	PROCEDURE_OCCURRENCE|DRUG_EXPOSURE	defined
 vl_procedimento	Valor do procedimento	Valor financeiro associado ao registro de producao	measure	numeric		public	COST	defined
 origem_documento	Instrumento de origem	Instrumento efetivamente utilizado na producao SIA, derivado de PA_DOCORIG	instrument	text	SIGTAP.instrumento	public		validated
+id_registro_fonte	Identificador técnico do registro fonte	Chave técnica determinística da linha no contexto de uma revisão física; não é identidade da pessoa	technical_record_identifier	text		internal_lineage		defined
+nu_linha_fonte	Ordinal do registro na fonte	Posição do registro na revisão física quando preservável; usado para lineage e não como chave de negócio	technical_record_ordinal	bigint		internal_lineage		defined
