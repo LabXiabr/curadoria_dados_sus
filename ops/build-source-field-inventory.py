@@ -12,7 +12,7 @@ SELECT
   table_schema,
   column_name,
   count(DISTINCT table_name)::bigint AS table_count,
-  string_agg(DISTINCT ordinal_position::text, ' ' ORDER BY ordinal_position::text) AS positions,
+  array_to_string(array_agg(DISTINCT ordinal_position ORDER BY ordinal_position), ' ') AS positions,
   string_agg(DISTINCT (data_type || '|' || udt_name), ' ' ORDER BY (data_type || '|' || udt_name)) AS types
 FROM information_schema.columns
 GROUP BY 1,2
