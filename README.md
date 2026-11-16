@@ -16,6 +16,20 @@ Escopo técnico:
 A Curadoria de Dados é tratada aqui como função técnica dentro da Governança de Dados.
 O projeto não substitui a governança estratégica/institucional.
 
+## Fonte de verdade do projeto
+
+A retomada do SUS Lake deve começar por:
+
+- `docs/modeling/PROJECT_INDEX.md`;
+- `docs/modeling/DECISIONS_CURRENT.md`;
+- `docs/modeling/OPEN_ISSUES.md`;
+- `docs/modeling/DECISIONS_SUPERSEDED.md`;
+- `docs/modeling/CHAT_TRACEABILITY.tsv`.
+
+O Git é a fonte de verdade para arquitetura, contratos, semântica, ETLs e CQs.
+Chats anteriores são histórico/rastreabilidade. Estado de execução permanece em
+`suslake/state`, e os dados permanecem nas camadas persistentes do lake.
+
 ## Camadas
 
 - **Raw**: artefato oficial original e imutável.
