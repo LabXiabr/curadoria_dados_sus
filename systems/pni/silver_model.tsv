@@ -1,0 +1,2 @@
+layer	object	source	grain	time_anchor	references	status
+fact	fact_pni_evento	CPNI|DPNI	unknown_until_inventory	declared_by_layout	CNES|TERRITORIO|PNI_AUX	needs_grain_validation
