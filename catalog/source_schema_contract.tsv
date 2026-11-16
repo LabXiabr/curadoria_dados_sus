@@ -1,5 +1,4 @@
 schema_pattern	system	source_family	source_role	bronze_target	silver_target	person_grain	identity_policy	omop_policy	status	notes
-schema_pattern	system	source_family	source_role	bronze_target	silver_target	person_grain	identity_policy	omop_policy	status	notes
 ^cih_200801_201012_cr$	CIH	CR	primary_fact	bronze/cih/cr	fact_cih_cr	person_event	erlen_linkage	visit_procedure_candidate	canonical	CIH historico
 ^ciha_201101__ciha$	CIHA	CIHA	primary_fact	bronze/ciha/ciha	fact_ciha_evento	person_event	erlen_linkage	visit_procedure_candidate	canonical	CIHA 2011+
 ^cnes_200508_(dc|ee|ef|ep|eq|gm|hb|in|lt|pf|rc|sr|st)$	CNES	LEGACY_DBC	historical_reference	bronze/cnes_legacy	legacy_reference_views	not_person	no_person_link	care_site_provider_reference	preserve_legacy	CNES corrente canonico usa snapshot BASE_DE_DADOS_CNES
