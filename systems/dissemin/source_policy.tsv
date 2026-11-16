@@ -9,6 +9,7 @@ SINASC	SINASC/1996_/Dados/DNRES/	primary_dbc	etl	mirror_latest_plus_versions	Nas
 SINASC	SINASC/ANT/DNRES/	primary_dbc	etl	mirror_latest_plus_versions	Serie historica antiga
 SINASC	SINASC/NOV/DNRES/	primary_dbc	etl	mirror_latest_plus_versions	Serie historica nova
 SINAN	SINAN/DADOS/FINAIS/	primary_dbc	etl	mirror_latest_plus_versions	Dados finais
+SINAN	SINAN/DADOS/PRELIM/	preliminary_dbc	etl_separate_namespace	mirror_latest_plus_versions	Dados preliminares; nunca sobrescrever FINAIS
 CIH	CIH/200801_201012/Dados/	primary_dbc	etl	mirror_latest_plus_versions	CIH historico
 CIHA	CIHA/201101_/Dados/	primary_dbc	etl	mirror_latest_plus_versions	CIHA
 PNI	PNI/DADOS/	primary_dbc	etl	mirror_latest_plus_versions	SI-PNI historico
@@ -17,8 +18,8 @@ SISPRENATAL	SISPRENATAL/201201_/Dados/	primary_dbc	etl	mirror_latest_plus_versio
 CNES	CNES/200508_/Dados/	secondary_historical_dbc	archive_only	mirror_latest_plus_versions	Preservar DBC historico; CNES corrente canonico vem de ftp://ftp.datasus.gov.br/cnes/BASE_DE_DADOS_CNES_AAAAMM.ZIP
 ESUSNOTIFICA	ESUSNOTIFICA/DADOS/FINAIS/	backup_raw	backup_only	mirror_latest_plus_versions	Nao acoplar a ETL DBC geral
 ESUSNOTIFICA	ESUSNOTIFICA/DADOS/PRELIM/	backup_raw	backup_only	mirror_latest_plus_versions	Nao acoplar a ETL DBC geral
-PCE	PCE/Dados/	backup_raw	backup_only	mirror_latest_plus_versions	Preservar como fonte; sem ETL automatica
+PCE	PCE/Dados/	primary_dbc	etl_after_contract	mirror_latest_plus_versions	Fonte agregada; modelagem Silver depende de CQ territorial
 SISCAN	siscan/SISCOLO4/DADOS/	backup_raw	backup_only	mirror_latest_plus_versions	Historico; sem ETL DBC automatica
 SISCAN	SISCAN/SISMAMA/Dados/	backup_raw	backup_only	mirror_latest_plus_versions	Historico; sem ETL DBC automatica
-PAINEL_ONCOLOGIA	painel_oncologia/Dados/	backup_raw	backup_only	mirror_latest_plus_versions	Fonte preservada; ETL separada quando necessaria
+PAINEL_ONCOLOGIA	painel_oncologia/Dados/	primary_dbc	etl_after_contract	mirror_latest_plus_versions	Fonte derivada oficial; Silver separada das derivacoes SIA
 SISAB_CMD	CMD/DadosSISAB/	legacy_disappeared	archive_only	keep_unique_forever	Preservar arquivos locais/HD mesmo se ausentes do FTP atual
