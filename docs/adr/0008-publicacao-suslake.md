@@ -35,6 +35,10 @@ datasets explicitamente autorizados.
 Áreas operacionais como `state`, `staging`, `work` e `logs` nunca fazem
 parte da superfície pública.
 
+## Raw seletivo
+
+Artefatos Raw autorizados são projetados por hardlink em `raw/public/`, mantendo o acervo Raw canônico privado por padrão. A URL é `/files/suslake/raw/public/`.
+
 ## Dataset totalmente público
 
 Quando o dataset canônico inteiro pode ser distribuído, o próprio caminho
