@@ -10,7 +10,7 @@ SIA	fact_sia_*	co_cid_principal	diagnosis	PA_CIDPRI	CID	defined	Versao/classific
 SIA	fact_sia_*	sg_sexo	person_attribute	PA_SEXO		defined	Dominio versionado
 SIA	fact_sia_*	nu_idade	person_attribute	PA_IDADE		defined	Preservar regra da fonte
 SIA	fact_sia_*	qt_aprovada	measure	PA_QTDAPR		defined	Nao confundir apresentada
-SIA	fact_sia_*	nu_cnspcn	person_identifier	CNSPCN|NU_CNSPCN|AP_CNSPCN|CNS_PAC		defined	Em PA pode ser enriquecimento Silver; nao nativo da Bronze
+SIA	fact_sia_*	id_pessoa_fonte_pseudo	pseudonymized_person_identifier	CNSPCN|NU_CNSPCN|AP_CNSPCN|CNS_PAC	IDENTITY.bridge_pessoa_registro	validated	Identificador pseudonimizado da fonte; em PA pode ser enriquecimento Silver; nunca rotular como CNS nominal
 SIH	fact_sih_rd	competencia_processamento	time_anchor	ANO_CMPT+MES_CMPT		defined	Distinguir de data de internacao
 SIH	fact_sih_rd	nu_aih	logical_aih_identifier	N_AIH		validated	AIH logica; nao e chave de linha
 SIH	fact_sih_rd	dt_saida	segment_key_component	DT_SAIDA		validated	Com nu_aih identifica segmento RD no contexto UF+competencia
@@ -56,3 +56,12 @@ SINAN	fact_sinan_agravo	id_unidade_notificadora	source_identifier	ID_UNIDADE		ne
 SINAN	fact_sinan_agravo	dt_inicio_sintomas	event_date	DT_SIN_PRI		defined	Quando presente
 SINAN	fact_sinan_agravo	sg_sexo	person_attribute	CS_SEXO		defined	
 SINAN	fact_sinan_agravo	nu_idade	person_attribute	NU_IDADE_N|NU_IDADE		defined	Codificacao muda por era
+IDENTITY	dim_pessoa_erlen	id_pessoa_erlen	canonical_pseudonymized_person_identifier	ERLEN_PID		defined	Chave longitudinal pseudonimizada
+IDENTITY	bridge_pessoa_registro	tp_id_pessoa_erlen	identity_provenance	tp_nu_usuario	ERLEN_PID	defined	Tipo/metodo de atribuicao
+IDENTITY	bridge_pessoa_registro	ds_regra_id_pessoa	identity_provenance	ds_regra_nu_usuario	ERLEN_PID	defined	Regra/modelo de ligacao
+IDENTITY	bridge_pessoa_registro	id_execucao_id_pessoa	identity_provenance	id_execucao_nu_usuario	ERLEN_PID	defined	Execucao do linkage
+IDENTITY	bridge_pessoa_registro	vl_confianca_id_pessoa	identity_quality	vl_confianca_nu_usuario	ERLEN_PID	defined	Confianca da atribuicao
+IDENTITY	bridge_pessoa_registro	vl_erro_estimado_id_pessoa	identity_quality	vl_erro_estimado_nu_usuario	ERLEN_PID	defined	Erro estimado
+PAINEL_ONCOLOGIA	fact_painel_oncologia	id_pessoa_fonte_pseudo	pseudonymized_person_identifier	CNS_PAC	IDENTITY.bridge_pessoa_registro	defined	Identificador pseudonimizado
+PAINEL_ONCOLOGIA	fact_painel_oncologia	co_cnes_diagnostico	estabelecimento_diagnostico	CNES_DIAG	CNES.dim_estabelecimento	defined	
+PAINEL_ONCOLOGIA	fact_painel_oncologia	co_cnes_tratamento	estabelecimento_tratamento	CNES_TRAT	CNES.dim_estabelecimento	defined	
