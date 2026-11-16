@@ -1,20 +1,36 @@
 system	object	layer	source	grain	time_anchor	status	public_policy	notes
-SIA	fact_sia_pa	silver	PA	source_record	competencia_producao	designed	public	Producao ambulatorial
-SIA	fact_sia_subsystem	silver	AB|ABO|ACF|AD|AM|AMP|AN|AQ|AR|ATD|BI|PS|SAD	source_record	competencia_producao	designed	public	Materializar por subsistema
-SIA	vw_sia_evento_core	silver	fact_sia_*	common_projection	competencia_producao	designed	public	View comum sem perder grain
-SIH	fact_sih_rd	silver	RD	source_record	competencia_processamento|data_internacao	designed	public	AIH reduzida
-SIH	fact_sih_sp	silver	SP	source_record	competencia_processamento	designed	public	Atos e servicos profissionais
+SIA	fact_sia_pa	silver	PA	source_record	competencia_producao	designed	public_without_identity_bridge	Producao ambulatorial; grão misto por PA_DOCORIG
+SIA	fact_sia_subsystem	silver	AB|ABO|ACF|AD|AM|AMP|AN|AQ|AR|ATD|BI|PS|SAD	source_record	competencia_producao	designed	public_without_identity_bridge	Materializar por subsistema
+SIA	vw_sia_evento_core	silver	fact_sia_*	common_projection	competencia_producao	designed	public_without_identity_bridge	View comum sem perder grain
+SIA	vw_sia_ceaf_event	silver	PA+AM	derived_medication_event	competencia_PA|competencia_AM	designed	private_or_deidentified	Compatibilidade PAAM com proveniencia
+SIA	vw_sia_onco_quimio_event	silver	PA+AQ	derived_oncology_event	competencia_PA|competencia_AQ	designed	private_or_deidentified	Compatibilidade PAAQ
+SIA	vw_sia_onco_radio_event	silver	PA+AR	derived_oncology_event	competencia_PA|competencia_AR	designed	private_or_deidentified	Compatibilidade PAAR
+SIH	fact_sih_rd	silver	RD	rd_segment	competencia_processamento|dt_internacao|dt_saida	validated_keys	public_without_identity_bridge	AIH logica pode ter varios segmentos
+SIH	fact_sih_sp	silver	SP	professional_act	competencia_processamento|sp_dtsaida	validated_keys	public_without_identity_bridge	Atos ligados ao segmento RD
 SIH	fact_sih_rj	silver	RJ	source_record	competencia_processamento	designed	public	AIH rejeitada
 SIH	fact_sih_er	silver	ER	source_record	competencia_processamento	designed	public	Rejeicoes com erro
-SIH	vw_sih_evento_core	silver	fact_sih_*	common_projection	declared_by_query	designed	public	View comum
-CIH	fact_cih_cr	silver	CR	source_record	competencia|data_internacao	designed	public	Comunicacao de internacao
-CIH_CIHA	vw_cih_ciha_evento_core	silver	CIH.CR|CIHA.CIHA	common_projection	declared_by_query	designed	public	Continuidade entre eras
-CIHA	fact_ciha_evento	silver	CIHA	source_record	competencia|data_atendimento	designed	public	Hospitalar e ambulatorial
-SIM	fact_sim_obito	silver	DO	source_record	data_obito	designed	public	DO geral definitiva como fato canonico
-SIM	vw_sim_obito_fetal	silver	DOF|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
-SIM	vw_sim_obito_infantil	silver	DOI|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
-SIM	vw_sim_obito_materno	silver	DOM|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
-SIM	vw_sim_obito_causa_externa	silver	DOE|DORE|fact_sim_obito	filtered_projection	data_obito	designed	public	Nao somar automaticamente a DO
-SINASC	fact_sinasc_nascimento	silver	DNR|DN	source_record	data_nascimento	designed	public	Conforma eras preservando origem
-SINAN	fact_sinan_agravo	silver	one_per_agravo	source_record	data_notificacao	designed	public	Uma tabela por agravo
-SINAN	vw_sinan_notificacao_core	silver	fact_sinan_*	common_projection	data_notificacao|data_inicio_sintomas	designed	public	Nucleo comum; sem tabela larga global
+SIH	vw_sih_evento_core	silver	fact_sih_*	common_projection	declared_by_query	designed	public_without_identity_bridge	View comum
+CIH	fact_cih_cr	silver	CR	person_event	competencia|data_internacao	designed	public_without_identity_bridge	Comunicacao de internacao
+CIH_CIHA	vw_cih_ciha_evento_core	silver	CIH.CR|CIHA.CIHA	common_projection	declared_by_query	designed	public_without_identity_bridge	Continuidade entre eras
+CIHA	fact_ciha_evento	silver	CIHA	person_event	competencia|data_atendimento	designed	public_without_identity_bridge	Hospitalar e ambulatorial
+SIM	fact_sim_obito	silver	DO	death_record_person	dt_obito	designed	public_without_identity_bridge	DO canonica
+SIM	vw_sim_obito_fetal	silver	DOF|fact_sim_obito	filtered_projection	dt_obito	designed	public	Nao somar automaticamente a DO
+SIM	vw_sim_obito_infantil	silver	DOI|fact_sim_obito	filtered_projection	dt_obito	designed	public	Nao somar automaticamente a DO
+SIM	vw_sim_obito_materno	silver	DOM|fact_sim_obito	filtered_projection	dt_obito	designed	public	Nao somar automaticamente a DO
+SIM	vw_sim_obito_causa_externa	silver	DOE|DORE|fact_sim_obito	filtered_projection	dt_obito	designed	public	Nao somar automaticamente a DO
+SINASC	fact_sinasc_nascimento	silver	DNR|DN	birth_record	dt_nascimento	needs_identity_validation	public_without_identity_bridge	RN e mae sao papeis distintos
+SINAN	fact_sinan_agravo	silver	FINAIS one_per_agravo	notification_record	dt_notificacao	designed	public_without_identity_bridge	Uma tabela por agravo
+SINAN	fact_sinan_prelim_agravo	silver	PRELIM one_per_agravo	preliminary_notification_record	dt_notificacao	designed_preliminary	public_without_identity_bridge	Separado de FINAIS
+SINAN	vw_sinan_notificacao_core	silver	fact_sinan_*	common_projection	dt_notificacao|dt_inicio_sintomas	designed	public_without_identity_bridge	Nucleo comum
+PAINEL_ONCOLOGIA	fact_painel_oncologia	silver	PO|PO_BR	person_summary_event	dt_diag|dt_trat	designed	public_without_identity_bridge	CNS_PAC pseudonimizado
+PCE	fact_pce_monitoramento	silver	PCE|BR	aggregate_territory_period	dt_comp	designed	public	Nao person-level
+PNI	fact_pni_evento	silver	CPNI|DPNI	unknown_until_inventory	declared_by_layout	needs_grain_validation	private_until_validated	
+RESP	fact_resp_evento	silver	RESP	case_record	dt_notific|dt_sintoma	designed	public_without_identity_bridge	Entity-role aware
+IDENTITY	dim_pessoa_erlen	silver	ERLEN_PID	one_resolved_person	identity_revision	designed	private	Identidade longitudinal pseudonimizada
+IDENTITY	bridge_pessoa_registro	silver	all_person_bearing_facts	source_record_to_person	identity_revision	designed	private	Proveniencia, confianca e erro
+OMOP	person	gold	IDENTITY.dim_pessoa_erlen	one_person		designed	private	Surrogate person_id
+OMOP	visit_occurrence	gold	SIH|CIH|CIHA	clinical_visit	event_dates	designed	private	SIH consolida RD por AIH logica
+OMOP	procedure_occurrence	gold	SIA|SIH|CIHA|ONCO	procedure_event	event_date	designed	private	Requer pessoa e vocabulario
+OMOP	drug_exposure	gold	SIA_CEAF|PNI_VALIDATED	drug_event	event_date	designed	private	Requer mapping farmacologico validado
+OMOP	condition_occurrence	gold	SINAN|SIA|SIM_context	condition_event	event_date	designed	private	
+OMOP	death	gold	SIM	one_death	dt_obito	designed	private	
