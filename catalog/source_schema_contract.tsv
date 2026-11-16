@@ -1,0 +1,24 @@
+schema_pattern	system	source_family	source_role	bronze_target	silver_target	person_grain	identity_policy	omop_policy	status	notes
+^cih_200801_201012_cr$	CIH	CR	primary_fact	bronze/cih/cr	fact_cih_cr	person_event	erlen_linkage	visit_procedure_candidate	canonical	CIH historico
+^ciha_201101__ciha$	CIHA	CIHA	primary_fact	bronze/ciha/ciha	fact_ciha_evento	person_event	erlen_linkage	visit_procedure_candidate	canonical	CIHA 2011+
+^cnes_200508_(dc|ee|ef|ep|eq|gm|hb|in|lt|pf|rc|sr|st)$	CNES	LEGACY_DBC	historical_reference	bronze/cnes_legacy	legacy_reference_views	not_person	no_person_link	care_site_provider_reference	preserve_legacy	CNES corrente canonico usa snapshot BASE_DE_DADOS_CNES
+^painel_oncologia(_{1,2}po(_br)?)$	PAINEL_ONCOLOGIA	PO	derived_official_source	bronze/painel_oncologia	fact_painel_oncologia	person_event	source_pseudonym_then_erlen	condition_procedure_candidate	canonical_source_needs_semantic_qc	CNS_PAC tratado como identificador pseudonimizado
+^pce(_{1,2}pce|_br)$	PCE	PCE	aggregate_source	bronze/pce	fact_pce_monitoramento	aggregate	no_person_link	not_person_level_omop	canonical_source_needs_semantic_qc	Predominantemente contagens territoriais
+^pni_(cpni|dpni)$	PNI	CPNI|DPNI	primary_source	bronze/pni	fact_pni_evento	unknown	grain_validation_required	drug_exposure_if_person_level	declared_needs_inventory	Schemas declarados; ausentes dos snapshots information_schema fornecidos
+^resp(_{1,2}resp)$	RESP	RESP	primary_source	bronze/resp	fact_resp_evento	person_event	erlen_linkage	condition_observation_candidate	canonical_source_needs_semantic_qc	Alias historicos resp__resp e resp_resp
+^sia_199407_200712_pa$	SIA	PA	primary_fact	bronze/sia/pa	fact_sia_pa	mixed	person_only_when_supported	procedure_or_drug_by_domain	canonical	Era historica PA
+^sia_200801__(ab|abo|acf|ad|am|amp|an|aq|ar|atd|bi|pa|ps|sad)$	SIA	SIA_2008_PLUS	primary_fact	bronze/sia/<subsystem>	fact_sia_<subsystem>	mixed	source_pseudonym_then_erlen	domain_routed	canonical	Todos os subsistemas observados; multipartes sao UNION ALL logico
+^sih_199201_200712_(rd|rj)$	SIH	SIH_LEGACY	primary_fact	bronze/sih/<subsystem>	fact_sih_<subsystem>	person_event	erlen_linkage	visit_condition_procedure_candidate	canonical	Era historica SIH
+^sih_200801__(ch|ch_br|cm|cm_br|er|rd|rj|sp)$	SIH	SIH_2008_PLUS	primary_fact	bronze/sih/<subsystem>	fact_sih_<subsystem>	mixed	erlen_linkage	visit_condition_procedure_candidate	canonical_or_metadata	CH/CM e aliases _br preservados; semantica ainda em curadoria
+^simdofet__(doe|dof|doi|dom|dore)$	SIM	DOFET	primary_or_projection	bronze/sim/<subsystem>	fact_or_view_sim	person_death	erlen_linkage	death	legacy_schema_alias	Nome de schema historico bureta
+^simdores__do$	SIM	DORES	primary_fact	bronze/sim/do	fact_sim_obito	person_death	erlen_linkage	death	legacy_schema_alias	Nome de schema historico bureta
+^sim_dofet_(doe|dof|doi|dom|dore)$	SIM	DOFET	primary_or_projection	bronze/sim/<subsystem>	fact_or_view_sim	person_death	erlen_linkage	death	canonical	Nome atual pipeta
+^sim_dores_do$	SIM	DORES	primary_fact	bronze/sim/do	fact_sim_obito	person_death	erlen_linkage	death	canonical	Nome atual pipeta
+^sinanfinais__[a-z0-9]+$	SINAN	FINAIS	primary_fact	bronze/sinan/finais/<agravo>	fact_sinan_<agravo>	person_notification	erlen_linkage	condition_observation_candidate	legacy_schema_alias	Alias historico bureta
+^sinan_finais_[a-z0-9]+$	SINAN	FINAIS	primary_fact	bronze/sinan/finais/<agravo>	fact_sinan_<agravo>	person_notification	erlen_linkage	condition_observation_candidate	canonical	Uma tabela Silver por agravo
+^sinan_prelim_[a-z0-9]+$	SINAN	PRELIM	preliminary_fact	bronze/sinan/prelim/<agravo>	fact_sinan_prelim_<agravo>	person_notification	erlen_linkage	condition_observation_candidate	canonical_preliminary	Nunca sobrescrever FINAIS
+^sinasc_(ant_dn|ant_dnr|nov_dn)$	SINASC	LEGACY_ALIAS	primary_fact	bronze/sinasc	fact_sinasc_nascimento	person_birth	erlen_linkage_separate_newborn	person_birth_observation	legacy_schema_alias	Nomes historicos bureta
+^sinasc_(1996_dnres_dn|1996_res_dn|1996_res_dn_br|dnign_dnr|nov_dn|nov_dn_br)$	SINASC	SINASC	primary_fact	bronze/sinasc	fact_sinasc_nascimento	person_birth	erlen_linkage_separate_newborn	person_birth_observation	canonical	Variantes observadas pipeta
+^siscan_.*$	SISCAN	SISCAN	preserved_source	bronze/siscan	fact_siscan_evento	unknown	grain_validation_required	condition_procedure_candidate	preserve_needs_curation	SISCOLO/SISMAMA historico
+^sisprenatal_.*$	SISPRENATAL	PN	preserved_source	bronze/sisprenatal	fact_sisprenatal_evento	person_event	erlen_linkage	observation_measurement_candidate	preserve_needs_curation	Fonte observada bureta
+^esusnotifica(finais|prelim)_.*$	ESUSNOTIFICA	DCCR	preserved_source	bronze/esusnotifica	fact_esusnotifica_evento	person_notification	erlen_linkage	condition_observation_candidate	preserve_needs_curation	Fonte observada pipeta
