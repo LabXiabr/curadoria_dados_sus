@@ -48,13 +48,14 @@ python3 ops/build-duckdb-public-catalog.py --database ~/duckdb/bureta.duckdb
 
 ## Raw oficial para download
 
-Os artefatos Raw selecionados são publicados sem duplicação de disco por
-hardlinks em:
+Os artefatos Raw autorizados são publicados dentro da própria árvore SUS Lake:
 
 ```text
-/dados/abertos/raw/
-https://dados.labx.ia.br/files/raw/
+/dados/abertos/suslake/raw/
+https://dados.labx.ia.br/files/suslake/raw/
 ```
+
+A árvore é default-deny no Apache; apenas caminhos explicitamente autorizados recebem acesso público.
 
 A allowlist fica em `catalog/raw_publication.tsv` e o inventário concreto
 gerado fica em `/dados/abertos/raw/catalog.tsv`.
@@ -215,14 +216,14 @@ fatos virtualmente sem duplicar a geografia nas tabelas factuais.
 ### CNES Parquet público e histórico
 
 A Bronze completa continua canônica e protegida em `suslake/bronze/cnes/`.
-Um subconjunto próprio para referência é projetado por hardlink em
-`/dados/abertos/bronze/cnes/`, disponível em
-`https://dados.labx.ia.br/files/bronze/cnes/`.
+Um subconjunto próprio para referência é projetado por hardlink dentro da própria Bronze em
+`/dados/abertos/suslake/bronze/cnes_reference/`, disponível em
+`https://dados.labx.ia.br/files/suslake/bronze/cnes_reference/`.
 
 A Silver homologada é promovida por competência e o subconjunto de dimensões
 e relações de referência é projetado em
-`/dados/abertos/silver/cnes/`, disponível em
-`https://dados.labx.ia.br/files/silver/cnes/`.
+`/dados/abertos/suslake/silver/cnes_reference/`, disponível em
+`https://dados.labx.ia.br/files/suslake/silver/cnes_reference/`.
 
 Profissionais, equipes e vínculos integram a superfície pública CNES, em
 coerência com a consulta pública do próprio SCNES. Assim, a publicação de
@@ -309,6 +310,26 @@ Use `--dry-run` para listar e `--refresh` para verificar nova versão de
 fontes rolling.
 
 
+## Identidade longitudinal e Gold OMOP
+
+A identidade longitudinal é separada dos fatos clínicos. Campos como
+`CNSPCN`, `AP_CNSPCN`, `NU_CNSPCN` e `CNS_PAC` são identificadores
+pseudonimizados da fonte. O ERLEN_PID materializa uma ponte privada
+registro→pessoa com proveniência, confiança e erro estimado.
+
+O Gold OMOP é derivado da Silver e usa `id_pessoa_erlen` para gerar um
+`person_id` surrogate interno. Dados agregados não são forçados para OMOP
+person-level.
+
+Contratos:
+- `systems/identity/`;
+- `systems/omop/`;
+- `systems/sia/derived_products.tsv` para CEAF (PA+AM) e oncologia
+  (PA+AQ/AR);
+- `catalog/source_schema_contract.tsv` para cobertura dos schemas físicos;
+- `catalog/source_field_map.tsv` e `catalog/field_dictionary.tsv` para
+  atributos, nomes canônicos, rótulos e descrições.
+
 ## Migração PostgreSQL -> Parquet
 
 Para SIA, SIH, CIH, CIHA, SIM, SINASC e SINAN, a migração inicial usa as
@@ -354,18 +375,23 @@ todos os candidatos da distância mínima concordam no mesmo CNS.
 A Silver preserva CNS original, CNS recuperado, subsistema/competência de
 origem e distância mensal da recuperação.
 
-## Superfície pública Bronze/Silver
+## Superfície pública Raw/Bronze/Silver
 
-`/dados/abertos/suslake/` é a lake canônica e deve permanecer privada.
-`/dados/abertos/bronze/` e `/dados/abertos/silver/` são projeções públicas
-por hardlink dos datasets explicitamente autorizados.
+A única árvore persistente do lake é:
 
-Antes de fechar o acesso à lake canônica, projete os datasets já marcados
-como publicados:
-
-```bash
-python3 ops/project-public-datasets.py
-sudo ops/apache/install-labx-private-guard.sh
+```text
+/dados/abertos/suslake/
+├── raw/
+├── bronze/
+└── silver/
 ```
 
-Depois disso `/files/suslake/` deve responder 403 e não aparecer no índice.
+Não existem raízes públicas paralelas permanentes `/dados/abertos/raw`,
+`/dados/abertos/bronze` ou `/dados/abertos/silver`.
+
+A política Apache é default-deny e libera somente datasets autorizados.
+Quando apenas um subconjunto pode ser exposto, a projeção por hardlink fica
+dentro da própria camada, como `bronze/cnes_reference` e
+`silver/cnes_reference`.
+
+Política: `docs/adr/0008-publicacao-suslake.md`.
