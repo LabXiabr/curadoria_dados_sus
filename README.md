@@ -51,8 +51,8 @@ python3 ops/build-duckdb-public-catalog.py --database ~/duckdb/bureta.duckdb
 Os artefatos Raw autorizados são publicados dentro da própria árvore SUS Lake:
 
 ```text
-/dados/abertos/suslake/raw/
-https://dados.labx.ia.br/files/suslake/raw/
+/dados/abertos/suslake/raw/public/
+https://dados.labx.ia.br/files/suslake/raw/public/
 ```
 
 A árvore é default-deny no Apache; apenas caminhos explicitamente autorizados recebem acesso público.
