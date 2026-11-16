@@ -34,3 +34,7 @@ Em SIM, o registro canônico de DO representa um óbito/pessoa no grão da fonte
 `OMOP.PERSON.person_id` é um surrogate interno derivado de `id_pessoa_erlen`, e não o CNSPCN da fonte.
 
 Registros sem identidade longitudinal aceitável permanecem disponíveis na Silver, mas não são forçados para uma pessoa OMOP fictícia. Políticas de episódio isolado devem ser declaradas pelo ERLEN e carregadas com proveniência.
+
+## Compatibilidade com `nu_usuario` legado
+
+Os produtos legados PAAM/PAAQ/PAAR preservam `nu_usuario`, `tp_nu_usuario`, regra, execução, confiança e erro. O valor `nu_usuario` é mantido como `legacy_erlen_identifier`; seu significado depende da proveniência. A chave canônica `id_pessoa_erlen` é um identificador opaco/namespaceado da camada de identidade e não reutiliza silenciosamente o número legado nem o pseudônimo CNSPCN.
