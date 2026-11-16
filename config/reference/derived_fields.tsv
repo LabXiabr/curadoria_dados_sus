@@ -1,0 +1,2 @@
+system	subsystem	source_field	canonical_field	source_kind	native_datasus	bronze_policy	target_layer	derivation	temporal_window	provenance	status	notes
+SIA	PA	nu_cnspcn|cnspcn	id_pessoa_fonte_pseudo	local_enrichment	0	exclude_from_native_bronze	silver	same_uf_same_authorization_closest_competence	-3:+3	source_subsystem;source_competencia;distance_months;method	active	Identificador pseudonimizado da fonte; nao CNS nominal

@@ -1,78 +1,21 @@
 # ADR 0007 — Projeção pública do Raw oficial
 
-Status: aceito
+Status: superseded por ADR 0008
 
-## Decisão
+Este ADR documenta a política anterior, na qual artefatos Raw autorizados eram
+projetados por hardlink em `/dados/abertos/raw/` e publicados em
+`/files/raw/`.
 
-Os artefatos Raw oficiais permanecem canônicos em `suslake/raw/`. Para
-distribuição pública, os arquivos autorizados são projetados em:
+A decisão foi substituída em 2026-11-16 para manter uma única árvore de dados
+sob `/dados/abertos/suslake/{raw,bronze,silver}`.
 
-```text
-/dados/abertos/raw/
-```
+As garantias que permanecem válidas são:
 
-Como o Apache publica `/dados/abertos/` sob `/files/`, a URL é:
+- publicação somente por allowlist;
+- hardlink em vez de cópia quando uma projeção seletiva for necessária;
+- ausência de cópia silenciosa entre filesystems;
+- gate de CQ antes de publicação;
+- HTTP somente leitura;
+- preservação da fonte canônica quando um link público é removido.
 
-```text
-https://dados.labx.ia.br/files/raw/
-```
-
-Não existe uma nova camada de dados. `/dados/abertos/raw/` é apenas uma
-superfície de publicação dos mesmos artefatos Raw.
-
-## Hardlinks
-
-A projeção usa hardlinks, não novo download e não cópia. O arquivo canônico e
-o arquivo publicado apontam para o mesmo inode e ocupam os mesmos blocos no
-filesystem. Remover o hardlink público não remove o Raw enquanto o link
-canônico continuar existente.
-
-Se origem e destino estiverem em filesystems diferentes, o processo falha em
-vez de copiar silenciosamente os dados.
-
-## Política e catálogo
-
-A allowlist versionada está em:
-
-```text
-catalog/raw_publication.tsv
-```
-
-O inventário concreto é gerado em:
-
-```text
-/dados/abertos/raw/catalog.tsv
-```
-
-O catálogo público registra dataset, arquivo, tamanho, SHA-256, fonte oficial,
-URL pública e instante da projeção.
-
-O diretório `/files/repos/curadoria_dados_sus/` contém código, políticas e
-documentação do projeto; não substitui o inventário dos artefatos efetivamente
-publicados.
-
-## Datasets publicados
-
-A projeção inclui:
-
-- Base Territorial DATASUS;
-- POPSVS;
-- SIGTAP;
-- CNES.
-
-Para CNES, o snapshot mensal `BASE_DE_DADOS_CNES_AAAAMM.ZIP` só é projetado
-quando existe `state/cnes/qc_global_AAAAMM.ok` com status `validated`.
-Arquivos oficiais de referência CNES sem competência no nome, como CEP e
-Município Brasil, são projetados independentemente desse gate.
-
-A publicação seletiva com `--dataset` preserva no `catalog.tsv` os datasets
-já publicados; somente as linhas do dataset selecionado são substituídas.
-
-## Segurança operacional
-
-O bloqueio de `/files/suslake/raw/` pode permanecer. A publicação ocorre por
-`/files/raw/`, evitando que caminhos operacionais, temporários ou artefatos
-não catalogados do lake sejam expostos por acidente.
-
-O HTTP é somente leitura. O pipeline valida HEAD e HTTP Range em pelo menos um
-arquivo de cada dataset projetado.
+A superfície e as regras correntes estão no ADR 0008.

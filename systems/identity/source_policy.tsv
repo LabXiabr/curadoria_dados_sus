@@ -1,0 +1,15 @@
+system	source_scope	person_bearing	source_identifier	canonical_identity_field	linkage_policy	public_policy	status	notes
+SIA	PA DOCORIG=C	0			no_person_link	public_without_identity_bridge	validated	BPA-C e agregado
+SIA	PA DOCORIG=I|P|S|A|B	1	NU_CNSPCN|CNSPCN	id_pessoa_erlen	source_pseudonym_then_erlen	public_without_identity_bridge	validated	Pessoa/evento quando instrumento individualizado
+SIA	AB|ABO|ACF|AD|AM|AMP|AN|AQ|AR|ATD	1	AP_CNSPCN	id_pessoa_erlen	source_pseudonym_then_erlen	public_without_identity_bridge	validated_source_identifier	APAC
+SIH	RD	1		id_pessoa_erlen	erlen_demographic_and_care_contact	public_without_identity_bridge	designed	AIH/segmento nao recebe pessoa ficticia quando linkage falha
+SIH	SP	1	inherit_from_RD_segment	id_pessoa_erlen	inherit_exact_RD_segment_link	public_without_identity_bridge	designed	SP herda identidade do segmento RD pai
+CIH	CR	1		id_pessoa_erlen	erlen_demographic_and_care_contact	public_without_identity_bridge	designed	
+CIHA	CIHA	1		id_pessoa_erlen	erlen_demographic_and_care_contact	public_without_identity_bridge	designed	
+SIM	DO	1	record_identity	id_pessoa_erlen	erlen_demographic_and_event_features	public_without_identity_bridge	designed	Uma DO canonica representa uma pessoa falecida no grao do registro
+SINAN	FINAIS|PRELIM	1	record_notification	id_pessoa_erlen	erlen_demographic_and_care_contact	public_without_identity_bridge	designed	Uma pessoa pode ter multiplas notificacoes
+SINASC	DN|DNR	1	record_birth	id_pessoa_erlen	erlen_newborn_policy	public_without_identity_bridge	needs_validation	Nao misturar identidade do RN com identidade materna
+PAINEL_ONCOLOGIA	PO	1	CNS_PAC	id_pessoa_erlen	source_pseudonym_then_erlen	public_without_identity_bridge	designed	CNS_PAC e pseudonimizado
+RESP	RESP	1	record_case	id_pessoa_erlen	erlen_entity_role_aware	public_without_identity_bridge	needs_validation	Distinguir gestante/feto/RN quando aplicavel
+PNI	CPNI|DPNI	unknown		id_pessoa_erlen	validate_grain_first	public_without_identity_bridge	needs_validation	Nao presumir pessoa antes de validar layout
+PCE	PCE	0			no_person_link	public	observed_aggregate	Contagens territoriais

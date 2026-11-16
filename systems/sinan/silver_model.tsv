@@ -1,3 +1,4 @@
-layer	object	source	grain	time_anchor	references	status
-fact	fact_sinan_agravo	one_per_agravo	source_record	data_notificacao	TERRITORIO|SINAN_AUX	designed
-view	vw_sinan_notificacao_core	fact_sinan_*	common_projection	data_notificacao|data_inicio_sintomas	TERRITORIO	designed
+layer	object	source	grain	time_anchor	references	identity	omop_target	status
+fact	fact_sinan_agravo	FINAIS one_per_agravo	notification_record	dt_notificacao	TERRITORIO|SINAN_AUX	ERLEN_bridge	CONDITION_OCCURRENCE|OBSERVATION	designed
+fact	fact_sinan_prelim_agravo	PRELIM one_per_agravo	preliminary_notification_record	dt_notificacao	TERRITORIO|SINAN_AUX	ERLEN_bridge	CONDITION_OCCURRENCE|OBSERVATION	designed_preliminary
+view	vw_sinan_notificacao_core	fact_sinan_*	common_projection	dt_notificacao|dt_inicio_sintomas	TERRITORIO	ERLEN_bridge		designed

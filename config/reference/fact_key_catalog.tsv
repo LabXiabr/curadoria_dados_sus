@@ -1,0 +1,6 @@
+system	subsystem	entity_level	key_role	fields	context_fields	status	evidence
+SIH	RD	aih	logical	n_aih		validated	AC/201204;MG/202604
+SIH	RD	segment	semantic	n_aih,dt_saida	sg_uf,nu_competencia	validated	AC/201204;MG/202604
+SIH	RD	segment	source	remessa,sequencia	sg_uf,nu_competencia	validated	AC/201204;MG/202604
+SIH	SP	segment	semantic	sp_naih,sp_dtsaida	sg_uf,nu_competencia	validated	AC/201204;MG/202604
+SIH	SP	segment	source	remessa,sequencia	sg_uf,nu_competencia	validated	AC/201204;MG/202604

@@ -1,0 +1,2 @@
+layer	object	source	grain	time_anchor	references	identity	status
+fact	fact_resp_evento	RESP	case_record	dt_notific|dt_sintoma	TERRITORIO|RESP_AUX	ERLEN_entity_role_aware	designed

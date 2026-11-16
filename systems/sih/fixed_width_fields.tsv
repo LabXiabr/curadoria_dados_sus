@@ -1,0 +1,10 @@
+subsystem	field	logical_width	normalization	status	notes
+RD	N_AIH	13	lpad_numeric_only	validated	AIH; preservar como texto
+RD	CNES	7	lpad_numeric_only	validated	CNES do estabelecimento
+RD	PROC_REA	10	lpad_numeric_only	validated	Procedimento realizado SIGTAP 2008+
+RD	PROC_SOLIC	10	lpad_numeric_only	validated	Procedimento solicitado SIGTAP 2008+
+RD	MUNIC_RES	6	lpad_numeric_only	validated	Municipio de residencia DATASUS
+RD	MUNIC_MOV	6	lpad_numeric_only	validated	Municipio do estabelecimento/movimento DATASUS
+SP	SP_NAIH	13	lpad_numeric_only	validated	AIH do segmento pai
+SP	SP_CNES	7	lpad_numeric_only	validated	CNES do estabelecimento
+SP	SP_PROCREA	10	lpad_numeric_only	validated	Procedimento/ato realizado

@@ -1,4 +1,9 @@
 layer	object	source	grain	time_anchor	references	status
-fact	fact_sia_pa	PA	source_record	competencia_producao	CNES|SIGTAP|TERRITORIO|TAB_SIA	designed
-fact	fact_sia_subsystem	AB|ABO|ACF|AD|AM|AMP|AN|AQ|AR|ATD|BI|PS|SAD	source_record	competencia_producao	CNES|SIGTAP|TERRITORIO|TAB_SIA	designed
+fact	fact_sia_pa	PA	source_record;logical_partition=system+subsystem+uf+competencia	competencia_producao	CNES|SIGTAP|TERRITORIO|TAB_SIA	designed
+fact	fact_sia_subsystem	AB|ABO|ACF|AD|AM|AMP|AN|AQ|AR|ATD|BI|PS|SAD	source_record;materialize_per_subsystem	competencia_producao	CNES|SIGTAP|TERRITORIO|TAB_SIA	designed
+view	vw_sia_pa_bpac	fact_sia_pa	PA_DOCORIG=C;aggregate_production	competencia_producao	CNES|SIGTAP|TERRITORIO	designed
+view	vw_sia_pa_bpai	fact_sia_pa	PA_DOCORIG=I;individualized_production	competencia_producao	CNES|SIGTAP|TERRITORIO	designed
+view	vw_sia_pa_apac	fact_sia_pa	PA_DOCORIG=P|S;individualized_apac	competencia_producao	CNES|SIGTAP|TERRITORIO	designed
+view	vw_sia_pa_raas_ad	fact_sia_pa	PA_DOCORIG=A;individualized_raas_ad	competencia_producao	CNES|SIGTAP|TERRITORIO	designed
+view	vw_sia_pa_raas_ps	fact_sia_pa	PA_DOCORIG=B;individualized_raas_ps	competencia_producao	CNES|SIGTAP|TERRITORIO	designed
 view	vw_sia_evento_core	fact_sia_*	common_projection	competencia_producao	CNES|SIGTAP|TERRITORIO	designed

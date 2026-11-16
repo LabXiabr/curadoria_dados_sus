@@ -1,0 +1,8 @@
+legacy_field	canonical_field	role	status	notes
+nu_usuario	legacy_erlen_identifier	legacy_identity_value	preserve	Valor legado depende de tp_nu_usuario; nao reutilizar diretamente como OMOP person_id
+tp_nu_usuario	tp_id_pessoa_erlen	identity_provenance	map	Tipo/metodo de atribuicao do valor legado
+ds_regra_nu_usuario	ds_regra_id_pessoa	identity_provenance	map	Regra/modelo
+id_execucao_nu_usuario	id_execucao_id_pessoa	identity_provenance	map	Execucao ERLEN
+vl_confianca_nu_usuario	vl_confianca_id_pessoa	identity_quality	map	Confianca
+vl_erro_estimado_nu_usuario	vl_erro_estimado_id_pessoa	identity_quality	map	Erro estimado
+nu_cnspcn|cnspcn|ap_cnspcn|cns_pac	id_pessoa_fonte_pseudo	source_pseudonym	map	Identificador pseudonimizado da fonte
