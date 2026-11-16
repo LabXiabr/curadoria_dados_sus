@@ -1,0 +1,7 @@
+system	fact_subsystem	valid_from	valid_to	fact_field	dimension_system	dimension_object	dimension_field	context_fields	temporal_rule	cardinality	status	notes
+SIA	PA	200801		pa_coduni	CNES	dim_estabelecimento	co_cnes_key	sg_uf,nu_competencia	exact_source_competencia	N:1	designed	CNES da competencia
+SIA	PA	200801		pa_proc_id	SIGTAP	tb_procedimento	co_procedimento	nu_competencia	exact_source_competencia	N:1	validated_samples	Normalizar texto 10 digitos
+SIH	RD	200801		cnes	CNES	dim_estabelecimento	co_cnes_key	sg_uf,nu_competencia	exact_source_competencia	N:1	designed	CNES quando presente
+SIH	RD	200801		proc_rea	SIGTAP	tb_procedimento	co_procedimento	nu_competencia	exact_source_competencia	N:1	designed	SIGTAP 2008+
+SIH	SP	200801		sp_cnes	CNES	dim_estabelecimento	co_cnes_key	sg_uf,nu_competencia	exact_source_competencia	N:1	designed	CNES quando presente
+SIH	SP	200801		sp_procrea	SIGTAP	tb_procedimento	co_procedimento	nu_competencia	exact_source_competencia	N:1	designed	SIGTAP 2008+
