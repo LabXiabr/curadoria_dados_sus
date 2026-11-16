@@ -13,7 +13,7 @@ Dois conceitos são distintos:
 
 `dim_pessoa_erlen`: uma linha por identidade longitudinal ERLEN vigente.
 
-`bridge_pessoa_registro`: liga uma linha/fato de origem a `id_pessoa_erlen`, preservando sistema/schema/tabela/arquivo/registro de origem, identificador pseudonimizado da fonte, método/regra, execução, confiança, erro estimado e estado da atribuição.
+`bridge_pessoa_registro`: liga uma linha/fato de origem a `id_pessoa_erlen` pela chave técnica `id_registro_fonte`, preservando sistema/schema/tabela/arquivo/registro de origem, identificador pseudonimizado da fonte, método/regra, execução, confiança, erro estimado e estado da atribuição.
 
 Esses objetos são privados por padrão. A publicação de fatos não implica publicação da ponte de identidade.
 
