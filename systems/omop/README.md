@@ -12,7 +12,11 @@ A ponte de identidade e o Gold OMOP são privados por padrão.
 
 ## Hospitalar
 
-SIH RD é segmentado por cobrança. OMOP `VISIT_OCCURRENCE` representa a internação lógica, portanto os segmentos RD da mesma `n_aih` são consolidados no Gold antes de criar a visita. SP gera procedimentos vinculados a essa visita.
+SIH RD é segmentado por cobrança. Antes do ERLEN_PID, a Silver preserva os segmentos RD e materializa uma **AIH lógica candidata a visita**, sem criar ainda `VISIT_OCCURRENCE`, porque OMOP exige `person_id`.
+
+O ERLEN_PID liga AIH/SIH, SIM e demais fatos person-bearing a `id_pessoa_erlen`. Somente depois dessa resolução a AIH lógica pode gerar `VISIT_OCCURRENCE`. Assim, vários segmentos RD da mesma `n_aih` continuam pertencendo à mesma internação lógica, e várias internações da mesma pessoa passam a compartilhar o mesmo `person_id` sem serem colapsadas em uma única visita.
+
+SP gera `PROCEDURE_OCCURRENCE` somente depois que o segmento RD pai estiver ligado à AIH lógica e esta estiver ligada à pessoa.
 
 ## Ambulatorial
 
@@ -42,3 +46,7 @@ SIGTAP, CID e demais códigos fonte são sempre preservados em `*_source_value`.
 ## Registros sem pessoa
 
 Dados agregados, como BPA-C e PCE, permanecem em Gold analítico próprio, fora do CDM person-level.
+
+## PCDT e enriquecimento longitudinal
+
+A camada Gold/ML pode enriquecer coortes PCDT usando eventos longitudinais resolvidos pelo ERLEN_PID. SIH fornece internações, diagnósticos, procedimentos e desfechos hospitalares; SIM fornece óbito e causas. Esses sinais são atributos/eventos para modelos e regras PCDT, não chaves de identidade. A identidade é resolvida antes da projeção OMOP e preserva proveniência/confiança.
