@@ -6,3 +6,5 @@ SIH	fact_sih_sp	segment	semantic	nu_aih,dt_saida	sg_uf,competencia_processamento
 SIH	fact_sih_sp	segment	source	remessa,sequencia	sg_uf,competencia_processamento	many_rows_per_segment	validated	AC/201204;MG/202604
 SIA	fact_sia_pa	logical_partition	partition	system,subsystem,sg_uf,competencia_producao		union_all_physical_sources	validated	MG/202604 multipart PA
 SIA	fact_sia_subsystem	logical_partition	partition	system,subsystem,sg_uf,competencia_producao		union_all_physical_sources	validated	MG/202604 multipart BI
+ALL	fact_*	source_record	technical	id_registro_fonte		unique_within_source_revision	designed	Derived from source revision/file plus source record ordinal; never business identity
+IDENTITY	bridge_pessoa_registro	record_link	foreign	id_registro_fonte	source_system,source_object	many_records_to_one_person	designed	FK logica para fato Silver/Bronze lineage
