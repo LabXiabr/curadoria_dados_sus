@@ -6,9 +6,9 @@ schema_pattern	system	source_family	source_role	bronze_target	silver_target	pers
 ^pce(_{1,2}pce|_br)$	PCE	PCE	aggregate_source	bronze/pce	fact_pce_monitoramento	aggregate	no_person_link	not_person_level_omop	canonical_source_needs_semantic_qc	Predominantemente contagens territoriais
 ^pni_(cpni|dpni)$	PNI	CPNI|DPNI	primary_source	bronze/pni	fact_pni_evento	unknown	grain_validation_required	drug_exposure_if_person_level	declared_needs_inventory	Schemas declarados; ausentes dos snapshots information_schema fornecidos
 ^resp(_{1,2}resp)$	RESP	RESP	primary_source	bronze/resp	fact_resp_evento	person_event	erlen_linkage	condition_observation_candidate	canonical_source_needs_semantic_qc	Alias historicos resp__resp e resp_resp
-^sia_199407_200712_pa$	SIA	PA	primary_fact	bronze/sia/199407_200712/pa	fact_sia_pa_199407_200712	mixed	person_only_when_supported	procedure_or_drug_by_domain	canonical	Era historica PA
+^sia_199407_200712_pa$	SIA	PA	primary_fact	bronze/sia/199407_200712/pa	fact_sia_pa	mixed	person_only_when_supported	procedure_or_drug_by_domain	canonical	Era historica PA
 ^sia_200801__(ab|abo|acf|ad|am|amp|an|aq|ar|atd|bi|pa|ps|sad)$	SIA	SIA_2008_PLUS	primary_fact	bronze/sia/200801_/<subsystem>	fact_sia_<subsystem>	mixed	source_pseudonym_then_erlen	domain_routed	canonical	Todos os subsistemas observados; multipartes sao UNION ALL logico
-^sih_199201_200712_(rd|rj)$	SIH	SIH_LEGACY	primary_fact	bronze/sih/199201_200712/<subsystem>	fact_sih_<subsystem>_199201_200712	person_event	erlen_linkage	visit_condition_procedure_candidate	canonical	Era historica SIH
+^sih_199201_200712_(rd|rj)$	SIH	SIH_LEGACY	primary_fact	bronze/sih/199201_200712/<subsystem>	fact_sih_<subsystem>	person_event	erlen_linkage	visit_condition_procedure_candidate	canonical	Era historica SIH
 ^simdofet__(doe|dof|doi|dom|dore)$	SIM	DOFET	primary_or_projection	bronze/sim/<subsystem>	fact_or_view_sim	person_death	erlen_linkage	death	legacy_schema_alias	Nome de schema historico bureta
 ^simdores__do$	SIM	DORES	primary_fact	bronze/sim/do	fact_sim_obito	person_death	erlen_linkage	death	legacy_schema_alias	Nome de schema historico bureta
 ^sim_dofet_(doe|dof|doi|dom|dore)$	SIM	DOFET	primary_or_projection	bronze/sim/<subsystem>	fact_or_view_sim	person_death	erlen_linkage	death	canonical	Nome atual pipeta
