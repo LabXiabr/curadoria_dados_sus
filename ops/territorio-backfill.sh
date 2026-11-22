@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FTP_ROOT="${TERRITORIO_FTP_ROOT:-ftp://ftp.datasus.gov.br/territorio/tabelas}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 FROM_YEAR=""
 TO_YEAR=""
 
