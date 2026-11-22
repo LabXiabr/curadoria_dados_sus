@@ -150,14 +150,41 @@ class TableParser(HTMLParser):
         self.row=None
         self.cell=None
 
+    def flush_cell(self):
+        if self.cell is not None and self.row is not None:
+            self.row.append(" ".join(self.cell.split()))
+            self.cell=None
+
+    def flush_row(self):
+        self.flush_cell()
+        if self.row is not None and self.table is not None:
+            if self.row:
+                self.table.append(self.row)
+            self.row=None
+
+    def flush_table(self):
+        self.flush_row()
+        if self.table is not None:
+            if self.table:
+                self.tables.append(self.table)
+            self.table=None
+
     def handle_starttag(self,tag,attrs):
         tag=tag.lower()
         if tag=="table":
-            if self.table is None:
-                self.table=[]
+            # TabNet usa HTML 4 permissivo e pode omitir varios fechamentos.
+            # Uma nova tabela encerra defensivamente a anterior.
+            if self.table is not None:
+                self.flush_table()
+            self.table=[]
         elif tag=="tr" and self.table is not None:
+            # <TR> fecha implicitamente a linha anterior.
+            self.flush_row()
             self.row=[]
         elif tag in {"th","td"} and self.row is not None:
+            # <TH>/<TD> fecha implicitamente a celula anterior. Esse e o
+            # formato real retornado pelo CGI TabNet (sem </TH>, </TD>, </TR>).
+            self.flush_cell()
             self.cell=""
 
     def handle_data(self,data):
@@ -166,31 +193,16 @@ class TableParser(HTMLParser):
 
     def handle_endtag(self,tag):
         tag=tag.lower()
-        if tag in {"th","td"} and self.cell is not None and self.row is not None:
-            self.row.append(" ".join(self.cell.split()))
-            self.cell=None
-        elif tag=="tr" and self.row is not None and self.table is not None:
-            if self.row:
-                self.table.append(self.row)
-            self.row=None
-        elif tag=="table" and self.table is not None:
-            if self.table:
-                self.tables.append(self.table)
-            self.table=None
+        if tag in {"th","td"}:
+            self.flush_cell()
+        elif tag=="tr":
+            self.flush_row()
+        elif tag=="table":
+            self.flush_table()
 
     def close(self):
         super().close()
-        if self.cell is not None and self.row is not None:
-            self.row.append(" ".join(self.cell.split()))
-            self.cell=None
-        if self.row is not None and self.table is not None:
-            if self.row:
-                self.table.append(self.row)
-            self.row=None
-        if self.table is not None:
-            if self.table:
-                self.tables.append(self.table)
-            self.table=None
+        self.flush_table()
 
 def comp_of(s):
     x=norm(s).lstrip(".").strip()
