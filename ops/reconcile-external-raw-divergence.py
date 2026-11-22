@@ -25,7 +25,7 @@ def main()->int:
     ap=argparse.ArgumentParser(
         description="Repara Raw canonico quando copia externa historica diverge do FTP atual"
     )
-    ap.add_argument("--lake-root",default="/dados/abertos/suslake")
+    ap.add_argument("--lake-root",default="/dados/abertos/suslabx")
     ap.add_argument("--source-snapshot",default="DBF2025-06-26")
     ap.add_argument("--report")
     ap.add_argument("--execute",action="store_true")
