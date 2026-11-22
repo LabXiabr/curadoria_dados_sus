@@ -111,21 +111,19 @@ def target_from_url(lake:Path, ds_url:str, filename:str)->Path|None:
     # Espelha literalmente a arvore publicada depois de dissemin/publicos.
     return lake/"raw"/"dissemin"/"dbc"/Path(rel)/filename
 
-def ftp_hash(url:str, timeout:int)->tuple[str,int,str]:
+def ftp_download(url:str, timeout:int)->tuple[Path|None,str,int,str]:
     fd,tmpname=tempfile.mkstemp(prefix="suslabx_ftp_",suffix=".dbc")
     os.close(fd)
     tmp=Path(tmpname)
-    try:
-        p=subprocess.run(
-            ["curl","-fsSL","--connect-timeout",str(timeout),"--max-time",str(max(timeout*4,60)),
-             "-o",str(tmp),url],
-            text=True,capture_output=True
-        )
-        if p.returncode:
-            return "",0,p.stderr.strip() or f"curl_rc={p.returncode}"
-        return sha256(tmp),tmp.stat().st_size,""
-    finally:
+    p=subprocess.run(
+        ["curl","-fsSL","--connect-timeout",str(timeout),"--max-time",str(max(timeout*4,60)),
+         "-o",str(tmp),url],
+        text=True,capture_output=True
+    )
+    if p.returncode:
         tmp.unlink(missing_ok=True)
+        return None,"",0,p.stderr.strip() or f"curl_rc={p.returncode}"
+    return tmp,sha256(tmp),tmp.stat().st_size,""
 
 def write_report(path:Path, rows:list[dict[str,str]])->None:
     path.parent.mkdir(parents=True,exist_ok=True)
@@ -216,41 +214,12 @@ def main()->int:
         row["target"]=str(target)
         row["target_preexisting"]="1" if target.exists() else "0"
 
-        if target.exists():
-            th=sha256(target); row["sha256_target"]=th
-            row["bytes_target"]=str(target.stat().st_size)
-            row["local_match"]="1" if th==sh else "0"
-            if th!=sh:
-                row["status"]="KEEP"
-                row["note"]="CONFLITO_target_diverge"
-                rows.append(row); write_report(report_path,rows)
-                print(f"[{i}/{len(files)}] KEEP {src.name} target_diverge",flush=True)
-                continue
-        elif args.copy:
-            target.parent.mkdir(parents=True,exist_ok=True)
-            partial=target.with_name(target.name+f".partial.{os.getpid()}")
-            shutil.copy2(src,partial)
-            th=sha256(partial)
-            if th!=sh:
-                partial.unlink(missing_ok=True)
-                row["status"]="KEEP"; row["note"]="copy_sha256_diverge"
-                rows.append(row); write_report(report_path,rows)
-                print(f"[{i}/{len(files)}] KEEP {src.name} copy_sha256_diverge",flush=True)
-                continue
-            os.replace(partial,target)
-            row["copied"]="1"; row["sha256_target"]=th
-            row["bytes_target"]=str(target.stat().st_size); row["local_match"]="1"
-        else:
-            row["status"]="COPY_REQUIRED"; row["note"]="target_ausente"
-            rows.append(row); write_report(report_path,rows)
-            print(f"[{i}/{len(files)}] COPY_REQUIRED {src.name} -> {target}",flush=True)
-            continue
-
+        # Quando solicitado, verificar FTP ANTES de escrever no caminho canonico.
+        ftp_tmp=None
         if args.verify_ftp:
-            fh,fb,err=ftp_hash(ftp_url,args.timeout)
+            ftp_tmp,fh,fb,err=ftp_download(ftp_url,args.timeout)
             row["ftp_sha256"]=fh
             if fb:
-                # Mantemos catalogo e bytes baixados distinguiveis no relatorio via note.
                 row["note"]=(row["note"]+";" if row["note"] else "")+f"ftp_bytes_download={fb}"
             if err:
                 row["status"]="KEEP"; row["ftp_match"]="0"
@@ -260,11 +229,46 @@ def main()->int:
                 continue
             row["ftp_match"]="1" if fh==sh else "0"
             if fh!=sh:
+                ftp_tmp.unlink(missing_ok=True)
                 row["status"]="KEEP"
                 row["note"]=(row["note"]+";" if row["note"] else "")+"FTP_ATUAL_DIVERGE"
                 rows.append(row); write_report(report_path,rows)
                 print(f"[{i}/{len(files)}] KEEP {src.name} ftp_diverge",flush=True)
                 continue
+
+        try:
+            if target.exists():
+                th=sha256(target); row["sha256_target"]=th
+                row["bytes_target"]=str(target.stat().st_size)
+                row["local_match"]="1" if th==sh else "0"
+                if th!=sh:
+                    row["status"]="KEEP"
+                    row["note"]=(row["note"]+";" if row["note"] else "")+"CONFLITO_target_diverge"
+                    rows.append(row); write_report(report_path,rows)
+                    print(f"[{i}/{len(files)}] KEEP {src.name} target_diverge",flush=True)
+                    continue
+            elif args.copy:
+                target.parent.mkdir(parents=True,exist_ok=True)
+                partial=target.with_name(target.name+f".partial.{os.getpid()}")
+                shutil.copy2(src,partial)
+                th=sha256(partial)
+                if th!=sh:
+                    partial.unlink(missing_ok=True)
+                    row["status"]="KEEP"; row["note"]=(row["note"]+";" if row["note"] else "")+"copy_sha256_diverge"
+                    rows.append(row); write_report(report_path,rows)
+                    print(f"[{i}/{len(files)}] KEEP {src.name} copy_sha256_diverge",flush=True)
+                    continue
+                os.replace(partial,target)
+                row["copied"]="1"; row["sha256_target"]=th
+                row["bytes_target"]=str(target.stat().st_size); row["local_match"]="1"
+            else:
+                row["status"]="COPY_REQUIRED"; row["note"]=(row["note"]+";" if row["note"] else "")+"target_ausente"
+                rows.append(row); write_report(report_path,rows)
+                print(f"[{i}/{len(files)}] COPY_REQUIRED {src.name} -> {target}",flush=True)
+                continue
+        finally:
+            if ftp_tmp is not None:
+                ftp_tmp.unlink(missing_ok=True)
 
         if args.delete_verified:
             # Gate destrutivo estrito: origem, alvo e FTP precisam ter o mesmo SHA-256.
