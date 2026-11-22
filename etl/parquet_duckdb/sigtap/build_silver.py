@@ -234,7 +234,7 @@ SELECT
 
 def main():
     ap = argparse.ArgumentParser(description="SIGTAP Silver temporal lossless com controle de volatilidade")
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     ap.add_argument("--keys", type=Path)
     args = ap.parse_args()
 
