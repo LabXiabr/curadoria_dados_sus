@@ -101,6 +101,7 @@ def main():
     ap.add_argument("--lake-root",default="/dados/abertos/suslabx")
     ap.add_argument("--jobs",type=int,default=2)
     ap.add_argument("--subsystem",action="append",help="Filtra, ex. PA; pode repetir")
+    ap.add_argument("--series",action="append",help="Filtra serie FTP, ex. 200801_; pode repetir")
     ap.add_argument("--limit",type=int,default=0)
     ap.add_argument("--run-id")
     args=ap.parse_args()
@@ -116,6 +117,8 @@ def main():
         lists[svc]=tb; rows += manifest_rows(svc,tb)
     subs={x.upper() for x in (args.subsystem or [])}
     if subs: rows=[r for r in rows if r["subsystem"] in subs]
+    series={x.lower() for x in (args.series or [])}
+    if series: rows=[r for r in rows if r["series"].lower() in series]
     # dedup canonico
     dedup={}
     for r in rows:
@@ -126,7 +129,11 @@ def main():
         w=csv.DictWriter(f,fieldnames=["service","series","subsystem","uf","competencia","dbc","schema","table"],delimiter="\t",lineterminator="\n"); w.writeheader(); w.writerows(rows)
     (run/"source_lists.txt").write_text("\n".join(f"{k}={v}" for k,v in lists.items())+"\n",encoding="utf-8")
     (lake/"state"/"overnight"/"LATEST_SIA").write_text(str(run.resolve())+"\n",encoding="utf-8")
-    print(f"SIA_OVERNIGHT_START run={run} files={len(rows)} jobs={args.jobs}",flush=True)
+    print(
+        f"SIA_OVERNIGHT_START run={run} files={len(rows)} jobs={args.jobs} "
+        f"series={','.join(sorted(series)) if series else 'ALL'}",
+        flush=True
+    )
     results=[]
     with ThreadPoolExecutor(max_workers=args.jobs) as ex:
         fut={ex.submit(export_one,r,staging):r for r in rows}
