@@ -38,6 +38,13 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(f, delimiter="\t"))
 
 
+def recorded_counts(r: dict[str, str]) -> tuple[str, str]:
+    """Compatibilidade com runs novos (rows_*) e overnight legado (source/parquet_rows)."""
+    pg = r.get("rows_pg") or r.get("source_rows") or ""
+    pq = r.get("rows_parquet") or r.get("parquet_rows") or ""
+    return pg, pq
+
+
 def scalar(sql: str) -> str:
     p = subprocess.run(
         ["duckdb", "-csv", "-noheader", "-c", sql],
@@ -101,11 +108,16 @@ def validate_run(run: Path) -> tuple[Path, Path, list[dict[str, str]]]:
     if len(m) != len(r):
         die(f"manifest/results divergem: manifest={len(m)} results={len(r)}", 22)
 
-    bad = [
-        x for x in r
-        if x.get("status") not in {"OK", "SKIP_OK"}
-        or x.get("rows_pg") != x.get("rows_parquet")
-    ]
+    bad = []
+    for x in r:
+        pg_recorded, pq_recorded = recorded_counts(x)
+        if (
+            x.get("status") not in {"OK", "SKIP_OK"}
+            or not pg_recorded
+            or not pq_recorded
+            or pg_recorded != pq_recorded
+        ):
+            bad.append(x)
     if bad:
         die(f"resultados nao homologados: {len(bad)}", 23)
 
@@ -204,7 +216,8 @@ def main() -> int:
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         src_rows = count(src)
-        expected = int(r["rows_parquet"])
+        _, pq_recorded = recorded_counts(r)
+        expected = int(pq_recorded)
         if src_rows != expected:
             die(
                 f"staging mudou apos CQ: {src} result={expected} atual={src_rows}",
@@ -328,6 +341,9 @@ def main() -> int:
 
         report_rows.append({
             **r,
+            "rows_pg": recorded_counts(r)[0],
+            "rows_parquet": recorded_counts(r)[1],
+            "bytes_parquet": r.get("bytes_parquet") or r.get("bytes") or "",
             "bronze_path": str(dest),
             "rows_bronze": str(dst_rows),
             "normalized_fields": ",".join(normalized),
