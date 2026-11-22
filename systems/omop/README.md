@@ -1,6 +1,6 @@
 # Gold OMOP
 
-## Papel no SUS Lake
+## Papel no SUSLabX
 
 OMOP é uma camada Gold derivada da Silver, nunca substitui a Bronze/Silver. A Silver preserva os códigos DATASUS, seus grãos e referências temporais; o Gold OMOP cria uma visão clínica longitudinal padronizada somente quando os requisitos de pessoa, evento e vocabulário estiverem satisfeitos.
 
