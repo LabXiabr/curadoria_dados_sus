@@ -261,7 +261,9 @@ def main():
     ap=argparse.ArgumentParser(
         description="CQ SIH AIH aprovadas: TabNet qiuf.def x SUSLabX Parquet"
     )
-    ap.add_argument("--parquet-glob",required=True)
+    ap.add_argument("--parquet-glob")
+    ap.add_argument("--preflight-only",action="store_true",
+                    help="Valida formulario, POST e parser TabNet sem consultar Parquet")
     ap.add_argument(
         "--output",
         default="/dados/abertos/suslabx/state/sih/qc_tabnet_aih_aprovadas.csv",
@@ -287,6 +289,15 @@ def main():
             p.write_bytes(raw)
 
     tn={(c,u):v for c,u,v in parse_tabnet(raw)}
+    if args.preflight_only:
+        comps=sorted({c for c,_ in tn})
+        print(
+            f"SIH_TABNET_PREFLIGHT_OK periodos_form={periods} "
+            f"pares={len(tn)} intervalo={comps[0]}-{comps[-1]}"
+        )
+        return 0
+    if not args.parquet_glob:
+        raise SystemExit("--parquet-glob e obrigatorio fora de --preflight-only")
     pq=parquet(args.parquet_glob)
     if not pq:
         raise RuntimeError("Bronze Parquet sem pares competencia x UF")
