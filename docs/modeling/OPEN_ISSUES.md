@@ -2,7 +2,7 @@
 
 Status: consolidado em 2026-11-16
 
-Este arquivo registra pendências arquiteturais/semânticas. Estado minuto a minuto de jobs fica em `suslake/state`, não aqui.
+Este arquivo registra pendências arquiteturais/semânticas. Estado minuto a minuto de jobs fica em `suslabx/state`, não aqui.
 
 ## P0 — bloquear promoção/merge se falhar
 
@@ -86,7 +86,7 @@ Após encerramento: reconciliar alterações locais com a branch/PR.
 ## P2 — publicação/runtime
 
 - remover definitivamente raízes antigas vazias `/dados/abertos/raw|bronze|silver` após CQ;
-- migrar `state/staging/work/logs` para runtime fora de `suslake` depois que nenhuma execução depender dos caminhos atuais;
+- migrar `state/staging/work/logs` para runtime fora de `suslabx` depois que nenhuma execução depender dos caminhos atuais;
 - decidir destino de `parquet_catalog.tsv` após identificar produtores/consumidores;
 - revisar `benchmark` versus `benchmark_mylena` sem tocar no diretório da Mylena sem necessidade.
 
