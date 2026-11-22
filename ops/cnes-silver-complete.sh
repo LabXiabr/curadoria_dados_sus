@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COMP="${1:-202610}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 STATE="$LAKE_ROOT/state/cnes"
 mkdir -p "$STATE"
 
