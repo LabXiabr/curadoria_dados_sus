@@ -103,6 +103,7 @@ def main():
     ap.add_argument("--subsystem",action="append",help="Filtra, ex. PA; pode repetir")
     ap.add_argument("--series",action="append",help="Filtra serie FTP, ex. 200801_; pode repetir")
     ap.add_argument("--limit",type=int,default=0)
+    ap.add_argument("--plan-only",action="store_true",help="Gera manifesto/plano sem exportar Parquet nem alterar LATEST_SIA")
     ap.add_argument("--run-id")
     args=ap.parse_args()
     if args.jobs<1: raise SystemExit("--jobs deve ser >=1")
@@ -128,6 +129,20 @@ def main():
     with (run/"sia_manifest.tsv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=["service","series","subsystem","uf","competencia","dbc","schema","table"],delimiter="\t",lineterminator="\n"); w.writeheader(); w.writerows(rows)
     (run/"source_lists.txt").write_text("\n".join(f"{k}={v}" for k,v in lists.items())+"\n",encoding="utf-8")
+    if args.plan_only:
+        print(
+            f"SIA_PLAN_ONLY run={run} files={len(rows)} jobs={args.jobs} "
+            f"series={','.join(sorted(series)) if series else 'ALL'}"
+        )
+        for r in rows[:20]:
+            print(
+                f"PLAN {r['service']} {r['series']} {r['subsystem']} "
+                f"{r['uf']} {r['competencia']} {r['dbc']} "
+                f"{r['schema']}.{r['table']}"
+            )
+        if len(rows)>20:
+            print(f"PLAN ... {len(rows)-20} arquivos adicionais")
+        return 0
     (lake/"state"/"overnight"/"LATEST_SIA").write_text(str(run.resolve())+"\n",encoding="utf-8")
     print(
         f"SIA_OVERNIGHT_START run={run} files={len(rows)} jobs={args.jobs} "
