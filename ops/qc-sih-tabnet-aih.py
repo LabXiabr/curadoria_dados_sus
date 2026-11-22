@@ -288,17 +288,26 @@ def main():
 
     tn={(c,u):v for c,u,v in parse_tabnet(raw)}
     pq=parquet(args.parquet_glob)
-    keys=sorted(set(tn)|set(pq))
+    if not pq:
+        raise RuntimeError("Bronze Parquet sem pares competencia x UF")
+    comps=[c for c,_ in pq]
+    min_comp=min(comps)
+    max_comp=max(comps)
+    tn_scope={k:v for k,v in tn.items() if min_comp <= k[0] <= max_comp}
+
+    # O qiuf.def contem toda a serie historica SIH. Esta execucao valida apenas
+    # SIH/200801_, portanto pares TabNet fora do intervalo efetivamente
+    # materializado no Bronze nao sao classificados como sem_parquet.
+    keys=sorted(pq)
     rows=[]
     bad=0
     for c,u in keys:
-        a=tn.get((c,u))
+        a=tn_scope.get((c,u))
         b=pq.get((c,u))
         dif=None if a is None or b is None else b-a
         st=(
             "ok" if dif==0
             else "sem_tabnet" if a is None
-            else "sem_parquet" if b is None
             else "divergente"
         )
         bad += st!="ok"
@@ -315,8 +324,8 @@ def main():
         w.writerows(rows)
 
     print(
-        f"SIH_TABNET_QC periodos={periods} pares={len(rows)} "
-        f"divergentes={bad} output={out}"
+        f"SIH_TABNET_QC periodos={periods} intervalo={min_comp}-{max_comp} "
+        f"pares={len(rows)} divergentes={bad} output={out}"
     )
     return 0 if bad==0 else 10
 
