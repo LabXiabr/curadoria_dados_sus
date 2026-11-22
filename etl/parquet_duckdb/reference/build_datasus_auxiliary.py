@@ -308,7 +308,7 @@ def ci_lookup(row: dict[str, str], field: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Materializa Bronze/Silver de auxiliares DATASUS")
     ap.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"))
     ap.add_argument("--system", action="append")
     args = ap.parse_args()
 
