@@ -62,7 +62,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--lake-root",
-        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"),
+        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"),
     )
     args = ap.parse_args()
 
