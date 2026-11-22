@@ -122,7 +122,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--lake-root",
-        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"),
+        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"),
     )
     ap.add_argument(
         "--run",
@@ -255,9 +255,9 @@ def main() -> int:
 
         seed = f"{r['service']}|{r['schema']}|{r['table']}|{r['dbc']}|"
         projection.extend([
-            "__suslake_rn::BIGINT AS nu_linha_fonte",
+            "__suslabx_rn::BIGINT AS nu_linha_fonte",
             (
-                f"md5({qs(seed)} || cast(__suslake_rn as varchar)) "
+                f"md5({qs(seed)} || cast(__suslabx_rn as varchar)) "
                 "AS id_registro_fonte"
             ),
         ])
@@ -300,7 +300,7 @@ def main() -> int:
         sql = (
             "COPY (SELECT "
             + ", ".join(projection)
-            + " FROM (SELECT *, row_number() OVER () AS __suslake_rn "
+            + " FROM (SELECT *, row_number() OVER () AS __suslabx_rn "
             + f"FROM read_parquet({qs(str(src))})) s) "
             + f"TO {qs(str(partial))} "
             + "(FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 122880);"
