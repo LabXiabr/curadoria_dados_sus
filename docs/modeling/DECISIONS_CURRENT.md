@@ -32,6 +32,24 @@ Split canônico atual:
 - competência < 202000: `bureta`;
 - competência >= 202000: `pipeta`.
 
+### Séries históricas / repositórios
+
+A unidade de repositório lógico segue a separação publicada no FTP DATASUS, e não apenas o nome do sistema.
+
+Regra geral:
+
+- pastas/séries FTP distintas permanecem repositórios físicos distintos em Raw, Bronze e Silver;
+- não concatenar eras históricas em um mesmo diretório Parquet;
+- eventual continuidade temporal entre eras é uma view/união lógica explícita, com proveniência da série;
+- o catálogo de datasets deve registrar cada série separadamente.
+
+Aplicação atual:
+
+- SIA `199407_200712` separado de SIA `200801_`;
+- SIH `199201_200712` separado de SIH `200801_`.
+
+A mesma regra deve ser aplicada aos demais sistemas quando o FTP oficial publicar séries/pastas históricas distintas.
+
 ## 3. Camadas
 
 ### Raw
