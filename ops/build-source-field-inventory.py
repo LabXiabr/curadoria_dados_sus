@@ -37,8 +37,8 @@ def query(service: str) -> list[tuple[str, str, str, str, str]]:
 def main() -> int:
     ap=argparse.ArgumentParser()
     ap.add_argument('--service', action='append', dest='services')
-    ap.add_argument('--output', default='/dados/abertos/suslake/state/metadata/source_fields_observed_current.tsv')
-    ap.add_argument('--schemas-output', default='/dados/abertos/suslake/state/metadata/source_schemas_observed_current.tsv')
+    ap.add_argument('--output', default='/dados/abertos/suslabx/state/metadata/source_fields_observed_current.tsv')
+    ap.add_argument('--schemas-output', default='/dados/abertos/suslabx/state/metadata/source_schemas_observed_current.tsv')
     args=ap.parse_args()
     services=args.services or ['bureta','pipeta']
 
