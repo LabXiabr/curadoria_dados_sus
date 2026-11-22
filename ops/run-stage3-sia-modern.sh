@@ -146,7 +146,7 @@ phase SNAPSHOT_PREFLIGHT
 python3 "$REPO_ROOT/ops/sia-psql-snapshot-overnight.py"   --lake-root "$LAKE_ROOT" --series "$SERIES" --jobs 1 --limit 2   --run-id "$RUN_ID"_preflight   | tee "$RUN/snapshot_preflight.txt"
 
 if [[ "$MODE" != "execute" ]]; then
-  write_status "DRY_RUN_OK" "COMPLETE" "preflight limitado executado"
+  write_status "DRY_RUN_OK" "COMPLETE" "preflight plan-only executado"
   echo "STAGE3_SIA_MODERN_DRY_RUN_OK run=$RUN"
   exit 0
 fi
