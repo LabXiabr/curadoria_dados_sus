@@ -133,7 +133,7 @@ def file_sha256(path: Path) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description="CNES BASE_DE_DADOS mensal -> Bronze Parquet")
     ap.add_argument("--competencia", required=True)
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"))
     ap.add_argument("--zip", type=Path)
     ap.add_argument("--keep-work", action="store_true")
     args = ap.parse_args()
