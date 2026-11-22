@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SRC="$ROOT/ops/apache/labx-suslake-private.conf"
-PRIVATE="/etc/apache2/conf-available/labx-suslake-private.conf"
+SRC="$ROOT/ops/apache/labx-suslabx-private.conf"
+PRIVATE="/etc/apache2/conf-available/labx-suslabx-private.conf"
 VHOST="/etc/apache2/conf-available/labx-public-parquet.conf"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 
@@ -19,7 +19,7 @@ cp -a "$VHOST" "$VHOST.bak_private_${STAMP}"
 cp "$SRC" "$PRIVATE"
 
 # O fragmento deve pertencer ao vhost :8766, nao ao contexto global.
-a2disconf labx-suslake-private >/dev/null 2>&1 || true
+a2disconf labx-suslabx-private >/dev/null 2>&1 || true
 
 python3 - "$VHOST" <<'PY'
 from pathlib import Path
@@ -29,7 +29,7 @@ p=Path(sys.argv[1])
 s=p.read_text(encoding="utf-8")
 begin="# LABX_SUSLAKE_PRIVATE_GUARD_BEGIN"
 end="# LABX_SUSLAKE_PRIVATE_GUARD_END"
-include="IncludeOptional /etc/apache2/conf-available/labx-suslake-private.conf"
+include="IncludeOptional /etc/apache2/conf-available/labx-suslabx-private.conf"
 
 if begin in s:
     a=s.index(begin)
