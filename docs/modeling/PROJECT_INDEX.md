@@ -1,4 +1,4 @@
-# SUS Lake / SUS Semântica — índice mestre
+# SUSLabX / SUS Semântica — índice mestre
 
 Status: vigente  
 Data de consolidação: 2026-11-16
@@ -21,14 +21,14 @@ Os chats são histórico e rastreabilidade, não autoridade normativa.
 
 O estado operacional de uma execução não fica congelado no Git:
 
-- execução/checkpoints/markers: `suslake/state`;
+- execução/checkpoints/markers: `suslabx/state`;
 - staging temporário: runtime do lake;
-- dados persistentes: `suslake/raw`, `suslake/bronze`, `suslake/silver`.
+- dados persistentes: `suslabx/raw`, `suslabx/bronze`, `suslabx/silver`.
 
 ## Estrutura conceitual
 
 ```text
-SUS Lake / SUS Semântica
+SUSLabX / SUS Semântica
 │
 ├── 00 Arquitetura
 │   ├── Raw / Bronze / Silver
@@ -85,7 +85,7 @@ SUS Lake / SUS Semântica
 - `docs/modeling/OPEN_ISSUES.md` — pendências e gates;
 - `docs/modeling/CHAT_TRACEABILITY.tsv` — rastreabilidade histórica;
 - `docs/adr/0001-storage-layers.md` — camadas e runtime;
-- `docs/adr/0008-publicacao-suslake.md` — superfície pública.
+- `docs/adr/0008-publicacao-suslabx.md` — superfície pública.
 
 ### Contratos transversais
 
@@ -132,7 +132,7 @@ Ao retomar o projeto:
 2. ler `DECISIONS_CURRENT.md`;
 3. ler `OPEN_ISSUES.md`;
 4. verificar `git status`, branch/PR e últimos commits;
-5. verificar markers/estado real em `suslake/state`;
+5. verificar markers/estado real em `suslabx/state`;
 6. executar os CQs pertinentes antes de alterar ou promover dados.
 
 Se um chat antigo divergir do Git consolidado, prevalece o Git, exceto se uma nova decisão explícita for tomada e registrada.
