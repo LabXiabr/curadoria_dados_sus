@@ -64,7 +64,7 @@ def expr(cols: list[str]) -> str:
 def main() -> int:
     ap=argparse.ArgumentParser(description="Bronze PostgreSQL -> Silver canonica")
     ap.add_argument("--profile",default="BURETA")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     ap.add_argument("--manifest",type=Path)
     ap.add_argument("--system",action="append")
     ap.add_argument("--subsystem",action="append")
