@@ -4,12 +4,12 @@ Status: aceito; revisado em 2026-11-16
 
 ## Decisão
 
-Raw, Bronze e Silver são as três camadas persistentes do SUS Lake.
+Raw, Bronze e Silver são as três camadas persistentes do SUSLabX.
 
-A árvore persistente em `/dados/abertos/suslake` contém somente:
+A árvore persistente em `/dados/abertos/suslabx` contém somente:
 
 ```text
-/dados/abertos/suslake/
+/dados/abertos/suslabx/
 ├── raw/
 ├── bronze/
 └── silver/
@@ -21,10 +21,10 @@ Diretórios operacionais não são camadas do lake e não devem permanecer nessa
 ## Runtime
 
 Estado, staging, work e logs são runtime do pipeline. O destino operacional é
-configurável e deve ficar fora de `/dados/abertos/suslake`, por exemplo:
+configurável e deve ficar fora de `/dados/abertos/suslabx`, por exemplo:
 
 ```text
-/dados/suslake_runtime/
+/dados/suslabx_runtime/
 ├── state/
 ├── staging/
 ├── work/
