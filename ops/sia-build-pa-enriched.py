@@ -79,7 +79,7 @@ def main():
         rawcols=[cols[x] for x in ("nu_cnspcn","cnspcn") if x in cols]
         if not auth:
             print(f"[{i}/{len(files)}] SKIP sem pa_autoriz {paf}")
-            report.append((str(paf),"skip_sem_pa_autoriz","","")); continue
+            report.append((series,str(paf),"skip_sem_pa_autoriz","","")); continue
 
         rawexpr="NULL"
         if rawcols:
