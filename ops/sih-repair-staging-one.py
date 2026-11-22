@@ -44,7 +44,7 @@ def parquet_count(path: Path) -> int:
 
 def main() -> int:
     ap=argparse.ArgumentParser(description="Reprocessa um DBC do snapshot SIH staging e reconcilia o results.tsv")
-    ap.add_argument("--lake-root",default="/dados/abertos/suslake")
+    ap.add_argument("--lake-root",default="/dados/abertos/suslabx")
     ap.add_argument("--run",help="Diretorio do overnight; padrao state/overnight/LATEST")
     ap.add_argument("--dbc",required=True,help="Nome exato do DBC, ex. SPRJ1910.dbc")
     ap.add_argument("--execute",action="store_true")
@@ -106,13 +106,13 @@ ATTACH 'service={service}' AS pg (TYPE postgres, READ_ONLY);
 COPY (
   SELECT
     t.*,
-    {qs(service)}::VARCHAR AS _suslake_source_service,
-    {qs(dbc)}::VARCHAR AS _suslake_source_dbc,
-    {qs(schema)}::VARCHAR AS _suslake_source_schema,
-    {qs(table)}::VARCHAR AS _suslake_source_table,
-    {qs(sub)}::VARCHAR AS _suslake_source_subsystem,
-    {qs(uf)}::VARCHAR AS _suslake_source_uf,
-    {qs(comp)}::VARCHAR AS _suslake_source_competencia
+    {qs(service)}::VARCHAR AS _suslabx_source_service,
+    {qs(dbc)}::VARCHAR AS _suslabx_source_dbc,
+    {qs(schema)}::VARCHAR AS _suslabx_source_schema,
+    {qs(table)}::VARCHAR AS _suslabx_source_table,
+    {qs(sub)}::VARCHAR AS _suslabx_source_subsystem,
+    {qs(uf)}::VARCHAR AS _suslabx_source_uf,
+    {qs(comp)}::VARCHAR AS _suslabx_source_competencia
   FROM pg.{qi(schema)}.{qi(table)} t
 )
 TO {qs(str(partial))}
