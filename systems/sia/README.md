@@ -1,5 +1,14 @@
 # SIA — modelo canônico
 
+## Séries históricas
+
+SIA mantém repositórios físicos distintos conforme a organização oficial do FTP:
+
+- `199407_200712`;
+- `200801_`.
+
+Raw, Bronze e Silver preservam essa separação. Uma análise longitudinal que atravesse 2007/2008 deve usar união lógica explícita entre as séries, sem mover os arquivos para um único repositório.
+
 ## Bronze e partições físicas
 
 A Bronze preserva cada família disseminada separadamente. Uma partição lógica é
