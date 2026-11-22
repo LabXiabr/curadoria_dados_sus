@@ -40,7 +40,7 @@ def choose(cols: dict[str,str], *cands: str) -> str | None:
 
 def main() -> int:
     ap=argparse.ArgumentParser(description="Compara regionalizacao territorial DATASUS com Portal de Dados Abertos")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
     if not shutil.which("duckdb"): die("duckdb CLI ausente",3)
 
