@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 RUN="$ROOT/etl/parquet_duckdb/sigtap/run.sh"
 QC="$ROOT/ops/qc-sigtap-raw-bronze.sh"
 
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 FTP_BASE="${SIGTAP_FTP_BASE:-ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads}"
 RAW="$LAKE_ROOT/raw/sigtap/zip"
 STATE="$LAKE_ROOT/state/sigtap"
