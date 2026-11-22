@@ -15,7 +15,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 STATE="$LAKE_ROOT/state/cnes"
 mkdir -p "$STATE"
 
