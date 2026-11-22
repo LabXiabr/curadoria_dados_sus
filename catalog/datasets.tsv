@@ -1,25 +1,25 @@
 dataset_id	system	layer	status	endpoint_id	discovery_path	grouping	duckdb_schema	duckdb_view	file_regex	description
 sim_do_estaduais	SIM	external	published	public_parquet	benchmark_mylena/sim_do_1996_2024/estaduais/	single	sim	do_estaduais	^do[a-z]{2}[0-9]{4}\.parquet$	SIM/DO 1996-2024 - arquivos estaduais do benchmark publicado
 sim_do_nacionais	SIM	external	published	public_parquet	benchmark_mylena/sim_do_1996_2024/nacionais/	single	sim	do_nacionais	^dobr[0-9]{4}\.parquet$	SIM/DO 1996-2024 - arquivos nacionais do benchmark publicado
-sim_bronze	SIM	bronze	auto	public_parquet	suslake/bronze/sim/	first_dir	sim		.*\.parquet$	SIM Bronze canonica; views por primeiro diretorio quando publicada
-sigtap_bronze	SIGTAP	bronze	published	public_parquet	suslake/bronze/sigtap/	first_dir	sigtap		^part-.*\.parquet$	SIGTAP Bronze; uma view por tabela agregando competencias publicadas
-sia_bronze	SIA	bronze	auto	public_parquet	suslake/bronze/sia/	first_dir	sia		.*\.parquet$	SIA Bronze; views por primeiro diretorio quando publicada
-sih_bronze	SIH	bronze	auto	public_parquet	suslake/bronze/sih/	first_dir	sih		.*\.parquet$	SIH Bronze; views por primeiro diretorio quando publicada
-cih_bronze	CIH	bronze	auto	public_parquet	suslake/bronze/cih/	first_dir	cih		.*\.parquet$	CIH Bronze canonica; views por primeiro diretorio quando publicada
-ciha_bronze	CIHA	bronze	auto	public_parquet	suslake/bronze/ciha/	first_dir	ciha		.*\.parquet$	CIHA Bronze; views por primeiro diretorio quando publicada
-cnes_bronze	CNES	bronze	private	public_parquet	suslake/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze completa local; nao publicar diretamente
-cnes_bronze_reference	CNES	bronze	published	public_parquet	suslake/bronze/cnes_reference/	first_dir	cnes_bronze		^part-.*\.parquet$	Subconjunto CNES Bronze publico para referencia temporal, incluindo profissionais, equipes e vinculos
-cnes_silver_reference	CNES	silver	published	public_parquet	suslake/silver/cnes_reference/	first_dir	cnes		^part-.*\.parquet$	Dimensoes e relacoes Silver CNES publicas por competencia, incluindo profissionais, equipes e vinculos
-sinasc_bronze	SINASC	bronze	auto	public_parquet	suslake/bronze/sinasc/	first_dir	sinasc		.*\.parquet$	SINASC Bronze; views por primeiro diretorio quando publicada
-sinan_bronze	SINAN	bronze	auto	public_parquet	suslake/bronze/sinan/	first_dir	sinan		.*\.parquet$	SINAN Bronze; views por primeiro diretorio quando publicada
-sigtap_silver	SIGTAP	silver	auto	public_parquet	suslake/silver/sigtap/	first_dir	sigtap_silver		^temporal\.parquet$	SIGTAP Silver temporal lossless; uma view por tabela quando publicada
-reference_cep_cnes	REFERENCE	silver	published	public_parquet	suslake/silver/reference/cep_cnes/	single	reference	cep_cnes	^current\.parquet$	CEP Brasil corrente do SCNES; Raw/Bronze preservam versoes por hash
-reference_cep_cnes_alterado	REFERENCE	silver	published	public_parquet	suslake/silver/reference/cep_cnes_alterado/	single	reference	cep_cnes_alterado	^current\.parquet$	Tabela CEPALTERADO corrente do SCNES; versao por hash preservada na Bronze
-reference_populacao_tabnet_qc	REFERENCE	silver	published	public_parquet	suslake/silver/reference/populacao/	single	reference	populacao_tabnet_qc	^part-.*\.parquet$	Totais municipais extraidos via TabNet; uso preferencial como QC independente do POPSVS
-reference_territorio	REFERENCE	silver	published	public_parquet	suslake/silver/reference/territorio/	first_dir	reference		^current\.parquet$	Tabelas territoriais correntes DATASUS: municipio UF regioes e relacionamentos
-reference_regionalizacao_saude	REFERENCE	silver	published	public_parquet	suslake/silver/reference/regionalizacao_saude/	first_dir	reference		^current\.parquet$	Regionalizacao de saude corrente do Portal de Dados Abertos do SUS
-reference_populacao_idade_sexo	REFERENCE	silver	published	public_parquet	suslake/silver/reference/populacao_idade_sexo/	single	reference	populacao_idade_sexo	^part-.*\.parquet$	POPSVS 2000-2025 por municipio ano sexo e idade
-reference_municipio_contexto	REFERENCE	silver	published	public_parquet	suslake/silver/reference/municipio_contexto/	single	reference	municipio_contexto	^current\.parquet$	Referencia municipal consolidada: UF regiao regionalizacao de saude e classificacoes territoriais
-reference_dim_territorio	REFERENCE	silver	published	public_parquet	suslake/silver/reference/dim_territorio/	single	reference	dim_territorio	^current\.parquet$	Dimensao territorial conformada com municipio RA-DF e chaves de drill de saude
-reference_datasus_domain	REFERENCE	silver	auto	public_parquet	suslake/silver/reference/datasus_domain/	single	reference	datasus_domain	^current\.parquet$	Dominios DATASUS extraidos de CNV/DBF com proveniencia temporal
-reference_datasus_layout_field	REFERENCE	silver	auto	public_parquet	suslake/silver/reference/datasus_layout_field/	single	reference	datasus_layout_field	^current\.parquet$	Campos e referencias de layout extraidos de DEF
+sim_bronze	SIM	bronze	auto	public_parquet	suslabx/bronze/sim/	first_dir	sim		.*\.parquet$	SIM Bronze canonica; views por primeiro diretorio quando publicada
+sigtap_bronze	SIGTAP	bronze	published	public_parquet	suslabx/bronze/sigtap/	first_dir	sigtap		^part-.*\.parquet$	SIGTAP Bronze; uma view por tabela agregando competencias publicadas
+sia_bronze	SIA	bronze	auto	public_parquet	suslabx/bronze/sia/	first_dir	sia		.*\.parquet$	SIA Bronze; views por primeiro diretorio quando publicada
+sih_bronze	SIH	bronze	auto	public_parquet	suslabx/bronze/sih/	first_dir	sih		.*\.parquet$	SIH Bronze; views por primeiro diretorio quando publicada
+cih_bronze	CIH	bronze	auto	public_parquet	suslabx/bronze/cih/	first_dir	cih		.*\.parquet$	CIH Bronze canonica; views por primeiro diretorio quando publicada
+ciha_bronze	CIHA	bronze	auto	public_parquet	suslabx/bronze/ciha/	first_dir	ciha		.*\.parquet$	CIHA Bronze; views por primeiro diretorio quando publicada
+cnes_bronze	CNES	bronze	private	public_parquet	suslabx/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze completa local; nao publicar diretamente
+cnes_bronze_reference	CNES	bronze	published	public_parquet	suslabx/bronze/cnes_reference/	first_dir	cnes_bronze		^part-.*\.parquet$	Subconjunto CNES Bronze publico para referencia temporal, incluindo profissionais, equipes e vinculos
+cnes_silver_reference	CNES	silver	published	public_parquet	suslabx/silver/cnes_reference/	first_dir	cnes		^part-.*\.parquet$	Dimensoes e relacoes Silver CNES publicas por competencia, incluindo profissionais, equipes e vinculos
+sinasc_bronze	SINASC	bronze	auto	public_parquet	suslabx/bronze/sinasc/	first_dir	sinasc		.*\.parquet$	SINASC Bronze; views por primeiro diretorio quando publicada
+sinan_bronze	SINAN	bronze	auto	public_parquet	suslabx/bronze/sinan/	first_dir	sinan		.*\.parquet$	SINAN Bronze; views por primeiro diretorio quando publicada
+sigtap_silver	SIGTAP	silver	auto	public_parquet	suslabx/silver/sigtap/	first_dir	sigtap_silver		^temporal\.parquet$	SIGTAP Silver temporal lossless; uma view por tabela quando publicada
+reference_cep_cnes	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/cep_cnes/	single	reference	cep_cnes	^current\.parquet$	CEP Brasil corrente do SCNES; Raw/Bronze preservam versoes por hash
+reference_cep_cnes_alterado	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/cep_cnes_alterado/	single	reference	cep_cnes_alterado	^current\.parquet$	Tabela CEPALTERADO corrente do SCNES; versao por hash preservada na Bronze
+reference_populacao_tabnet_qc	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/populacao/	single	reference	populacao_tabnet_qc	^part-.*\.parquet$	Totais municipais extraidos via TabNet; uso preferencial como QC independente do POPSVS
+reference_territorio	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/territorio/	first_dir	reference		^current\.parquet$	Tabelas territoriais correntes DATASUS: municipio UF regioes e relacionamentos
+reference_regionalizacao_saude	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/regionalizacao_saude/	first_dir	reference		^current\.parquet$	Regionalizacao de saude corrente do Portal de Dados Abertos do SUS
+reference_populacao_idade_sexo	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/populacao_idade_sexo/	single	reference	populacao_idade_sexo	^part-.*\.parquet$	POPSVS 2000-2025 por municipio ano sexo e idade
+reference_municipio_contexto	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/municipio_contexto/	single	reference	municipio_contexto	^current\.parquet$	Referencia municipal consolidada: UF regiao regionalizacao de saude e classificacoes territoriais
+reference_dim_territorio	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/dim_territorio/	single	reference	dim_territorio	^current\.parquet$	Dimensao territorial conformada com municipio RA-DF e chaves de drill de saude
+reference_datasus_domain	REFERENCE	silver	auto	public_parquet	suslabx/silver/reference/datasus_domain/	single	reference	datasus_domain	^current\.parquet$	Dominios DATASUS extraidos de CNV/DBF com proveniencia temporal
+reference_datasus_layout_field	REFERENCE	silver	auto	public_parquet	suslabx/silver/reference/datasus_layout_field/	single	reference	datasus_layout_field	^current\.parquet$	Campos e referencias de layout extraidos de DEF
