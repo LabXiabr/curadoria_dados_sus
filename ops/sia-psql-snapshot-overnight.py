@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import argparse, csv, datetime as dt, os, subprocess, threading
+import argparse, csv, datetime as dt, os, re, subprocess, threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 SERVICES=("bureta","pipeta")
-FIELDS=["service","subsystem","uf","competencia","dbc","schema","table","status","rows_pg","rows_parquet","bytes_parquet","path","error"]
+FIELDS=["service","series","subsystem","uf","competencia","dbc","schema","table","status","rows_pg","rows_parquet","bytes_parquet","path","error"]
 print_lock=threading.Lock()
 
 def qid(s): return '"' + s.replace('"','""') + '"'
@@ -23,9 +23,18 @@ FROM information_schema.tables
 WHERE table_schema='public' AND table_name ~ '^lista_dissemin_dbc_[0-9]{8}$'
 ORDER BY table_name DESC LIMIT 1;""").strip()
 
+def source_series(version, schema):
+    version=(version or "").strip()
+    if version:
+        return version.lower()
+    m=re.match(r"^sia_(\d{6}_\d{6}|\d{6}_)_", (schema or "").lower())
+    if m:
+        return m.group(1)
+    raise RuntimeError(f"serie FTP SIA nao identificada: version={version!r} schema={schema!r}")
+
 def manifest_rows(service,table):
     cutoff="< 202000" if service=="bureta" else ">= 202000"
-    sql=f"""SELECT upper(coalesce(sg_subsistema,'')),upper(coalesce(sg_uf,'')),
+    sql=f"""SELECT upper(coalesce(sg_versao,'')),upper(coalesce(sg_subsistema,'')),upper(coalesce(sg_uf,'')),
 coalesce(nu_competencia,0)::text,lower(no_dbc_origem),no_schema,no_tabela
 FROM {table}
 WHERE upper(coalesce(sg_sistema,''))='SIA'
@@ -36,8 +45,17 @@ ORDER BY 1,3,2,4;"""
     out=[]
     for line in psql(service,sql).splitlines():
         p=line.split("\t")
-        if len(p)==6:
-            out.append(dict(service=service,subsystem=p[0],uf=p[1],competencia=p[2],dbc=p[3],schema=p[4],table=p[5]))
+        if len(p)==7:
+            out.append(dict(
+                service=service,
+                series=source_series(p[0], p[5]),
+                subsystem=p[1],
+                uf=p[2],
+                competencia=p[3],
+                dbc=p[4],
+                schema=p[5],
+                table=p[6],
+            ))
     return out
 
 def count_pg(r):
@@ -49,7 +67,7 @@ def count_pq(path):
     return int(p.stdout.strip())
 
 def export_one(r,root):
-    path=root/r["subsystem"].lower()/f"uf={r['uf']}"/f"competencia={r['competencia']}"/f"source_service={r['service']}"/f"source_schema={r['schema']}"/f"source_table={r['table']}"/f"{r['dbc']}.parquet"
+    path=root/r["series"]/r["subsystem"].lower()/f"uf={r['uf']}"/f"competencia={r['competencia']}"/f"source_service={r['service']}"/f"source_schema={r['schema']}"/f"source_table={r['table']}"/f"{r['dbc']}.parquet"
     path.parent.mkdir(parents=True,exist_ok=True)
     partial=path.with_name(path.name+f".partial.{os.getpid()}.{threading.get_ident()}")
     try:
@@ -101,11 +119,11 @@ def main():
     # dedup canonico
     dedup={}
     for r in rows:
-        dedup[(r["service"],r["schema"],r["table"],r["dbc"])]=r
+        dedup[(r["service"],r["series"],r["schema"],r["table"],r["dbc"])]=r
     rows=list(dedup.values())
     if args.limit>0: rows=rows[:args.limit]
     with (run/"sia_manifest.tsv").open("w",encoding="utf-8",newline="") as f:
-        w=csv.DictWriter(f,fieldnames=["service","subsystem","uf","competencia","dbc","schema","table"],delimiter="\t",lineterminator="\n"); w.writeheader(); w.writerows(rows)
+        w=csv.DictWriter(f,fieldnames=["service","series","subsystem","uf","competencia","dbc","schema","table"],delimiter="\t",lineterminator="\n"); w.writeheader(); w.writerows(rows)
     (run/"source_lists.txt").write_text("\n".join(f"{k}={v}" for k,v in lists.items())+"\n",encoding="utf-8")
     (lake/"state"/"overnight"/"LATEST_SIA").write_text(str(run.resolve())+"\n",encoding="utf-8")
     print(f"SIA_OVERNIGHT_START run={run} files={len(rows)} jobs={args.jobs}",flush=True)
@@ -115,8 +133,8 @@ def main():
         for i,f in enumerate(as_completed(fut),1):
             x=f.result(); results.append(x)
             with print_lock:
-                print(f"[{i}/{len(rows)}] {x['status']} {x['service']} {x['subsystem']} {x['uf']} {x['competencia']} {x['dbc']} {x['error']}",flush=True)
-            write_tsv(run/"sia_parquet_results.tsv",sorted(results,key=lambda z:(z["subsystem"],z["competencia"],z["uf"],z["dbc"])))
+                print(f"[{i}/{len(rows)}] {x['status']} {x['service']} {x['series']} {x['subsystem']} {x['uf']} {x['competencia']} {x['dbc']} {x['error']}",flush=True)
+            write_tsv(run/"sia_parquet_results.tsv",sorted(results,key=lambda z:(z["series"],z["subsystem"],z["competencia"],z["uf"],z["dbc"])))
     bad=[r for r in results if r["status"] not in {"OK","SKIP_OK"} or str(r["rows_pg"])!=str(r["rows_parquet"])]
     with (run/"main.log").open("w",encoding="utf-8") as f:
         f.write(f"SIA_FILES={len(rows)}\nSIA_OK={len(rows)-len(bad)}\nSIA_BAD={len(bad)}\n")
