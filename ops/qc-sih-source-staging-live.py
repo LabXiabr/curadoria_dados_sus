@@ -62,7 +62,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description="CQ live BDSUS PostgreSQL versus staging Parquet SIH"
     )
-    ap.add_argument("--lake-root", default="/dados/abertos/suslake")
+    ap.add_argument("--lake-root", default="/dados/abertos/suslabx")
     ap.add_argument("--run")
     args = ap.parse_args()
 
