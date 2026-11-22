@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 TABNET_REPO="${TABNET_POP_REPO:-/dados/abertos/repos/tabnet-populacao}"
 REPO_URL="${TABNET_POP_REPO_URL:-https://github.com/LabXiabr/tabnet-populacao.git}"
 ANO="2024"
