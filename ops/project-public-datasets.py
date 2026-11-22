@@ -19,7 +19,7 @@ def read_tsv(path: Path):
 def main() -> int:
     ap = argparse.ArgumentParser(
         description=(
-            "Valida datasets publicaveis in-place sob /dados/abertos/suslake. "
+            "Valida datasets publicaveis in-place sob /dados/abertos/suslabx. "
             "Nao cria mais /dados/abertos/{bronze,silver}."
         )
     )
@@ -41,9 +41,9 @@ def main() -> int:
             continue
 
         rel = Path(r["discovery_path"])
-        if not rel.parts or rel.parts[0] != "suslake":
+        if not rel.parts or rel.parts[0] != "suslabx":
             raise SystemExit(
-                f"ERRO dataset publicado fora de suslake: {ds} path={rel}"
+                f"ERRO dataset publicado fora de suslabx: {ds} path={rel}"
             )
 
         src_root = root / rel
