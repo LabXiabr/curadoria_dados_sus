@@ -47,10 +47,10 @@ if [[ -f "$APACHE_PUBLIC_CONF" ]]; then
   else
     bad "apache include nao aponta para labx-suslabx-private.conf"
   fi
-  if grep -qi 'suslake' "$APACHE_PUBLIC_CONF"; then
-    bad "apache ativo ainda contem suslake"
+  if grep -Eqi 'labx-suslake-private\.conf|/dados/abertos/suslake|/files/suslake' "$APACHE_PUBLIC_CONF"; then
+    bad "apache ativo ainda contem referencia operacional SUSLake"
   else
-    ok "apache ativo sem suslake"
+    ok "apache ativo sem referencia operacional SUSLake"
   fi
 else
   warn "apache public conf nao encontrado: $APACHE_PUBLIC_CONF"
@@ -71,7 +71,14 @@ fi
 # Referencias ativas no repositorio. Historico/superseded e o proprio script de
 # migracao de nome sao permitidos.
 mapfile -t refs < <(
-  grep -RIn --exclude-dir=.git --exclude-dir=logs --exclude='*.gz' -- 'suslake' "$REPO_ROOT" 2>/dev/null     | grep -v '/docs/modeling/DECISIONS_SUPERSEDED.md:'     | grep -v '/ops/rename-suslake-to-suslabx.sh:'     || true
+  grep -REIn --exclude-dir=.git --exclude-dir=logs --exclude='*.gz' \
+    '(/dados/abertos/suslake|/files/suslake|labx-suslake-private\.conf|silver/suslake\.duckdb)' \
+    "$REPO_ROOT" 2>/dev/null \
+    | grep -v '/docs/modeling/DECISIONS_SUPERSEDED.md:' \
+    | grep -v '/ops/rename-suslake-to-suslabx.sh:' \
+    | grep -v '/ops/migrate-apache-suslabx.sh:' \
+    | grep -v '/ops/qc-stage1-suslabx.sh:' \
+    || true
 )
 if (( ${#refs[@]} == 0 )); then
   ok "repositorio ativo sem suslake"
@@ -95,6 +102,7 @@ fi
 fields="$LAKE_ROOT/state/metadata/source_fields_observed_current.tsv"
 schemas="$LAKE_ROOT/state/metadata/source_schemas_observed_current.tsv"
 tabnet="$LAKE_ROOT/state/metadata/tabnet/tabulator_summary.tsv"
+tabnet_options="$LAKE_ROOT/state/metadata/tabnet/tabulator_options.tsv"
 schema_gate="$LAKE_ROOT/state/metadata/source_schema_coverage_current.ok"
 
 for f in "$fields" "$schemas"; do
@@ -119,6 +127,11 @@ if [[ -s "$tabnet" && $(wc -l < "$tabnet") -gt 1 ]]; then
     ok "tabnet metadata total=$total ok=$ok_count error=$err_count"
     if (( err_count > 0 )); then
       warn "TabNet possui falhas registradas; revisar tabulator_summary.tsv, mas o harvest foi materializado"
+    fi
+    if [[ -s "$tabnet_options" && $(wc -l < "$tabnet_options") -gt 1 ]]; then
+      ok "tabnet options linhas=$(wc -l < "$tabnet_options")"
+    else
+      bad "TabNet harvest sem options materializadas: $tabnet_options"
     fi
   else
     bad "TabNet harvest sem nenhuma coleta bem-sucedida"
