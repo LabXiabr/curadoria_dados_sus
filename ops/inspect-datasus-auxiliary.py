@@ -42,7 +42,7 @@ def dbf_fields(data: bytes):
 
 def main():
     ap = argparse.ArgumentParser(description="Inspeciona amostras reais de auxiliares DATASUS")
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     ap.add_argument("--max-per-class", type=int, default=3)
     args = ap.parse_args()
 
