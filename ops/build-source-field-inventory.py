@@ -15,6 +15,8 @@ SELECT
   array_to_string(array_agg(DISTINCT ordinal_position ORDER BY ordinal_position), ' ') AS positions,
   string_agg(DISTINCT (data_type || '|' || udt_name), ' ' ORDER BY (data_type || '|' || udt_name)) AS types
 FROM information_schema.columns
+WHERE table_schema NOT IN ('information_schema','pg_catalog')
+  AND table_schema !~ '^pg_toast'
 GROUP BY 1,2
 ORDER BY 1,2;
 '''
