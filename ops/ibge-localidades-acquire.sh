@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 YEAR="${IBGE_LOCALIDADES_YEAR:-2022}"
 URL="${IBGE_LOCALIDADES_URL:-https://geoftp.ibge.gov.br/organizacao_do_territorio/estrutura_territorial/localidades/Localidades_do_Brasil/2022/Localidades_Brasil_gpkg.zip}"
 RAW="$LAKE_ROOT/raw/reference/ibge_localidades/year=$YEAR"
