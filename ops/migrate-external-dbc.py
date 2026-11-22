@@ -163,6 +163,20 @@ def main()->int:
         # mas exigir --copy torna a intencao operacional explicita.
         raise SystemExit("--delete-verified exige tambem --copy")
 
+    # Preflight de escrita: falhar antes de qualquer copia/remocao se a raiz Raw
+    # nao puder ser criada ou escrita pelo usuario corrente.
+    raw_root=lake/"raw"/"dissemin"/"dbc"
+    try:
+        raw_root.mkdir(parents=True,exist_ok=True)
+        probe=raw_root/f".write-test.{os.getpid()}"
+        probe.write_text("ok\n",encoding="utf-8")
+        probe.unlink()
+    except PermissionError:
+        raise SystemExit(
+            "sem permissao de escrita em "+str(raw_root)+"; "
+            "crie/ajuste a arvore antes de executar --copy/--delete-verified"
+        )
+
     files=sorted(p for p in srcdir.rglob("*") if p.is_file() and p.suffix.lower()==".dbc")
     if args.limit>0:
         files=files[:args.limit]
