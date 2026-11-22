@@ -82,6 +82,12 @@ def parquet_tracked_from_state(lake: Path) -> set[str]:
                     tracked.add(v)
     return tracked
 
+def recorded_counts(r: dict[str, str]) -> tuple[str, str]:
+    """Compatibilidade com runs novos (rows_*) e overnight legado (source/parquet_rows)."""
+    pg = r.get("rows_pg") or r.get("source_rows") or ""
+    pq = r.get("rows_parquet") or r.get("parquet_rows") or ""
+    return pg, pq
+
 def overnight_sih(lake: Path) -> dict:
     state = lake / "state" / "overnight"
     latest = state / "LATEST"
@@ -96,10 +102,32 @@ def overnight_sih(lake: Path) -> dict:
     mainlog = run / "main.log"
     if mainlog.is_file():
         done = "OVERNIGHT_DONE" in mainlog.read_text(encoding="utf-8", errors="replace").splitlines()
-    ok = sum(
-        1 for r in results
-        if r.get("status") in {"OK", "SKIP_OK"} and r.get("rows_pg") == r.get("rows_parquet")
-    )
+    ok = 0
+    problems = []
+    for r in results:
+        pg_recorded, pq_recorded = recorded_counts(r)
+        valid = (
+            r.get("status") in {"OK", "SKIP_OK"}
+            and bool(pg_recorded)
+            and bool(pq_recorded)
+            and pg_recorded == pq_recorded
+        )
+        if valid:
+            ok += 1
+        else:
+            problems.append({
+                "service": r.get("service", ""),
+                "subsystem": r.get("subsystem", ""),
+                "uf": r.get("uf", ""),
+                "competencia": r.get("competencia", ""),
+                "dbc": r.get("dbc", ""),
+                "schema": r.get("schema", ""),
+                "table": r.get("table", ""),
+                "status": r.get("status", ""),
+                "rows_pg": pg_recorded,
+                "rows_parquet": pq_recorded,
+                "path": r.get("path", ""),
+            })
     return {
         "available": True,
         "run": str(run),
@@ -108,6 +136,7 @@ def overnight_sih(lake: Path) -> dict:
         "results_files": len(results),
         "qc_ok_files": ok,
         "pending_or_failed": max(len(manifest) - ok, 0),
+        "problems": problems,
     }
 
 def main() -> int:
@@ -115,6 +144,11 @@ def main() -> int:
     ap.add_argument("--lake-root", default="/dados/abertos/suslabx")
     ap.add_argument("--system", action="append", help="Filtra sistema; pode repetir (ex.: --system SIH)")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument(
+        "--details",
+        action="store_true",
+        help="Lista SQL ausente e problemas do overnight, alem do resumo",
+    )
     args = ap.parse_args()
 
     lake = Path(args.lake_root)
@@ -164,6 +198,15 @@ def main() -> int:
     for s in summary.values():
         total.update(s)
 
+    missing_sql = [
+        r for r in rows
+        if r["sql_present"] != "1"
+    ]
+    untracked = [
+        r for r in rows
+        if r["dbc"] not in tracked
+    ]
+
     result = {
         "lake_root": str(lake),
         "source_lists": lists,
@@ -171,7 +214,13 @@ def main() -> int:
         "totals": dict(total),
         "by_system": {k: dict(v) for k, v in sorted(summary.items())},
         "sih_overnight": overnight_sih(lake),
-        "note": "parquet_tracked usa manifestos TSV em state; nao equivale a varredura fisica de todo o lake",
+        "sql_missing_rows": missing_sql if args.details else [],
+        "parquet_untracked_rows": untracked if args.details else [],
+        "note": (
+            "parquet_tracked usa manifestos TSV em state; nao equivale a varredura fisica "
+            "de todo o lake. O overnight SIH legado cobriu 200801..202610 com SQL presente; "
+            "DBC historico fora dessa janela pode aparecer como parquet_untracked sem ser falha."
+        ),
     }
 
     if args.json:
@@ -201,6 +250,62 @@ def main() -> int:
         )
     else:
         print("SIH_OVERNIGHT indisponivel")
+
+    if args.details:
+        print()
+        print("SQL_MISSING")
+        if missing_sql:
+            for r in sorted(
+                missing_sql,
+                key=lambda x: (
+                    x["system"], x["subsystem"], x["competencia"], x["uf"], x["dbc"]
+                ),
+            ):
+                print(
+                    "\t".join([
+                        r["service"], r["system"], r["subsystem"], r["uf"],
+                        r["competencia"], r["dbc"], r["schema"], r["table"],
+                    ])
+                )
+        else:
+            print("nenhum")
+
+        print()
+        print("SIH_OVERNIGHT_PROBLEMS")
+        problems = sih.get("problems", []) if sih.get("available") else []
+        if problems:
+            for r in problems:
+                print(
+                    "\t".join([
+                        r["service"], r["subsystem"], r["uf"], r["competencia"],
+                        r["dbc"], r["schema"], r["table"], r["status"],
+                        r["rows_pg"], r["rows_parquet"], r["path"],
+                    ])
+                )
+        else:
+            print("nenhum")
+
+        # Resumo util para interpretar parquet_untracked sem despejar milhares de linhas.
+        outside = Counter()
+        for r in untracked:
+            comp = int(r["competencia"] or 0)
+            if comp < 200801:
+                bucket = "pre_200801"
+            elif comp > 202610:
+                bucket = "pos_202610"
+            elif r["sql_present"] != "1":
+                bucket = "200801_202610_sql_ausente"
+            else:
+                bucket = "200801_202610_sql_presente_nao_rastreado"
+            outside[(r["system"], r["subsystem"], bucket)] += 1
+        print()
+        print("PARQUET_UNTRACKED_RESUMO")
+        if outside:
+            for (system, subsystem, bucket), n in sorted(outside.items()):
+                print(f"{system}\t{subsystem}\t{bucket}\t{n}")
+        else:
+            print("nenhum")
+
     return 0
 
 if __name__ == "__main__":
