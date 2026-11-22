@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 URL="${REGIONALIZACAO_SAUDE_URL:-https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/dbgeral/macroregiao_de_saude_csv.zip}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 RAW="$LAKE_ROOT/raw/reference/regionalizacao_saude"
 STATE="$LAKE_ROOT/state/reference"
 
