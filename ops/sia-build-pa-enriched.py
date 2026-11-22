@@ -47,6 +47,7 @@ def main():
     ap=argparse.ArgumentParser(description="Silver SIA PA enriquecido por CNSPCN com proveniencia")
     ap.add_argument("--lake-root",default="/dados/abertos/suslabx")
     ap.add_argument("--source",choices=["staging","bronze"],default="staging")
+    ap.add_argument("--series",action="append",help="Filtra serie FTP, ex. 200801_")
     ap.add_argument("--execute",action="store_true")
     ap.add_argument("--limit",type=int,default=0)
     args=ap.parse_args()
@@ -56,14 +57,23 @@ def main():
         src=lake/"staging"/"psql_snapshot"/"sia"
     else:
         src=lake/"bronze"/"sia"
-    pa=src/"pa"
-    if not pa.is_dir(): raise SystemExit(f"PA ausente: {pa}")
-    files=sorted(pa.rglob("*.parquet"))
+    wanted={x.lower() for x in (args.series or [])}
+    series_roots=[
+        d for d in sorted(src.iterdir())
+        if d.is_dir() and (not wanted or d.name.lower() in wanted)
+    ] if src.is_dir() else []
+    files=[]
+    for sroot in series_roots:
+        pa=sroot/"pa"
+        if pa.is_dir():
+            files.extend((sroot.name,p) for p in sorted(pa.rglob("*.parquet")))
+    if not files:
+        raise SystemExit(f"Nenhum PA encontrado por serie em: {src}")
     if args.limit>0: files=files[:args.limit]
-    destroot=lake/"silver"/"sia"/"pa_enriched"
     report=[]
 
-    for i,paf in enumerate(files,1):
+    for i,(series,paf) in enumerate(files,1):
+        series_root=src/series
         uf,comp=parse_partition(paf); cols=columns(str(paf))
         auth=cols.get("pa_autoriz")
         rawcols=[cols[x] for x in ("nu_cnspcn","cnspcn") if x in cols]
@@ -75,12 +85,13 @@ def main():
         if rawcols:
             rawexpr="coalesce("+",".join(f"nullif(trim(cast(p.{qid(c)} as varchar)),'')" for c in rawcols)+")"
 
-        afiles=aux_files(src,uf,comp)
+        afiles=aux_files(series_root,uf,comp)
         usable=[]
         for f in afiles:
             c=columns(str(f))
             if "ap_autoriz" in c and "ap_cnspcn" in c: usable.append(f)
 
+        destroot=lake/"silver"/"sia"/series/"pa_enriched"
         dest=destroot/f"uf={uf}"/f"competencia={comp}"/paf.name
         dest.parent.mkdir(parents=True,exist_ok=True)
         partial=dest.with_name(dest.name+f".partial.{os.getpid()}")
@@ -158,7 +169,7 @@ COPY (
 ) TO {q(str(partial))} (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 122880);
 """
         if not args.execute:
-            print(f"[{i}/{len(files)}] PLAN {uf} {comp} PA={paf.name} aux_files={len(usable)} -> {dest}")
+            print(f"[{i}/{len(files)}] PLAN {series} {uf} {comp} PA={paf.name} aux_files={len(usable)} -> {dest}")
             continue
         partial.unlink(missing_ok=True)
         pr=subprocess.run(["duckdb","-c",sql],text=True,capture_output=True)
@@ -174,12 +185,12 @@ count(*) FILTER (WHERE cnspcn_final IS NOT NULL),
 count(*) FILTER (WHERE tp_cnspcn_proveniencia='conflito_psql_aux'),
 count(*) FILTER (WHERE tp_cnspcn_proveniencia='aux_ambiguo')
 FROM read_parquet({q(str(dest))});""")
-        print(f"[{i}/{len(files)}] OK {uf} {comp} rows={n1} cns/conflict/ambiguous={qc}")
-        report.append((str(paf),"ok",str(dest),qc))
+        print(f"[{i}/{len(files)}] OK {series} {uf} {comp} rows={n1} cns/conflict/ambiguous={qc}")
+        report.append((series,str(paf),"ok",str(dest),qc))
     if args.execute:
         out=lake/"state"/"sia"/"pa_cnspcn_enrichment.tsv"; out.parent.mkdir(parents=True,exist_ok=True)
         with out.open("w",encoding="utf-8",newline="") as f:
-            w=csv.writer(f,delimiter="\t",lineterminator="\n"); w.writerow(["source","status","dest","qc"]); w.writerows(report)
+            w=csv.writer(f,delimiter="\t",lineterminator="\n"); w.writerow(["series","source","status","dest","qc"]); w.writerows(report)
         print(f"SIA_PA_ENRICH_DONE files={len(report)} report={out}")
     else:
         print(f"DRY_RUN files={len(files)}")
