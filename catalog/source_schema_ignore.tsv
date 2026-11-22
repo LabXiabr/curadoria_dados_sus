@@ -8,3 +8,6 @@ schema_pattern	classification	notes
 ^tm_.*$	local_derived	Staging/materializacoes locais
 ^qc_.*$	local_qc	Controle de qualidade local
 ^monsp$	local_derived	Schema local
+^sim_tmp$	local_staging	Staging local SIM; nao e fonte disseminada primaria
+^sinasc_tmp$	local_staging	Staging local SINASC; nao e fonte disseminada primaria
+^tua_.*$	local_derived	Schemas locais TUA de analise/auditoria/unificacao
