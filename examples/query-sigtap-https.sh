@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-BASE="${SIGTAP_HTTPS_BASE:-https://dados.labx.ia.br/files/suslake/bronze/sigtap/tb_procedimento/}"
+BASE="${SIGTAP_HTTPS_BASE:-https://dados.labx.ia.br/files/suslabx/bronze/sigtap/tb_procedimento/}"
 
 for c in curl sed sort duckdb mktemp; do
     command -v "$c" >/dev/null 2>&1 || {
