@@ -40,6 +40,7 @@ def load_source(service: str, table: str) -> list[dict[str, str]]:
 SELECT
   lower(coalesce(no_dbc_origem,'')),
   upper(coalesce(sg_sistema,'')),
+  upper(coalesce(sg_versao,'')),
   upper(coalesce(sg_subsistema,'')),
   upper(coalesce(sg_uf,'')),
   coalesce(nu_competencia,0)::text,
@@ -54,13 +55,31 @@ ORDER BY 2,3,5,4,1;
     out = []
     for line in run_psql(service, sql).splitlines():
         p = line.split("\t")
-        if len(p) != 8:
+        if len(p) != 9:
             continue
         out.append(dict(
-            service=service, dbc=p[0], system=p[1], subsystem=p[2], uf=p[3],
-            competencia=p[4], sql_present=p[5], schema=p[6], table=p[7],
+            service=service, dbc=p[0], system=p[1], version=p[2],
+            subsystem=p[3], uf=p[4], competencia=p[5], sql_present=p[6],
+            schema=p[7], table=p[8],
         ))
     return out
+
+def repository_id(r: dict[str, str]) -> str:
+    """Repositorio logico = pasta/serie da fonte FTP, nunca apenas o sistema."""
+    system = (r.get("system") or "").strip().lower()
+    version = (r.get("version") or "").strip().lower()
+    if version:
+        return f"{system}__{version}"
+    schema = (r.get("schema") or "").strip().lower()
+    prefix = system + "_"
+    if schema.startswith(prefix):
+        rest = schema[len(prefix):]
+        parts = rest.split("_")
+        if len(parts) >= 2 and parts[0].isdigit():
+            if len(parts) >= 3 and parts[1].isdigit():
+                return f"{system}__{parts[0]}_{parts[1]}"
+            return f"{system}__{parts[0]}_"
+    return system or "unknown"
 
 def read_tsv(path: Path) -> list[dict[str, str]]:
     try:
@@ -167,7 +186,11 @@ def main() -> int:
     dedup = {}
     duplicates = 0
     for r in rows:
-        key = (r["dbc"], r["system"], r["subsystem"], r["uf"], r["competencia"])
+        r["repository"] = repository_id(r)
+        key = (
+            r["dbc"], r["system"], r["repository"], r["subsystem"],
+            r["uf"], r["competencia"]
+        )
         if key in dedup:
             duplicates += 1
             # Preferir a linha que confirma SQL existente.
@@ -183,7 +206,7 @@ def main() -> int:
     tracked = parquet_tracked_from_state(lake)
     summary = defaultdict(lambda: Counter())
     for r in rows:
-        s = summary[r["system"]]
+        s = summary[(r["system"], r["repository"])]
         s["dbc_expected"] += 1
         if r["sql_present"] == "1":
             s["sql_present"] += 1
@@ -212,7 +235,10 @@ def main() -> int:
         "source_lists": lists,
         "canonical_duplicates_removed": duplicates,
         "totals": dict(total),
-        "by_system": {k: dict(v) for k, v in sorted(summary.items())},
+        "by_repository": {
+            f"{system}|{repository}": dict(v)
+            for (system, repository), v in sorted(summary.items())
+        },
         "sih_overnight": overnight_sih(lake),
         "sql_missing_rows": missing_sql if args.details else [],
         "parquet_untracked_rows": untracked if args.details else [],
@@ -230,10 +256,10 @@ def main() -> int:
     print(f"SUSLABX_STATUS lake={lake}")
     print("listas:", " | ".join(f"{k}={v}" for k,v in lists.items()))
     print(f"duplicatas_canonicas_removidas={duplicates}")
-    print("system\tdbc_expected\tsql_present\tsql_missing\tparquet_tracked\tparquet_untracked")
-    for system, s in sorted(summary.items()):
+    print("system\trepository\tdbc_expected\tsql_present\tsql_missing\tparquet_tracked\tparquet_untracked")
+    for (system, repository), s in sorted(summary.items()):
         print("\t".join(str(x) for x in (
-            system, s["dbc_expected"], s["sql_present"], s["sql_missing"],
+            system, repository, s["dbc_expected"], s["sql_present"], s["sql_missing"],
             s["parquet_tracked"], s["parquet_untracked"],
         )))
     print("TOTAL\t" + "\t".join(str(total[x]) for x in (
@@ -263,8 +289,11 @@ def main() -> int:
             ):
                 print(
                     "\t".join([
-                        r["service"], r["system"], r["subsystem"], r["uf"],
-                        r["competencia"], r["dbc"], r["schema"], r["table"],
+                        str(r.get("service") or ""), str(r.get("system") or ""),
+                        str(r.get("repository") or ""), str(r.get("subsystem") or ""),
+                        str(r.get("uf") or ""), str(r.get("competencia") or ""),
+                        str(r.get("dbc") or ""), str(r.get("schema") or ""),
+                        str(r.get("table") or ""),
                     ])
                 )
         else:
@@ -277,32 +306,28 @@ def main() -> int:
             for r in problems:
                 print(
                     "\t".join([
-                        r["service"], r["subsystem"], r["uf"], r["competencia"],
-                        r["dbc"], r["schema"], r["table"], r["status"],
-                        r["rows_pg"], r["rows_parquet"], r["path"],
+                        str(r.get("service") or ""), str(r.get("subsystem") or ""),
+                        str(r.get("uf") or ""), str(r.get("competencia") or ""),
+                        str(r.get("dbc") or ""), str(r.get("schema") or ""),
+                        str(r.get("table") or ""), str(r.get("status") or ""),
+                        str(r.get("rows_pg") or ""), str(r.get("rows_parquet") or ""),
+                        str(r.get("path") or ""),
                     ])
                 )
         else:
             print("nenhum")
 
-        # Resumo util para interpretar parquet_untracked sem despejar milhares de linhas.
+        # Resumo por repositorio/serie FTP. Eras distintas nunca sao somadas como
+        # cobertura de um unico repositorio.
         outside = Counter()
         for r in untracked:
-            comp = int(r["competencia"] or 0)
-            if comp < 200801:
-                bucket = "pre_200801"
-            elif comp > 202610:
-                bucket = "pos_202610"
-            elif r["sql_present"] != "1":
-                bucket = "200801_202610_sql_ausente"
-            else:
-                bucket = "200801_202610_sql_presente_nao_rastreado"
-            outside[(r["system"], r["subsystem"], bucket)] += 1
+            state = "sql_ausente" if r["sql_present"] != "1" else "sql_presente_nao_rastreado"
+            outside[(r["system"], r["repository"], r["subsystem"], state)] += 1
         print()
         print("PARQUET_UNTRACKED_RESUMO")
         if outside:
-            for (system, subsystem, bucket), n in sorted(outside.items()):
-                print(f"{system}\t{subsystem}\t{bucket}\t{n}")
+            for (system, repository, subsystem, state), n in sorted(outside.items()):
+                print(f"{system}\t{repository}\t{subsystem}\t{state}\t{n}")
         else:
             print("nenhum")
 
