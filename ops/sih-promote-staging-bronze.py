@@ -184,7 +184,7 @@ def main() -> int:
             die(f"competencia invalida: {comp}", 31)
 
         dest = (
-            lake / "bronze" / "sih" / sub.lower()
+            lake / "bronze" / "sih" / "200801_" / sub.lower()
             / f"uf={uf}" / f"competencia={comp}"
             / f"source_service={service}"
             / f"source_schema={schema}"
