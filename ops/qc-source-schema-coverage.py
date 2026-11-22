@@ -27,7 +27,7 @@ def query_schemas(service: str) -> set[str]:
 def main() -> int:
     ap=argparse.ArgumentParser()
     ap.add_argument('--service',action='append',dest='services')
-    ap.add_argument('--state-root',default='/dados/abertos/suslake/state/metadata')
+    ap.add_argument('--state-root',default='/dados/abertos/suslabx/state/metadata')
     args=ap.parse_args()
     services=args.services or ['bureta','pipeta']
 
