@@ -16,8 +16,8 @@ date	topic	decision_or_finding	status	git_authority
 2026-11-15	CNES	CO_UNIDADE opaca; CO_CNES público; território separado; hard gates relacionais	current	systems/cnes/silver_model.tsv
 2026-11-15	RAW	Raw versionado preserva volatilidade/republicação; CQ TabNet antes de aposentadoria PostgreSQL	current	docs/modeling/DECISIONS_CURRENT.md
 2026-11-15	PUBLICATION	Projeções públicas paralelas /raw /bronze /silver foram consideradas	 superseded	docs/modeling/DECISIONS_SUPERSEDED.md
-2026-11-16	FILESYSTEM	Árvore única suslake/raw, bronze, silver; runtime deve sair da árvore persistente	current	docs/adr/0001-storage-layers.md
-2026-11-16	CNES_PUBLICATION	cnes_reference público dentro da própria camada; CNES canônico privado	current	docs/adr/0008-publicacao-suslake.md
+2026-11-16	FILESYSTEM	Árvore única suslabx/raw, bronze, silver; runtime deve sair da árvore persistente	current	docs/adr/0001-storage-layers.md
+2026-11-16	CNES_PUBLICATION	cnes_reference público dentro da própria camada; CNES canônico privado	current	docs/adr/0008-publicacao-suslabx.md
 2026-11-16	SIA_PA	CNSPCN e variações são identificadores pseudonimizados; janela +/-3 apenas para recuperação	current	systems/identity/README.md
 2026-11-16	SCHEMA_COVERAGE	193/193 schemas assistenciais/disseminados observados cobertos por contrato	current	docs/modeling/source-coverage-20261116.md
 2026-11-16	OMOP	AIH lógica é candidata a visita; VISIT_OCCURRENCE somente após ERLEN/person_id	current	systems/omop/README.md
