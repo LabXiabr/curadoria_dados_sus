@@ -258,7 +258,21 @@ def main() -> int:
         projection = []
         normalized = []
 
+        legacy_lineage = {
+            "_suslake_source_service": "_suslabx_source_service",
+            "_suslake_source_dbc": "_suslabx_source_dbc",
+            "_suslake_source_schema": "_suslabx_source_schema",
+            "_suslake_source_table": "_suslabx_source_table",
+            "_suslake_source_subsystem": "_suslabx_source_subsystem",
+            "_suslake_source_uf": "_suslabx_source_uf",
+            "_suslake_source_competencia": "_suslabx_source_competencia",
+        }
+
         for c in cols:
+            lc = c.lower()
+            if lc in legacy_lineage:
+                projection.append(f"{qi(c)} AS {qi(legacy_lineage[lc])}")
+                continue
             w = widths.get(c.upper())
             if w:
                 projection.append(normalized_expr(c, w))
