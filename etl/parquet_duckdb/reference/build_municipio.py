@@ -28,7 +28,7 @@ def duck(sql,capture=False):
 
 def main():
     ap=argparse.ArgumentParser(description="Constrói referência municipal a partir do CNES Bronze")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
     if not shutil.which("duckdb"): die("duckdb CLI ausente",3)
     lake=Path(args.lake_root)
