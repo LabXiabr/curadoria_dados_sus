@@ -40,10 +40,14 @@ fi
 
 sudo install -m 0644 "$SRC_PRIVATE" "$DST_PRIVATE"
 sudo cp -a "$PUBLIC_CONF" "${PUBLIC_CONF}.bak_suslabx_${STAMP}"
-sudo sed -i 's#labx-suslake-private\.conf#labx-suslabx-private.conf#g' "$PUBLIC_CONF"
+sudo sed -i \
+  -e 's#labx-suslake-private\.conf#labx-suslabx-private.conf#g' \
+  -e 's#/dados/abertos/suslake#/dados/abertos/suslabx#g' \
+  -e 's#/files/suslake#/files/suslabx#g' \
+  "$PUBLIC_CONF"
 
-if grep -q 'labx-suslake-private\.conf' "$PUBLIC_CONF"; then
-  die "include antigo permaneceu em $PUBLIC_CONF"
+if grep -Eq 'labx-suslake-private\.conf|/dados/abertos/suslake|/files/suslake' "$PUBLIC_CONF"; then
+  die "referencia operacional antiga permaneceu em $PUBLIC_CONF"
 fi
 grep -q 'labx-suslabx-private\.conf' "$PUBLIC_CONF" || die "include novo nao encontrado"
 
@@ -51,8 +55,13 @@ sudo apachectl configtest
 sudo systemctl reload apache2
 
 # Valida o arquivo efetivamente habilitado quando houver symlink do conf-enabled.
-if [[ -f "$ENABLED_PUBLIC" ]] && grep -q 'labx-suslake-private\.conf' "$ENABLED_PUBLIC"; then
-  die "conf-enabled ainda referencia suslake: $ENABLED_PUBLIC"
+if [[ -f "$ENABLED_PUBLIC" ]] && grep -Eq 'labx-suslake-private\.conf|/dados/abertos/suslake|/files/suslake' "$ENABLED_PUBLIC"; then
+  die "conf-enabled ainda referencia SUSLake: $ENABLED_PUBLIC"
+fi
+
+OLD_PRIVATE="/etc/apache2/conf-available/labx-suslake-private.conf"
+if [[ -f "$OLD_PRIVATE" ]]; then
+  sudo mv "$OLD_PRIVATE" "${OLD_PRIVATE}.disabled_${STAMP}"
 fi
 
 log "APACHE_SUSLABX_OK"
