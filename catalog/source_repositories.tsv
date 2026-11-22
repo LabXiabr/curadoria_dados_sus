@@ -1,0 +1,5 @@
+repository_id	system	ftp_series	schema_pattern	staging_root	bronze_root	silver_root	status	notes
+sia__199407_200712	SIA	199407_200712	^sia_199407_200712_	staging/psql_snapshot/sia/199407_200712	bronze/sia/199407_200712	silver/sia/199407_200712	canonical	Serie historica separada conforme pasta FTP SIASUS/199407_200712
+sia__200801_	SIA	200801_	^sia_200801__	staging/psql_snapshot/sia/200801_	bronze/sia/200801_	silver/sia/200801_	canonical	Serie 200801+ separada conforme pasta FTP SIASUS/200801_
+sih__199201_200712	SIH	199201_200712	^sih_199201_200712_	staging/psql_snapshot/sih/199201_200712	bronze/sih/199201_200712	silver/sih/199201_200712	canonical	Serie historica separada conforme pasta FTP SIHSUS/199201_200712
+sih__200801_	SIH	200801_	^sih_200801__	staging/psql_snapshot/sih/200801_	bronze/sih/200801_	silver/sih/200801_	canonical	Serie 200801+ separada conforme pasta FTP SIHSUS/200801_
