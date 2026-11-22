@@ -8,7 +8,7 @@ Data: 2026-11-16
 A árvore persistente canônica é:
 
 ```text
-/dados/abertos/suslake/
+/dados/abertos/suslabx/
 ├── raw/
 ├── bronze/
 └── silver/
@@ -16,7 +16,7 @@ A árvore persistente canônica é:
 
 `state`, `staging`, `work` e `logs` são runtime e devem sair da árvore persistente após as execuções que ainda dependem dos caminhos atuais.
 
-Não criar uma camada física `gold/` dentro de `suslake` neste momento. Gold é camada lógica/derivada e será materializada conforme o produto exigir.
+Não criar uma camada física `gold/` dentro de `suslabx` neste momento. Gold é camada lógica/derivada e será materializada conforme o produto exigir.
 
 ## 2. Fonte e migração
 
@@ -254,11 +254,11 @@ Dados agregados não são forçados ao OMOP person-level.
 
 ## 14. Publicação
 
-A URL pública é sob `/files/suslake/`.
+A URL pública é sob `/files/suslabx/`.
 
 A árvore é default-deny; apenas datasets autorizados são liberados.
 
-Raw seletivo pode ser projetado em `suslake/raw/public/`.
+Raw seletivo pode ser projetado em `suslabx/raw/public/`.
 
 Não recriar raízes permanentes paralelas `/dados/abertos/raw`, `bronze` ou `silver`.
 
