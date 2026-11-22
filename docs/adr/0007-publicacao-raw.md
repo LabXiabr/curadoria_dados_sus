@@ -7,7 +7,7 @@ projetados por hardlink em `/dados/abertos/raw/` e publicados em
 `/files/raw/`.
 
 A decisão foi substituída em 2026-11-16 para manter uma única árvore de dados
-sob `/dados/abertos/suslake/{raw,bronze,silver}`.
+sob `/dados/abertos/suslabx/{raw,bronze,silver}`.
 
 As garantias que permanecem válidas são:
 
