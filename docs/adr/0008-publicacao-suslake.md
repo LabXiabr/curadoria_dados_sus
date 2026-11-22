@@ -1,10 +1,10 @@
-# ADR 0008 — Superfície pública dentro da árvore SUS Lake
+# ADR 0008 — Superfície pública dentro da árvore SUSLabX
 
 Status: aceito
 
 ## Contexto
 
-A política anterior mantinha a lake canônica em `/dados/abertos/suslake` e
+A política anterior mantinha a lake canônica em `/dados/abertos/suslabx` e
 criava projeções públicas paralelas em `/dados/abertos/raw`,
 `/dados/abertos/bronze` e `/dados/abertos/silver`.
 
@@ -15,7 +15,7 @@ Isso criava duas árvores concorrentes e tornava a descoberta de dados ambígua.
 A única árvore de dados é:
 
 ```text
-/dados/abertos/suslake/
+/dados/abertos/suslabx/
 ├── raw/
 ├── bronze/
 └── silver/
@@ -23,13 +23,13 @@ A única árvore de dados é:
 
 A URL pública correspondente começa em:
 
-`https://dados.labx.ia.br/files/suslake/`
+`https://dados.labx.ia.br/files/suslabx/`
 
 Não são criadas novas raízes `/dados/abertos/raw`, `bronze` ou `silver`.
 
 ## Política default-deny
 
-A árvore SUS Lake é privada por padrão. O Apache concede acesso somente aos
+A árvore SUSLabX é privada por padrão. O Apache concede acesso somente aos
 datasets explicitamente autorizados.
 
 Áreas operacionais como `state`, `staging`, `work` e `logs` nunca fazem
@@ -37,7 +37,7 @@ parte da superfície pública.
 
 ## Raw seletivo
 
-Artefatos Raw autorizados são projetados por hardlink em `raw/public/`, mantendo o acervo Raw canônico privado por padrão. A URL é `/files/suslake/raw/public/`.
+Artefatos Raw autorizados são projetados por hardlink em `raw/public/`, mantendo o acervo Raw canônico privado por padrão. A URL é `/files/suslabx/raw/public/`.
 
 ## Dataset totalmente público
 
@@ -71,7 +71,7 @@ aplicável, CQ externo oficial conforme ADR 0004 e ADR 0005.
 
 ## Compatibilidade
 
-URLs antigos fora de `/files/suslake/` podem ser retirados depois que:
+URLs antigos fora de `/files/suslabx/` podem ser retirados depois que:
 
 1. o novo caminho estiver publicado;
 2. os hardlinks forem verificados;
