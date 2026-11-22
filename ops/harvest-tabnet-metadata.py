@@ -10,13 +10,25 @@ class Parser(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.form=None; self.fields=[]; self.cur=None; self.opt=None
+
+    def flush_option(self):
+        # HTML permite omitir </option>. O TabNet usa esse padrao em varios
+        # formularios; portanto a opcao anterior tambem deve ser encerrada
+        # quando uma nova <option> comeca ou quando </select> e encontrado.
+        if self.opt is not None and self.cur is not None:
+            self.opt["label"]=" ".join(self.opt["label"].split())
+            self.cur["options"].append(self.opt)
+            self.opt=None
+
     def handle_starttag(self,tag,attrs):
         a=dict(attrs); tag=tag.lower()
         if tag=="form" and self.form is None:
             self.form={"method":a.get("method","GET").upper(),"action":a.get("action","")}
         elif tag=="select":
+            self.flush_option()
             self.cur={"name":a.get("name",""),"id":a.get("id",""),"multiple":int("multiple" in a),"options":[]}
         elif tag=="option" and self.cur is not None:
+            self.flush_option()
             self.opt={"value":a.get("value",""),"label":"","selected":int("selected" in a)}
         elif tag=="input" and (a.get("type") or "").lower()=="hidden":
             self.fields.append({"type":"hidden","name":a.get("name",""),"id":a.get("id",""),"multiple":0,"options":[{"value":a.get("value",""),"label":"","selected":1}]})
@@ -24,9 +36,10 @@ class Parser(HTMLParser):
         if self.opt is not None: self.opt["label"] += data
     def handle_endtag(self,tag):
         tag=tag.lower()
-        if tag=="option" and self.opt is not None and self.cur is not None:
-            self.opt["label"]=" ".join(self.opt["label"].split()); self.cur["options"].append(self.opt); self.opt=None
+        if tag=="option":
+            self.flush_option()
         elif tag=="select" and self.cur is not None:
+            self.flush_option()
             self.cur["type"]="select"; self.fields.append(self.cur); self.cur=None
 
 def role(name):
