@@ -18,7 +18,7 @@ O projeto não substitui a governança estratégica/institucional.
 
 ## Fonte de verdade do projeto
 
-A retomada do SUS Lake deve começar por:
+A retomada do SUSLabX deve começar por:
 
 - `docs/modeling/PROJECT_INDEX.md`;
 - `docs/modeling/DECISIONS_CURRENT.md`;
@@ -28,7 +28,7 @@ A retomada do SUS Lake deve começar por:
 
 O Git é a fonte de verdade para arquitetura, contratos, semântica, ETLs e CQs.
 Chats anteriores são histórico/rastreabilidade. Estado de execução permanece em
-`suslake/state`, e os dados permanecem nas camadas persistentes do lake.
+`suslabx/state`, e os dados permanecem nas camadas persistentes do lake.
 
 ## Camadas
 
@@ -62,11 +62,11 @@ python3 ops/build-duckdb-public-catalog.py --database ~/duckdb/bureta.duckdb
 
 ## Raw oficial para download
 
-Os artefatos Raw autorizados são publicados dentro da própria árvore SUS Lake:
+Os artefatos Raw autorizados são publicados dentro da própria árvore SUSLabX:
 
 ```text
-/dados/abertos/suslake/raw/public/
-https://dados.labx.ia.br/files/suslake/raw/public/
+/dados/abertos/suslabx/raw/public/
+https://dados.labx.ia.br/files/suslabx/raw/public/
 ```
 
 A árvore é default-deny no Apache; apenas caminhos explicitamente autorizados recebem acesso público.
@@ -90,7 +90,7 @@ O snapshot mensal CNES só é publicado quando o respectivo
 `state/cnes/qc_global_AAAAMM.ok` estiver validado.
 
 Isso não cria nova camada: os arquivos continuam sendo Raw. O caminho público
-é apenas uma projeção dos mesmos inodes preservados em `suslake/raw/`.
+é apenas uma projeção dos mesmos inodes preservados em `suslabx/raw/`.
 
 Política completa: `docs/adr/0007-publicacao-raw.md`.
 
@@ -175,7 +175,7 @@ A fonte Raw preferencial do CNES e o snapshot oficial
 ./ops/cnes-base-complete.sh --competencia latest
 ```
 
-Antes da primeira carga, aplicar `ops/apache/labx-suslake-private.conf`.
+Antes da primeira carga, aplicar `ops/apache/labx-suslabx-private.conf`.
 
 ### CEP Brasil
 
@@ -223,21 +223,21 @@ física. O contrato completo está em
 `docs/adr/0006-silver-territorio-cnes.md`.
 
 O pipeline CNES também cria o catálogo privado
-`silver/suslake.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
+`silver/suslabx.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
 fatos virtualmente sem duplicar a geografia nas tabelas factuais.
 
 
 ### CNES Parquet público e histórico
 
-A Bronze completa continua canônica e protegida em `suslake/bronze/cnes/`.
+A Bronze completa continua canônica e protegida em `suslabx/bronze/cnes/`.
 Um subconjunto próprio para referência é projetado por hardlink dentro da própria Bronze em
-`/dados/abertos/suslake/bronze/cnes_reference/`, disponível em
-`https://dados.labx.ia.br/files/suslake/bronze/cnes_reference/`.
+`/dados/abertos/suslabx/bronze/cnes_reference/`, disponível em
+`https://dados.labx.ia.br/files/suslabx/bronze/cnes_reference/`.
 
 A Silver homologada é promovida por competência e o subconjunto de dimensões
 e relações de referência é projetado em
-`/dados/abertos/suslake/silver/cnes_reference/`, disponível em
-`https://dados.labx.ia.br/files/suslake/silver/cnes_reference/`.
+`/dados/abertos/suslabx/silver/cnes_reference/`, disponível em
+`https://dados.labx.ia.br/files/suslabx/silver/cnes_reference/`.
 
 Profissionais, equipes e vínculos integram a superfície pública CNES, em
 coerência com a consulta pública do próprio SCNES. Assim, a publicação de
@@ -370,7 +370,7 @@ Execução:
 ./ops/dissemin-system-complete.sh --profile BURETA --system SIA --execute
 ```
 
-A Bronze é gravada na lake canônica em `suslake/bronze/<sistema>/`, com
+A Bronze é gravada na lake canônica em `suslabx/bronze/<sistema>/`, com
 proveniência PostgreSQL. Cada tabela só é homologada quando
 `COUNT(*) PostgreSQL == COUNT(*) Parquet`. A retirada do PostgreSQL nunca é
 automática e depende também de QC externo contra TabNet.
@@ -394,7 +394,7 @@ origem e distância mensal da recuperação.
 A única árvore persistente do lake é:
 
 ```text
-/dados/abertos/suslake/
+/dados/abertos/suslabx/
 ├── raw/
 ├── bronze/
 └── silver/
@@ -408,4 +408,4 @@ Quando apenas um subconjunto pode ser exposto, a projeção por hardlink fica
 dentro da própria camada, como `bronze/cnes_reference` e
 `silver/cnes_reference`.
 
-Política: `docs/adr/0008-publicacao-suslake.md`.
+Política: `docs/adr/0008-publicacao-suslabx.md`.
