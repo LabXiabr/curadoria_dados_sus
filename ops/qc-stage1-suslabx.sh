@@ -77,6 +77,7 @@ mapfile -t refs < <(
     | grep -v '/docs/modeling/DECISIONS_SUPERSEDED.md:' \
     | grep -v '/ops/rename-suslake-to-suslabx.sh:' \
     | grep -v '/ops/migrate-apache-suslabx.sh:' \
+    | grep -v '/ops/apache/install-labx-private-guard.sh:' \
     | grep -v '/ops/qc-stage1-suslabx.sh:' \
     || true
 )
