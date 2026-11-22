@@ -3,8 +3,6 @@ sim_do_estaduais	SIM	external	published	public_parquet	benchmark_mylena/sim_do_1
 sim_do_nacionais	SIM	external	published	public_parquet	benchmark_mylena/sim_do_1996_2024/nacionais/	single	sim	do_nacionais	^dobr[0-9]{4}\.parquet$	SIM/DO 1996-2024 - arquivos nacionais do benchmark publicado
 sim_bronze	SIM	bronze	auto	public_parquet	suslabx/bronze/sim/	first_dir	sim		.*\.parquet$	SIM Bronze canonica; views por primeiro diretorio quando publicada
 sigtap_bronze	SIGTAP	bronze	published	public_parquet	suslabx/bronze/sigtap/	first_dir	sigtap		^part-.*\.parquet$	SIGTAP Bronze; uma view por tabela agregando competencias publicadas
-sia_bronze	SIA	bronze	auto	public_parquet	suslabx/bronze/sia/	first_dir	sia		.*\.parquet$	SIA Bronze; views por primeiro diretorio quando publicada
-sih_bronze	SIH	bronze	auto	public_parquet	suslabx/bronze/sih/	first_dir	sih		.*\.parquet$	SIH Bronze; views por primeiro diretorio quando publicada
 cih_bronze	CIH	bronze	auto	public_parquet	suslabx/bronze/cih/	first_dir	cih		.*\.parquet$	CIH Bronze canonica; views por primeiro diretorio quando publicada
 ciha_bronze	CIHA	bronze	auto	public_parquet	suslabx/bronze/ciha/	first_dir	ciha		.*\.parquet$	CIHA Bronze; views por primeiro diretorio quando publicada
 cnes_bronze	CNES	bronze	private	public_parquet	suslabx/bronze/cnes/	first_dir	cnes		.*\.parquet$	CNES Bronze completa local; nao publicar diretamente
@@ -23,3 +21,7 @@ reference_municipio_contexto	REFERENCE	silver	published	public_parquet	suslabx/s
 reference_dim_territorio	REFERENCE	silver	published	public_parquet	suslabx/silver/reference/dim_territorio/	single	reference	dim_territorio	^current\.parquet$	Dimensao territorial conformada com municipio RA-DF e chaves de drill de saude
 reference_datasus_domain	REFERENCE	silver	auto	public_parquet	suslabx/silver/reference/datasus_domain/	single	reference	datasus_domain	^current\.parquet$	Dominios DATASUS extraidos de CNV/DBF com proveniencia temporal
 reference_datasus_layout_field	REFERENCE	silver	auto	public_parquet	suslabx/silver/reference/datasus_layout_field/	single	reference	datasus_layout_field	^current\.parquet$	Campos e referencias de layout extraidos de DEF
+sia_199407_200712_bronze	SIA	bronze	auto	public_parquet	suslabx/bronze/sia/199407_200712/	first_dir	sia_199407_200712		.*\.parquet$	SIA historico 199407-200712; repositorio separado conforme pasta FTP
+sia_200801_bronze	SIA	bronze	auto	public_parquet	suslabx/bronze/sia/200801_/	first_dir	sia_200801		.*\.parquet$	SIA 200801+; repositorio separado conforme pasta FTP
+sih_199201_200712_bronze	SIH	bronze	auto	public_parquet	suslabx/bronze/sih/199201_200712/	first_dir	sih_199201_200712		.*\.parquet$	SIH historico 199201-200712; repositorio separado conforme pasta FTP
+sih_200801_bronze	SIH	bronze	auto	public_parquet	suslabx/bronze/sih/200801_/	first_dir	sih_200801		.*\.parquet$	SIH 200801+; repositorio separado conforme pasta FTP
