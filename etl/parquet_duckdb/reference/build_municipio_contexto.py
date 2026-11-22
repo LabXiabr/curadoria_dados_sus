@@ -69,7 +69,7 @@ def list_agg(expr: str) -> str:
 
 def main() -> int:
     ap=argparse.ArgumentParser(description="Constrói referencia municipal consolidada a partir da base territorial DATASUS")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
 
     if not shutil.which("duckdb"):
