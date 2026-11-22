@@ -1,5 +1,14 @@
 # SIH — modelo canônico
 
+## Séries históricas
+
+SIH mantém repositórios físicos distintos conforme a organização oficial do FTP:
+
+- `199201_200712`;
+- `200801_`.
+
+Raw, Bronze e Silver preservam essa separação. Continuidade longitudinal entre as eras é construída por view/união lógica explícita e mantém a série de origem como proveniência.
+
 ## Princípios
 
 A Bronze preserva uma representação lógica fiel ao DATASUS por fonte física.
