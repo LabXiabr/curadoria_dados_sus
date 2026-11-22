@@ -72,7 +72,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Inventaria PostgreSQL bdsus para transposicao lossless a Parquet")
     ap.add_argument("--profile",default="BURETA")
     ap.add_argument("--env-file",type=Path,default=Path.home()/"etl_ftp_sus_parquet"/".env")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     ap.add_argument("--system",action="append")
     args = ap.parse_args()
 
