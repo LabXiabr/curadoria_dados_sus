@@ -95,6 +95,7 @@ fi
 fields="$LAKE_ROOT/state/metadata/source_fields_observed_current.tsv"
 schemas="$LAKE_ROOT/state/metadata/source_schemas_observed_current.tsv"
 tabnet="$LAKE_ROOT/state/metadata/tabnet/tabulator_summary.tsv"
+schema_gate="$LAKE_ROOT/state/metadata/source_schema_coverage_current.ok"
 
 for f in "$fields" "$schemas"; do
   if [[ -s "$f" && $(wc -l < "$f") -gt 1 ]]; then
@@ -104,11 +105,24 @@ for f in "$fields" "$schemas"; do
   fi
 done
 
+if [[ -s "$schema_gate" ]]; then
+  ok "schema coverage gate presente"
+else
+  bad "schema coverage gate ausente: $schema_gate"
+fi
+
 if [[ -s "$tabnet" && $(wc -l < "$tabnet") -gt 1 ]]; then
   ok_count=$(awk -F '\t' 'NR>1 && $9=="ok"{n++} END{print n+0}' "$tabnet")
   err_count=$(awk -F '\t' 'NR>1 && $9!="ok"{n++} END{print n+0}' "$tabnet")
   total=$((ok_count+err_count))
-  ok "tabnet metadata total=$total ok=$ok_count error=$err_count"
+  if (( ok_count > 0 )); then
+    ok "tabnet metadata total=$total ok=$ok_count error=$err_count"
+    if (( err_count > 0 )); then
+      warn "TabNet possui falhas registradas; revisar tabulator_summary.tsv, mas o harvest foi materializado"
+    fi
+  else
+    bad "TabNet harvest sem nenhuma coleta bem-sucedida"
+  fi
 else
   bad "tabnet metadata ausente/vazio: $tabnet"
 fi
