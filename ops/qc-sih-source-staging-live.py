@@ -22,6 +22,12 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as f:
         return list(csv.DictReader(f, delimiter="\t"))
 
+def recorded_counts(r: dict[str, str]) -> tuple[str, str]:
+    """Compatibilidade com runs novos (rows_*) e overnight legado (source/parquet_rows)."""
+    pg = r.get("rows_pg") or r.get("source_rows") or ""
+    pq = r.get("rows_parquet") or r.get("parquet_rows") or ""
+    return pg, pq
+
 def psql_count(service: str, schema: str, table: str) -> int:
     sql = f"SELECT count(*) FROM {qident(schema)}.{qident(table)};"
     p = subprocess.run(
@@ -95,9 +101,12 @@ def main() -> int:
     dbc_seen = set()
 
     for r in rows:
+        pg_recorded, pq_recorded = recorded_counts(r)
         if (
             r.get("status") not in {"OK", "SKIP_OK"}
-            or r.get("rows_pg") != r.get("rows_parquet")
+            or not pg_recorded
+            or not pq_recorded
+            or pg_recorded != pq_recorded
         ):
             bad_results.append(r)
         comp = int(r["competencia"])
@@ -125,7 +134,8 @@ def main() -> int:
             die(f"Parquet ausente: {path}", 27)
         pg_now = psql_count(r["service"], r["schema"], r["table"])
         pq_now = parquet_count(path)
-        expected = int(r["rows_parquet"])
+        _, pq_recorded = recorded_counts(r)
+        expected = int(pq_recorded)
         ok = int(pg_now == pq_now == expected)
         bad_live += 0 if ok else 1
         report_rows.append({
