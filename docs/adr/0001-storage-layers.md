@@ -50,6 +50,11 @@ Uma fonte física (DBC/DBF/tabela PostgreSQL de migração) permanece identific�
 por proveniência. Quando uma partição lógica possui vários arquivos físicos,
 ela é definida como `UNION ALL` de todas as partes.
 
+A árvore também preserva as séries históricas separadas pelo FTP oficial. Assim,
+duas pastas/eras publicadas separadamente pelo DATASUS não são fundidas em um
+mesmo repositório físico Parquet. Continuidade entre séries é declarada em
+Silver por view/união lógica, mantendo a série de origem.
+
 A migração PostgreSQL -> Parquet passa por staging. A saída do staging só é
 promovida a Bronze após CQ e reconstrução explícita de representações DATASUS
 que tenham sido alteradas pela tipagem PostgreSQL, como zeros à esquerda.
