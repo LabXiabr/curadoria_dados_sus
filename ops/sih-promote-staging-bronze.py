@@ -358,7 +358,11 @@ def main() -> int:
     ]
     with report.open("w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(
-            f, fieldnames=fields, delimiter="\t", lineterminator="\n"
+            f,
+            fieldnames=fields,
+            delimiter="\t",
+            lineterminator="\n",
+            extrasaction="ignore",
         )
         w.writeheader()
         w.writerows(report_rows)
