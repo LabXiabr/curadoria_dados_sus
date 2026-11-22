@@ -262,7 +262,7 @@ def main() -> int:
             system, repository, s["dbc_expected"], s["sql_present"], s["sql_missing"],
             s["parquet_tracked"], s["parquet_untracked"],
         )))
-    print("TOTAL\t" + "\t".join(str(total[x]) for x in (
+    print("TOTAL\tALL\t" + "\t".join(str(total[x]) for x in (
         "dbc_expected","sql_present","sql_missing","parquet_tracked","parquet_untracked"
     )))
     sih = result["sih_overnight"]
