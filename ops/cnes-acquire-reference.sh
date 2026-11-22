@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 FTP_BASE="${CNES_FTP_BASE:-ftp://ftp.datasus.gov.br/cnes}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 RAW="$LAKE_ROOT/raw/cnes/reference"
 STATE="$LAKE_ROOT/state/cnes"
 
