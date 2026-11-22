@@ -86,8 +86,9 @@ for cmd in python3 psql duckdb dbview flock; do
   command -v "$cmd" >/dev/null || { echo "ERRO: comando ausente: $cmd" >&2; exit 71; }
 done
 python3 - <<'PY'
-import bs4, html5lib
-print("PYTHON_DEPS_OK bs4 html5lib")
+from html.parser import HTMLParser
+from urllib.request import Request, urlopen
+print("PYTHON_STDLIB_OK html.parser urllib")
 PY
 
 bash "$REPO_ROOT/ops/qc-stage1-suslabx.sh"
