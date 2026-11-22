@@ -93,6 +93,11 @@ PY
 
 bash "$REPO_ROOT/ops/qc-stage1-suslabx.sh"
 
+python3 "$REPO_ROOT/ops/qc-sih-tabnet-aih.py" \
+  --preflight-only \
+  --save-tabnet-html "$RUN/tabnet_preflight.html" \
+  | tee "$RUN/tabnet_preflight.txt"
+
 for svc in bureta pipeta; do
   psql "service=$svc" -X -At -P pager=off -c     "select current_database(),inet_server_addr(),inet_server_port();"     | sed "s/^/PSQL_OK $svc /"
 done
