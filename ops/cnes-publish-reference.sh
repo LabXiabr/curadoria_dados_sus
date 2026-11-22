@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COMP="${1:-202610}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 
 [[ "$COMP" =~ ^[0-9]{6}$ ]] || {
   echo "Uso: $0 YYYYMM" >&2
@@ -24,5 +24,5 @@ python3 -m py_compile   "$ROOT/ops/publish-parquet-artifacts.py"   "$ROOT/ops/cn
 "$ROOT/ops/publish-parquet-artifacts.py" --dataset cnes_silver_reference
 
 echo "CNES_REFERENCE_PUBLICATION_OK competencia=$COMP"
-echo "bronze=https://dados.labx.ia.br/files/suslake/bronze/cnes_reference/"
-echo "silver=https://dados.labx.ia.br/files/suslake/silver/cnes_reference/"
+echo "bronze=https://dados.labx.ia.br/files/suslabx/bronze/cnes_reference/"
+echo "silver=https://dados.labx.ia.br/files/suslabx/silver/cnes_reference/"
