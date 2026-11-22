@@ -138,7 +138,7 @@ def main()->int:
         description="Drena DBC legado de disco externo para Raw SUSLabX com gate SHA-256 local + FTP"
     )
     ap.add_argument("--source-dir",default="/mnt/sdb/tmp/DBF2025-06-26")
-    ap.add_argument("--lake-root",default="/dados/abertos/suslake")
+    ap.add_argument("--lake-root",default="/dados/abertos/suslabx")
     ap.add_argument("--report")
     ap.add_argument("--verify-ftp",action="store_true",
                     help="baixa temporariamente o DBC do FTP oficial e compara SHA-256")
