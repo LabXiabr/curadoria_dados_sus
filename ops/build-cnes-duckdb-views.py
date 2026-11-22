@@ -39,7 +39,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--lake-root",
-        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"),
+        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"),
     )
     ap.add_argument("--database", type=Path)
     ap.add_argument("--output-sql", type=Path, default=DEFAULT_SQL)
@@ -50,7 +50,7 @@ def main() -> int:
 
     lake = Path(args.lake_root)
     database = (
-        args.database or (lake / "silver" / "suslake.duckdb")
+        args.database or (lake / "silver" / "suslabx.duckdb")
     ).expanduser().resolve()
     sql_path = args.output_sql.expanduser().resolve()
     state = lake / "state" / "cnes"
@@ -119,7 +119,7 @@ def main() -> int:
     if database.stem.lower() == "cnes":
         die(
             "nome de catalogo DuckDB 'cnes' conflita com o schema 'cnes'; "
-            "use silver/suslake.duckdb",
+            "use silver/suslabx.duckdb",
             4,
         )
 
