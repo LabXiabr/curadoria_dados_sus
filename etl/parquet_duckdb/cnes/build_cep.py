@@ -45,7 +45,7 @@ def decode_to_utf8(data: bytes) -> str:
 
 def main() -> int:
     ap=argparse.ArgumentParser(description="CEP_BRASIL.ZIP -> Bronze reference Parquet")
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     ap.add_argument("--zip", type=Path)
     args=ap.parse_args()
 
