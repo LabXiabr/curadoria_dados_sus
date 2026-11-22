@@ -1,0 +1,13 @@
+system	subsystem	valid_from	valid_to	fact_field	dimension	dimension_field	role	temporal_rule	path	status
+SIA	PA	199407	200712	pa_coduni	CNES	co_cnes	estabelecimento_execucao	same_competence	canonical	needs_historical_validation
+SIA	PA	199407	200712	pa_codpro	PROCEDIMENTO	co_procedimento	procedimento	legacy_scheme	canonical	needs_mapping
+SIA	PA	200801		pa_coduni	CNES	co_cnes	estabelecimento_execucao	same_competence	canonical	candidate
+SIA	PA	200801		pa_proc_id	SIGTAP	co_procedimento	procedimento	same_competence	canonical	candidate
+SIA	PA	200801		pa_munpcn	TERRITORIO	co_municipio	residencia_usuario	valid_at_competence	canonical	candidate
+SIH	RD	200801		cnes	CNES	co_cnes	estabelecimento_hospitalar	same_competence	canonical	candidate
+SIH	RD	200801		proc_rea	SIGTAP	co_procedimento	procedimento_realizado	same_competence	canonical	candidate
+SIH	RD	200801		proc_solic	SIGTAP	co_procedimento	procedimento_solicitado	same_competence	canonical	candidate
+SIH	RD	200801		munic_res	TERRITORIO	co_municipio	residencia_usuario	valid_at_competence	canonical	candidate
+SIH	SP	200801		sp_cnes	CNES	co_cnes	estabelecimento_ato	same_competence	detail_validation	candidate
+SIH	SP	200801		sp_procrea	SIGTAP	co_procedimento	procedimento_realizado	same_competence	detail	candidate
+SIH	SP	200801		sp_atoprof	SIGTAP	co_procedimento	ato_profissional	same_competence	detail	needs_semantic_validation

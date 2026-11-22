@@ -1,0 +1,7 @@
+pa_docorig	semantic_class	expected_sigtap_registro	individualization	authorization_rule	status
+B	RAAS_PSI	09	individualized	not_key	validated_empirical
+C	BPA_C	01	aggregate	not_applicable	validated_empirical
+I	BPA_I	02	individualized	optional	validated_empirical
+P	APAC_PRINCIPAL	06	individualized	required	validated_empirical
+S	APAC_SECONDARY	06|07	individualized	required	needs_semantic_validation
+A	RAAS_AD		individualized	not_key	needs_historical_validation

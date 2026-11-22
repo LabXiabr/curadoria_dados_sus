@@ -24,5 +24,5 @@ python3 -m py_compile   "$ROOT/ops/publish-parquet-artifacts.py"   "$ROOT/ops/cn
 "$ROOT/ops/publish-parquet-artifacts.py" --dataset cnes_silver_reference
 
 echo "CNES_REFERENCE_PUBLICATION_OK competencia=$COMP"
-echo "bronze=https://dados.labx.ia.br/files/bronze/cnes/"
-echo "silver=https://dados.labx.ia.br/files/silver/cnes/"
+echo "bronze=https://dados.labx.ia.br/files/suslake/bronze/cnes_reference/"
+echo "silver=https://dados.labx.ia.br/files/suslake/silver/cnes_reference/"

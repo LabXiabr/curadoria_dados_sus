@@ -1,0 +1,11 @@
+system	parent_subsystem	child_subsystem	valid_from	valid_to	parent_filter	parent_field	child_field	context_fields	row_cardinality	relationship_kind	temporal_rule	role	completeness	status
+SIA	PA	AB	200801		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	ACF	201408		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	AD	200801		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	AM	200801		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	AMP	201603		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	AN	200801	201410	pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	AQ	200801		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	AR	200801		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIA	PA	ATD	201408		pa_docorig IN ('P','S')	pa_autoriz	ap_autoriz	sg_uf,nu_competencia	N:M	shared_authorization	same_competence	apac_detail	expected_complete_for_authorized_apac	candidate
+SIH	RD	SP	200801			n_aih,dt_saida	sp_naih,sp_dtsaida	sg_uf,nu_competencia	1:N	segment_detail	same_segment	professional_acts	complete_multi_sample	validated_ac201204_mg202604
