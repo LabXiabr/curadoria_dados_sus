@@ -31,7 +31,7 @@ fi
 
 echo
 echo "=== SIA STATUS ==="
-python3 "$ROOT/ops/status-migration.py" --lake-root "$LAKE_ROOT" --system SIA --details || true
+python3 "$ROOT/ops/status-migration.py" --lake-root "$LAKE_ROOT" --system SIA || true
 
 echo
 echo "=== LATEST DIMENSION QC ==="
