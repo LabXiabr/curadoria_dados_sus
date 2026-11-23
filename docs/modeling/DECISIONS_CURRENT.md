@@ -24,6 +24,11 @@ Não criar uma camada física `gold/` dentro de `suslabx` neste momento. Gold é
 - A ETL própria baseada em DBC/Wine permanece referência de reconstrução da fonte.
 - O PostgreSQL `bdsus` existente é usado como fonte física rápida para a migração histórica.
 - PostgreSQL não é autoridade semântica sobre tipos/larguras DATASUS.
+- Princípio operacional de migração: **persistir primeiro, conferir depois** quando a origem PostgreSQL já é uma fonte operacional de alta qualidade.
+  - a persistência PostgreSQL -> Parquet não deve ser bloqueada por CQ semântico posterior;
+  - durante a cópia continuam obrigatórios os gates físicos mínimos: leitura íntegra, ausência de arquivo parcial e contagem `count(*)` PostgreSQL = Parquet;
+  - CQs externos (TabNet), relacionais (território/CNES/SIGTAP) e semânticos governam promoção/uso analítico, não a fotografia física;
+  - uma falha semântica deve preservar o Parquet produzido e registrar estado/relatório para correção posterior, em vez de exigir reextração desnecessária.
 - Antes de aposentar dados PostgreSQL: Raw/versionamento + Bronze Parquet + CQ de linhas + CQ externo/TabNet quando aplicável.
 - `qt_registro_sql` de metadados não é contagem autoritativa; usar `count(*)` real quando necessário.
 
@@ -286,11 +291,10 @@ Alteração de modelagem só é promovida quando os CQs pertinentes passam.
 
 Para a migração SIH atual:
 
-1. overnight termina;
-2. CQ PostgreSQL real ↔ staging Parquet;
-3. dry-run staging -> Bronze;
-4. merge do PR;
-5. promoção efetiva;
-6. Silver;
-7. CQ semântico/relacional;
-8. identidade/Gold/publicação conforme gate específico.
+1. persistir PostgreSQL -> staging Parquet com contagem física PostgreSQL = Parquet;
+2. promover a Bronze preservando grão, proveniência e contrato de largura fixa;
+3. executar CQ externo/TabNet e CQ relacional contra território/CNES/SIGTAP;
+4. construir Silver apenas quando os relacionamentos e âncoras temporais pertinentes estiverem suficientemente validados;
+5. identidade/Gold/publicação conforme gate específico.
+
+Para as próximas migrações, CQ semântico posterior **não implica apagar ou refazer** uma fotografia Parquet fisicamente íntegra.
