@@ -69,7 +69,7 @@ else
 fi
 
 # Referencias ativas no repositorio. Historico/superseded e o proprio script de
-# migracao de nome sao permitidos.
+# migracao de nome e compatibilidade de leitura de manifests pre-renomeacao sao permitidos.
 mapfile -t refs < <(
   grep -REIn --exclude-dir=.git --exclude-dir=logs --exclude='*.gz' \
     '(/dados/abertos/suslake|/files/suslake|labx-suslake-private\.conf|silver/suslake\.duckdb)' \
@@ -78,6 +78,9 @@ mapfile -t refs < <(
     | grep -v '/ops/rename-suslake-to-suslabx.sh:' \
     | grep -v '/ops/migrate-apache-suslabx.sh:' \
     | grep -v '/ops/apache/install-labx-private-guard.sh:' \
+    | grep -v '/ops/qc-sih-source-staging-live.py:' \
+    | grep -v '/ops/sih-promote-staging-bronze.py:' \
+    | grep -v '/ops/status-migration.py:' \
     | grep -v '/ops/qc-stage1-suslabx.sh:' \
     || true
 )
