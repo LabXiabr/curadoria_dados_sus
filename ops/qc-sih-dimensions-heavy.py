@@ -80,6 +80,35 @@ def main() -> int:
     report=state/f"qc_dimensions_{ts}.csv"
     heavy=state/f"heavy_fact_dimensions_{ts}.csv"
 
+    cardinality_sql=f"""
+SELECT 'territorio_municipio' relation,
+       count(*)-count(DISTINCT trim(cast(co_municipio as varchar))) duplicates
+FROM read_parquet({qs(territorio)})
+WHERE tp_territorio='MUNICIPIO'
+UNION ALL
+SELECT 'cnes_current',
+       count(*)-count(DISTINCT trim(cast(co_cnes_key as varchar)))
+FROM read_parquet({qs(cnes)})
+WHERE co_cnes_key IS NOT NULL AND trim(cast(co_cnes_key as varchar))<>''
+UNION ALL
+SELECT 'sigtap_procedimento_competencia',
+       count(*)-count(DISTINCT trim(cast(co_procedimento as varchar)) || '|' || competencia)
+FROM (
+  SELECT co_procedimento, unnest(_observed_competencias) AS competencia
+  FROM read_parquet({qs(sigtap)})
+);
+"""
+    cardinality=list(csv.DictReader(duck(cardinality_sql).splitlines()))
+    dup_bad=[r for r in cardinality if int(r["duplicates"])!=0]
+    for r in cardinality:
+        print(f"CARDINALITY {r['relation']} duplicates={r['duplicates']}")
+    if dup_bad:
+        die(
+            "dimensao viola many-to-one: "
+            + ",".join(f"{r['relation']}={r['duplicates']}" for r in dup_bad),
+            23,
+        )
+
     # As dimensoes sao tratadas como many-to-one. A consulta mede cobertura
     # sem permitir multiplicacao silenciosa de linhas.
     coverage_sql=f"""
