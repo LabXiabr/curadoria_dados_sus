@@ -22,6 +22,14 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as f:
         return list(csv.DictReader(f, delimiter="\t"))
 
+def relocate_legacy_path(value: str | Path, lake: Path) -> Path:
+    """Resolve caminhos absolutos gravados antes de SUSLake -> SUSLabX."""
+    s = str(value).strip()
+    old = "/dados/abertos/suslake"
+    if s == old or s.startswith(old + "/"):
+        s = str(lake) + s[len(old):]
+    return Path(s).resolve()
+
 def recorded_counts(r: dict[str, str]) -> tuple[str, str]:
     """Compatibilidade com runs novos (rows_*) e overnight legado (source/parquet_rows)."""
     pg = r.get("rows_pg") or r.get("source_rows") or ""
@@ -75,12 +83,12 @@ def main() -> int:
     lake = Path(args.lake_root).resolve()
     state = lake / "state" / "overnight"
     if args.run:
-        run = Path(args.run).resolve()
+        run = relocate_legacy_path(args.run, lake)
     else:
         latest = state / "LATEST"
         if not latest.is_file():
             die(f"LATEST ausente: {latest}", 20)
-        run = Path(latest.read_text(encoding="utf-8").strip()).resolve()
+        run = relocate_legacy_path(latest.read_text(encoding="utf-8").strip(), lake)
 
     results = run / "sih_parquet_results.tsv"
     mainlog = run / "main.log"
@@ -129,7 +137,7 @@ def main() -> int:
     bad_live = 0
 
     for r in sample:
-        path = Path(r["path"])
+        path = relocate_legacy_path(r["path"], lake)
         if not path.is_file():
             die(f"Parquet ausente: {path}", 27)
         pg_now = psql_count(r["service"], r["schema"], r["table"])
