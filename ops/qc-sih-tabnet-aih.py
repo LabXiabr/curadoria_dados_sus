@@ -257,15 +257,18 @@ def parquet(glob):
     g=glob.replace("'","''")
     sql=f"""SELECT lpad(cast(competencia as varchar),6,'0') competencia,
 upper(cast(uf as varchar)) uf,
+count(*)::BIGINT parquet_rd_segmentos,
 count(DISTINCT trim(cast(n_aih as varchar)))::BIGINT parquet_aih_distintas
 FROM read_parquet('{g}', hive_partitioning=true, union_by_name=true)
-WHERE n_aih IS NOT NULL AND trim(cast(n_aih as varchar)) <> ''
 GROUP BY 1,2 ORDER BY 1,2;"""
     p=subprocess.run(["duckdb","-csv","-c",sql],text=True,capture_output=True)
     if p.returncode:
         raise RuntimeError(p.stderr.strip())
     return {
-        (r["competencia"],r["uf"]):int(r["parquet_aih_distintas"])
+        (r["competencia"],r["uf"]):(
+            int(r["parquet_rd_segmentos"]),
+            int(r["parquet_aih_distintas"]),
+        )
         for r in csv.DictReader(p.stdout.splitlines())
     }
 
@@ -313,28 +316,34 @@ def main():
     pq=parquet(args.parquet_glob)
     if not pq:
         raise RuntimeError("Bronze Parquet sem pares competencia x UF")
-    comps=[c for c,_ in pq]
+    comps=[comp for comp,_ in pq]
     min_comp=min(comps)
     max_comp=max(comps)
     tn_scope={k:v for k,v in tn.items() if min_comp <= k[0] <= max_comp}
 
-    # O qiuf.def contem toda a serie historica SIH. Esta execucao valida apenas
-    # SIH/200801_, portanto pares TabNet fora do intervalo efetivamente
-    # materializado no Bronze nao sao classificados como sem_parquet.
+    # Em RD, N_AIH identifica a AIH logica, mas a linha fisica e um segmento.
+    # O TabNet "AIH aprovadas" e confrontado primariamente com quantidade de
+    # registros RD/segmentos; distinct N_AIH fica como diagnostico longitudinal.
     keys=sorted(pq)
     rows=[]
     bad=0
-    for c,u in keys:
-        a=tn_scope.get((c,u))
-        b=pq.get((c,u))
-        dif=None if a is None or b is None else b-a
-        st=(
-            "ok" if dif==0
-            else "sem_tabnet" if a is None
-            else "divergente"
-        )
-        bad += st!="ok"
-        rows.append([c,u,a,b,dif,st])
+    distinct_matches=0
+    for comp,uf in keys:
+        tab=tn_scope.get((comp,uf))
+        seg,dist=pq[(comp,uf)]
+        dif_seg=None if tab is None else seg-tab
+        dif_dist=None if tab is None else dist-tab
+        if tab is None:
+            st="sem_tabnet"
+        elif dif_seg==0:
+            st="ok_segmentos"
+        elif dif_dist==0:
+            st="match_distinct_diagnostico"
+            distinct_matches += 1
+        else:
+            st="divergente"
+        bad += st not in {"ok_segmentos"}
+        rows.append([comp,uf,tab,seg,dist,dif_seg,dif_dist,st])
 
     out=Path(args.output)
     out.parent.mkdir(parents=True,exist_ok=True)
@@ -342,13 +351,15 @@ def main():
         w=csv.writer(f)
         w.writerow([
             "competencia","uf","tabnet_aih_aprovadas",
-            "parquet_aih_distintas","diferenca","status",
+            "parquet_rd_segmentos","parquet_aih_distintas",
+            "diferenca_segmentos","diferenca_distinct","status",
         ])
         w.writerows(rows)
 
     print(
         f"SIH_TABNET_QC periodos={periods} intervalo={min_comp}-{max_comp} "
-        f"pares={len(rows)} divergentes={bad} output={out}"
+        f"pares={len(rows)} divergentes_segmentos={bad} "
+        f"matches_distinct_diagnostico={distinct_matches} output={out}"
     )
     return 0 if bad==0 else 10
 
