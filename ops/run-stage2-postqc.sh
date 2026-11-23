@@ -48,10 +48,17 @@ python3 "$ROOT/ops/qc-sih-bronze-modern.py" --lake-root "$LAKE_ROOT"   | tee "$R
 
 PHASE=TABNET_AIH
 write_status RUNNING "$PHASE"
-set +e
-python3 "$ROOT/ops/qc-sih-tabnet-aih.py"   --parquet-glob "$LAKE_ROOT/bronze/sih/200801_/rd/**/*.parquet"   --output "$RUN/qc_tabnet_aih_aprovadas.csv"   --save-tabnet-html "$RUN/tabnet_qiuf.html"   | tee "$RUN/qc_tabnet.txt"
-TABNET_RC=${PIPESTATUS[0]}
-set -e
+# O CQ TabNet e diagnostico pos-persistencia. Colocar a pipeline dentro de IF
+# impede que trap ERR encerre o orquestrador quando o comparador retorna 10.
+if python3 "$ROOT/ops/qc-sih-tabnet-aih.py" \
+  --parquet-glob "$LAKE_ROOT/bronze/sih/200801_/rd/**/*.parquet" \
+  --output "$RUN/qc_tabnet_aih_aprovadas.csv" \
+  --save-tabnet-html "$RUN/tabnet_qiuf.html" \
+  | tee "$RUN/qc_tabnet.txt"; then
+  TABNET_RC=0
+else
+  TABNET_RC=${PIPESTATUS[0]}
+fi
 if (( TABNET_RC == 0 )); then
   TABNET_STATUS="validated"
 else
