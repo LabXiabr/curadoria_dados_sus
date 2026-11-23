@@ -88,6 +88,14 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
     except Exception:
         return []
 
+def relocate_legacy_path(value: str | Path, lake: Path) -> Path:
+    """Resolve caminhos absolutos gravados antes de SUSLake -> SUSLabX."""
+    s = str(value).strip()
+    old = "/dados/abertos/suslake"
+    if s == old or s.startswith(old + "/"):
+        s = str(lake) + s[len(old):]
+    return Path(s)
+
 def parquet_tracked_from_state(lake: Path) -> set[str]:
     tracked: set[str] = set()
     state = lake / "state"
@@ -112,7 +120,7 @@ def overnight_sih(lake: Path) -> dict:
     latest = state / "LATEST"
     if not latest.is_file():
         return {"available": False}
-    run = Path(latest.read_text(encoding="utf-8").strip())
+    run = relocate_legacy_path(latest.read_text(encoding="utf-8").strip(), lake)
     if not run.is_dir():
         return {"available": False, "run": str(run)}
     manifest = read_tsv(run / "sih_manifest.tsv")
