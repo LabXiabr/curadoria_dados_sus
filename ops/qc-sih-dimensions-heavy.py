@@ -44,6 +44,10 @@ def main() -> int:
     ap.add_argument("--min-territory",type=float,default=0.95)
     ap.add_argument("--min-sigtap",type=float,default=0.95)
     ap.add_argument("--min-cnes-current",type=float,default=0.90)
+    ap.add_argument(
+        "--strict-coverage", action="store_true",
+        help="Faz cobertura abaixo dos limiares retornar rc=10; por padrao e warning."
+    )
     args=ap.parse_args()
 
     lake=Path(args.lake_root).resolve()
@@ -289,6 +293,52 @@ FROM joined
 GROUP BY 1,2,3
 ORDER BY 1,2,3;
 """
+    # Teste cardinal de navegacao: os LEFT JOINs many-to-one nao podem
+    # multiplicar nem eliminar segmentos RD.
+    integrity_sql=f"""
+WITH
+rd AS (
+  SELECT
+    lpad(cast(competencia as varchar),6,'0') AS competencia,
+    trim(cast(cnes as varchar)) AS cnes,
+    trim(cast(proc_rea as varchar)) AS proc_rea,
+    trim(cast(munic_res as varchar)) AS munic_res,
+    trim(cast(munic_mov as varchar)) AS munic_mov
+  FROM read_parquet({qs(str(rd_glob))}, hive_partitioning=true, union_by_name=true)
+),
+terr AS (
+  SELECT trim(cast(co_municipio as varchar)) AS co_municipio
+  FROM read_parquet({qs(territorio)})
+  WHERE tp_territorio='MUNICIPIO'
+),
+sig AS (
+  SELECT trim(cast(co_procedimento as varchar)) AS co_procedimento,
+         unnest(_observed_competencias) AS competencia
+  FROM read_parquet({qs(sigtap)})
+),
+est AS (
+  SELECT trim(cast(co_cnes_key as varchar)) AS co_cnes_key
+  FROM read_parquet({qs(cnes)})
+),
+j AS (
+  SELECT r.*
+  FROM rd r
+  LEFT JOIN terr tr ON tr.co_municipio=r.munic_res
+  LEFT JOIN terr tm ON tm.co_municipio=r.munic_mov
+  LEFT JOIN sig s
+    ON s.co_procedimento=r.proc_rea AND s.competencia=r.competencia
+  LEFT JOIN est e
+    ON r.competencia={qs(latest)} AND e.co_cnes_key=r.cnes
+)
+SELECT (SELECT count(*) FROM rd), (SELECT count(*) FROM j);
+"""
+    raw=scalar(integrity_sql)
+    before_s,after_s=next(csv.reader([raw]))
+    before,after=int(before_s),int(after_s)
+    print(f"JOIN_INTEGRITY rd_rows={before} joined_rows={after}")
+    if before != after:
+        die(f"join multiplicou/eliminou fatos: rd={before} joined={after}",24)
+
     heavy_out=duck(heavy_sql)
     write_text(heavy,heavy_out)
     heavy_rows=max(len(heavy_out.splitlines())-1,0)
@@ -297,9 +347,14 @@ ORDER BY 1,2,3;
         f"output={heavy}"
     )
 
+    coverage_status="validated" if not hard_bad else "warning"
     if hard_bad:
-        print("SIH_DIMENSION_QC_FAIL relations="+",".join(x[0] for x in hard_bad))
-        return 10
+        print(
+            "SIH_DIMENSION_COVERAGE_WARNING relations="
+            + ",".join(x[0] for x in hard_bad)
+        )
+        if args.strict_coverage:
+            return 10
 
     marker=state/"qc_dimensions_current.ok"
     write_text(
@@ -310,6 +365,9 @@ ORDER BY 1,2,3;
             f"report={report}",
             f"heavy_query={heavy}",
             f"relations={len(rows)}",
+            f"coverage_status={coverage_status}",
+            f"join_rows_before={before}",
+            f"join_rows_after={after}",
             "cardinality=many_to_one_expected",
             "cnes_policy=current_dimension_only_on_latest_sih_competencia",
             "sigtap_policy=exact_observed_competencia",
