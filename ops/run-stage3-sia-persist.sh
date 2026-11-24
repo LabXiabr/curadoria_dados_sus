@@ -4,6 +4,7 @@ set -Eeuo pipefail
 LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JOBS="${JOBS:-4}"
+PYTHON_BIN="${PYTHON_BIN:-$HOME/.venvs/suslabx/bin/python}"
 SERIES="200801_"
 STATE="$LAKE_ROOT/state/stage3_persist"
 LOGS="$LAKE_ROOT/logs/stage3_persist"
@@ -54,7 +55,7 @@ trap onerr ERR INT TERM
 
 PHASE=PRECHECK
 write_status RUNNING "$PHASE"
-for cmd in python3 psql duckdb flock; do
+for cmd in psql flock; do
   command -v "$cmd" >/dev/null || { echo "ERRO: comando ausente $cmd" >&2; exit 82; }
 done
 for svc in bureta pipeta; do
@@ -64,12 +65,12 @@ df -h "$LAKE_ROOT"
 
 PHASE=PLAN
 write_status RUNNING "$PHASE"
-python3 "$ROOT/ops/sia-psql-snapshot-overnight.py"   --lake-root "$LAKE_ROOT" --series "$SERIES" --jobs "$JOBS"   --plan-only --run-id "${RUN_ID}_plan"   | tee "$RUN/plan.txt"
+"$PYTHON_BIN" "$ROOT/ops/sia-psql-snapshot-overnight_arrow.py"   --lake-root "$LAKE_ROOT" --series "$SERIES" --jobs "$JOBS"   --plan-only --run-id "${RUN_ID}_plan"   | tee "$RUN/plan.txt"
 
 PHASE=PERSIST_SQL_PRESENT
 write_status RUNNING "$PHASE"
 SIA_RUN_ID="sia_${RUN_ID}"
-python3 "$ROOT/ops/sia-psql-snapshot-overnight.py"   --lake-root "$LAKE_ROOT" --series "$SERIES" --jobs "$JOBS"   --run-id "$SIA_RUN_ID"   | tee "$RUN/persist.txt"
+"$PYTHON_BIN" "$ROOT/ops/sia-psql-snapshot-overnight_arrow.py"   --lake-root "$LAKE_ROOT" --series "$SERIES" --jobs "$JOBS"   --run-id "$SIA_RUN_ID"   | tee "$RUN/persist.txt"
 
 LATEST_SIA="$LAKE_ROOT/state/overnight/LATEST_SIA"
 [[ -f "$LATEST_SIA" ]] || { echo "ERRO: LATEST_SIA ausente" >&2; exit 83; }
@@ -81,7 +82,7 @@ grep -qx 'OVERNIGHT_DONE' "$MAINLOG" || { echo "ERRO: SIA sem OVERNIGHT_DONE" >&
 
 PHASE=SUMMARY
 write_status RUNNING "$PHASE"
-python3 "$ROOT/ops/status-migration.py"   --lake-root "$LAKE_ROOT" --system SIA --details   | tee "$RUN/status_after.txt"
+"$PYTHON_BIN" "$ROOT/ops/status-migration.py"   --lake-root "$LAKE_ROOT" --system SIA --details   | tee "$RUN/status_after.txt"
 
 files="$(awk 'END{print NR-1}' "$RESULTS")"
 ok="$(awk -F '\t' 'NR>1 && ($9=="OK" || $9=="SKIP_OK"){n++} END{print n+0}' "$RESULTS")"
