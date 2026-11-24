@@ -1,0 +1,14 @@
+subsystem	schema	role	status	notes
+DC	cnes_200508_dc	historical_reference	preserve	DBC historico
+EE	cnes_200508_ee	historical_reference	preserve	DBC historico
+EF	cnes_200508_ef	historical_reference	preserve	DBC historico
+EP	cnes_200508_ep	historical_reference	preserve	DBC historico
+EQ	cnes_200508_eq	historical_reference	preserve	DBC historico
+GM	cnes_200508_gm	historical_reference	preserve	DBC historico
+HB	cnes_200508_hb	historical_reference	preserve	DBC historico
+IN	cnes_200508_in	historical_reference	preserve	DBC historico
+LT	cnes_200508_lt	historical_reference	preserve	DBC historico
+PF	cnes_200508_pf	historical_reference	preserve	DBC historico
+RC	cnes_200508_rc	historical_reference	preserve	DBC historico
+SR	cnes_200508_sr	historical_reference	preserve	DBC historico
+ST	cnes_200508_st	historical_reference	preserve	DBC historico

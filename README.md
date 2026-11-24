@@ -16,6 +16,20 @@ Escopo técnico:
 A Curadoria de Dados é tratada aqui como função técnica dentro da Governança de Dados.
 O projeto não substitui a governança estratégica/institucional.
 
+## Fonte de verdade do projeto
+
+A retomada do SUSLabX deve começar por:
+
+- `docs/modeling/PROJECT_INDEX.md`;
+- `docs/modeling/DECISIONS_CURRENT.md`;
+- `docs/modeling/OPEN_ISSUES.md`;
+- `docs/modeling/DECISIONS_SUPERSEDED.md`;
+- `docs/modeling/CHAT_TRACEABILITY.tsv`.
+
+O Git é a fonte de verdade para arquitetura, contratos, semântica, ETLs e CQs.
+Chats anteriores são histórico/rastreabilidade. Estado de execução permanece em
+`suslabx/state`, e os dados permanecem nas camadas persistentes do lake.
+
 ## Camadas
 
 - **Raw**: artefato oficial original e imutável.
@@ -48,13 +62,14 @@ python3 ops/build-duckdb-public-catalog.py --database ~/duckdb/bureta.duckdb
 
 ## Raw oficial para download
 
-Os artefatos Raw selecionados são publicados sem duplicação de disco por
-hardlinks em:
+Os artefatos Raw autorizados são publicados dentro da própria árvore SUSLabX:
 
 ```text
-/dados/abertos/raw/
-https://dados.labx.ia.br/files/raw/
+/dados/abertos/suslabx/raw/public/
+https://dados.labx.ia.br/files/suslabx/raw/public/
 ```
+
+A árvore é default-deny no Apache; apenas caminhos explicitamente autorizados recebem acesso público.
 
 A allowlist fica em `catalog/raw_publication.tsv` e o inventário concreto
 gerado fica em `/dados/abertos/raw/catalog.tsv`.
@@ -75,7 +90,7 @@ O snapshot mensal CNES só é publicado quando o respectivo
 `state/cnes/qc_global_AAAAMM.ok` estiver validado.
 
 Isso não cria nova camada: os arquivos continuam sendo Raw. O caminho público
-é apenas uma projeção dos mesmos inodes preservados em `suslake/raw/`.
+é apenas uma projeção dos mesmos inodes preservados em `suslabx/raw/`.
 
 Política completa: `docs/adr/0007-publicacao-raw.md`.
 
@@ -160,7 +175,7 @@ A fonte Raw preferencial do CNES e o snapshot oficial
 ./ops/cnes-base-complete.sh --competencia latest
 ```
 
-Antes da primeira carga, aplicar `ops/apache/labx-suslake-private.conf`.
+Antes da primeira carga, aplicar `ops/apache/labx-suslabx-private.conf`.
 
 ### CEP Brasil
 
@@ -208,21 +223,21 @@ física. O contrato completo está em
 `docs/adr/0006-silver-territorio-cnes.md`.
 
 O pipeline CNES também cria o catálogo privado
-`silver/suslake.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
+`silver/suslabx.duckdb`, com views `cnes.vw_*_drill` que enriquecem os
 fatos virtualmente sem duplicar a geografia nas tabelas factuais.
 
 
 ### CNES Parquet público e histórico
 
-A Bronze completa continua canônica e protegida em `suslake/bronze/cnes/`.
-Um subconjunto próprio para referência é projetado por hardlink em
-`/dados/abertos/bronze/cnes/`, disponível em
-`https://dados.labx.ia.br/files/bronze/cnes/`.
+A Bronze completa continua canônica e protegida em `suslabx/bronze/cnes/`.
+Um subconjunto próprio para referência é projetado por hardlink dentro da própria Bronze em
+`/dados/abertos/suslabx/bronze/cnes_reference/`, disponível em
+`https://dados.labx.ia.br/files/suslabx/bronze/cnes_reference/`.
 
 A Silver homologada é promovida por competência e o subconjunto de dimensões
 e relações de referência é projetado em
-`/dados/abertos/silver/cnes/`, disponível em
-`https://dados.labx.ia.br/files/silver/cnes/`.
+`/dados/abertos/suslabx/silver/cnes_reference/`, disponível em
+`https://dados.labx.ia.br/files/suslabx/silver/cnes_reference/`.
 
 Profissionais, equipes e vínculos integram a superfície pública CNES, em
 coerência com a consulta pública do próprio SCNES. Assim, a publicação de
@@ -309,6 +324,26 @@ Use `--dry-run` para listar e `--refresh` para verificar nova versão de
 fontes rolling.
 
 
+## Identidade longitudinal e Gold OMOP
+
+A identidade longitudinal é separada dos fatos clínicos. Campos como
+`CNSPCN`, `AP_CNSPCN`, `NU_CNSPCN` e `CNS_PAC` são identificadores
+pseudonimizados da fonte. O ERLEN_PID materializa uma ponte privada
+registro→pessoa com proveniência, confiança e erro estimado.
+
+O Gold OMOP é derivado da Silver e usa `id_pessoa_erlen` para gerar um
+`person_id` surrogate interno. Dados agregados não são forçados para OMOP
+person-level.
+
+Contratos:
+- `systems/identity/`;
+- `systems/omop/`;
+- `systems/sia/derived_products.tsv` para CEAF (PA+AM) e oncologia
+  (PA+AQ/AR);
+- `catalog/source_schema_contract.tsv` para cobertura dos schemas físicos;
+- `catalog/source_field_map.tsv` e `catalog/field_dictionary.tsv` para
+  atributos, nomes canônicos, rótulos e descrições.
+
 ## Migração PostgreSQL -> Parquet
 
 Para SIA, SIH, CIH, CIHA, SIM, SINASC e SINAN, a migração inicial usa as
@@ -335,7 +370,7 @@ Execução:
 ./ops/dissemin-system-complete.sh --profile BURETA --system SIA --execute
 ```
 
-A Bronze é gravada na lake canônica em `suslake/bronze/<sistema>/`, com
+A Bronze é gravada na lake canônica em `suslabx/bronze/<sistema>/`, com
 proveniência PostgreSQL. Cada tabela só é homologada quando
 `COUNT(*) PostgreSQL == COUNT(*) Parquet`. A retirada do PostgreSQL nunca é
 automática e depende também de QC externo contra TabNet.
@@ -354,18 +389,23 @@ todos os candidatos da distância mínima concordam no mesmo CNS.
 A Silver preserva CNS original, CNS recuperado, subsistema/competência de
 origem e distância mensal da recuperação.
 
-## Superfície pública Bronze/Silver
+## Superfície pública Raw/Bronze/Silver
 
-`/dados/abertos/suslake/` é a lake canônica e deve permanecer privada.
-`/dados/abertos/bronze/` e `/dados/abertos/silver/` são projeções públicas
-por hardlink dos datasets explicitamente autorizados.
+A única árvore persistente do lake é:
 
-Antes de fechar o acesso à lake canônica, projete os datasets já marcados
-como publicados:
-
-```bash
-python3 ops/project-public-datasets.py
-sudo ops/apache/install-labx-private-guard.sh
+```text
+/dados/abertos/suslabx/
+├── raw/
+├── bronze/
+└── silver/
 ```
 
-Depois disso `/files/suslake/` deve responder 403 e não aparecer no índice.
+Não existem raízes públicas paralelas permanentes `/dados/abertos/raw`,
+`/dados/abertos/bronze` ou `/dados/abertos/silver`.
+
+A política Apache é default-deny e libera somente datasets autorizados.
+Quando apenas um subconjunto pode ser exposto, a projeção por hardlink fica
+dentro da própria camada, como `bronze/cnes_reference` e
+`silver/cnes_reference`.
+
+Política: `docs/adr/0008-publicacao-suslabx.md`.

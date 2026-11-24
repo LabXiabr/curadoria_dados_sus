@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 ENV_FILE="${CURADORIA_PSQL_ENV:-$HOME/etl_ftp_sus_parquet/.env}"
 AUDIT_GLOB="${AUDIT_GLOB:-$HOME/etl_ftp_sus_parquet/state/overnight_*/count_candidates.tsv}"
 

@@ -36,7 +36,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--lake-root",
-        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"),
+        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"),
     )
     ap.add_argument("--database", type=Path)
     args = ap.parse_args()
@@ -45,7 +45,7 @@ def main() -> int:
         die("duckdb CLI ausente", 3)
 
     lake = Path(args.lake_root)
-    db = (args.database or lake / "silver" / "suslake.duckdb").resolve()
+    db = (args.database or lake / "silver" / "suslabx.duckdb").resolve()
     state = lake / "state" / "cnes"
     state.mkdir(parents=True, exist_ok=True)
 

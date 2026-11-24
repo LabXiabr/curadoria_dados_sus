@@ -116,7 +116,7 @@ def main() -> int:
     ap.add_argument("--policy",type=Path,default=Path("systems/dissemin/source_policy.tsv"))
     ap.add_argument("--host",default=DEFAULT_HOST)
     ap.add_argument("--base",default=DEFAULT_BASE)
-    ap.add_argument("--state-root",type=Path,default=Path("/dados/abertos/suslake/state/dissemin"))
+    ap.add_argument("--state-root",type=Path,default=Path("/dados/abertos/suslabx/state/dissemin"))
     ap.add_argument("--timeout",type=int,default=60)
     ap.add_argument("--all-files",action="store_true",help="inclui arquivos nao DBC")
     args=ap.parse_args()

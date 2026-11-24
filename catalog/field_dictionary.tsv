@@ -1,0 +1,30 @@
+canonical_field	label	description	semantic_role	data_class	reference	identity_sensitivity	omop_domain	status
+id_pessoa_fonte_pseudo	Identificador pseudonimizado da pessoa na fonte	Identificador pseudonimizado fornecido pela fonte, inclusive CNSPCN/AP_CNSPCN/CNS_PAC e variacoes; nao representa CNS nominal ou reversivel	person_source_identifier	text		private_linkable	PERSON_LINKAGE	validated_definition
+id_pessoa_erlen	Identificador pseudonimizado ERLEN	Chave longitudinal pseudonimizada produzida pelo ERLEN_PID para ligar registros da mesma pessoa entre fontes	person_canonical_identifier	text	ERLEN_PID	private_linkable	PERSON	defined
+tp_id_pessoa_erlen	Tipo de atribuicao ERLEN	Codigo de proveniencia/metodo de atribuicao do identificador ERLEN	identity_provenance	text	ERLEN_PID	private	PERSON	defined
+ds_regra_id_pessoa	Regra de identidade	Descricao da regra/modelo que produziu a ligacao longitudinal	identity_provenance	text	ERLEN_PID	private	PERSON	defined
+id_execucao_id_pessoa	Execucao de identidade	Identificador da execucao do ERLEN_PID usada na atribuicao	identity_provenance	text	ERLEN_PID	private	PERSON	defined
+vl_confianca_id_pessoa	Confianca da identidade	Confianca estimada para a ligacao probabilistica/deterministica	identity_quality	numeric	ERLEN_PID	private	PERSON	defined
+vl_erro_estimado_id_pessoa	Erro estimado da identidade	Estimativa de erro associada a ligacao longitudinal	identity_quality	numeric	ERLEN_PID	private	PERSON	defined
+competencia_producao	Competencia de producao	Competencia AAAAMM do evento/registro de producao	time_anchor	text		public		defined
+competencia_processamento	Competencia de processamento	Competencia AAAAMM em que o registro foi processado	time_anchor	text		public	VISIT_OCCURRENCE	defined
+co_cnes	CNES do estabelecimento	Codigo CNES de 7 digitos do estabelecimento no papel declarado pela fonte	estabelecimento	text	CNES.dim_estabelecimento	public	CARE_SITE	defined
+co_procedimento	Procedimento	Codigo de procedimento preservado como texto, em 2008+ normalmente SIGTAP com 10 digitos	procedure	text	SIGTAP.tb_procedimento	public	PROCEDURE_OCCURRENCE|DRUG_EXPOSURE	defined
+nu_autorizacao	Autorizacao	Numero de autorizacao preservado como texto e com zeros significativos	authorization	text		linkable		defined
+co_municipio_residencia	Municipio de residencia	Codigo territorial da residencia da pessoa conforme papel da fonte	territory_role	text	REFERENCE.dim_territorio	quasi_identifier	LOCATION	defined
+co_municipio_estabelecimento	Municipio do estabelecimento	Codigo territorial do local de realizacao/estabelecimento	territory_role	text	REFERENCE.dim_territorio	public	LOCATION	defined
+co_diagnostico_principal	Diagnostico principal	Codigo diagnostico principal preservado na classificacao vigente da fonte	diagnosis	text	CID	health_sensitive	CONDITION_OCCURRENCE	defined
+co_diagnostico_secundario	Diagnostico secundario	Codigo diagnostico secundario quando disponivel	diagnosis	text	CID	health_sensitive	CONDITION_OCCURRENCE	defined
+sg_sexo	Sexo	Sexo conforme dominio e era da fonte	person_attribute	text		quasi_identifier	PERSON	defined
+nu_idade	Idade	Idade conforme regra da fonte; nao substituir silenciosamente por idade recalculada	person_attribute	integer		quasi_identifier	PERSON|OBSERVATION	defined
+co_raca_cor	Raca/cor	Codigo de raca/cor conforme dominio da fonte	person_attribute	text		quasi_identifier	PERSON|OBSERVATION	defined
+co_etnia	Etnia	Codigo de etnia quando disponivel	person_attribute	text		quasi_identifier	OBSERVATION	defined
+dt_nascimento	Data de nascimento	Data de nascimento quando disponivel na fonte	person_attribute	date		quasi_identifier	PERSON	defined
+dt_internacao	Data de internacao	Data inicial do contato hospitalar	visit_date	date		public	VISIT_OCCURRENCE	defined
+dt_saida	Data de saida	Data final do segmento/contato hospitalar conforme fonte	visit_date	date		public	VISIT_OCCURRENCE	defined
+dt_obito	Data do obito	Data do evento de obito	death_date	date		quasi_identifier	DEATH	defined
+qt_aprovada	Quantidade aprovada	Quantidade aprovada do procedimento na fonte de producao	measure	numeric		public	PROCEDURE_OCCURRENCE|DRUG_EXPOSURE	defined
+vl_procedimento	Valor do procedimento	Valor financeiro associado ao registro de producao	measure	numeric		public	COST	defined
+origem_documento	Instrumento de origem	Instrumento efetivamente utilizado na producao SIA, derivado de PA_DOCORIG	instrument	text	SIGTAP.instrumento	public		validated
+id_registro_fonte	Identificador técnico do registro fonte	Chave técnica determinística da linha no contexto de uma revisão física; não é identidade da pessoa	technical_record_identifier	text		internal_lineage		defined
+nu_linha_fonte	Ordinal do registro na fonte	Posição do registro na revisão física quando preservável; usado para lineage e não como chave de negócio	technical_record_ordinal	bigint		internal_lineage		defined

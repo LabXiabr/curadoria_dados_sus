@@ -9,7 +9,7 @@ def duck(sql:str,capture:bool=False)->str:
     if p.returncode: raise RuntimeError(p.stderr or p.stdout)
     return p.stdout if capture else ""
 def main()->int:
-    ap=argparse.ArgumentParser(); ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake")); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx")); args=ap.parse_args()
     if not shutil.which("duckdb"): die("duckdb CLI ausente",3)
     lake=Path(args.lake_root); ctx=lake/"silver"/"reference"/"municipio_contexto"/"current.parquet"; ra=lake/"silver"/"reference"/"ra_df"/"current.parquet"
     out=lake/"silver"/"reference"/"dim_territorio"/"current.parquet"; state=lake/"state"/"reference"

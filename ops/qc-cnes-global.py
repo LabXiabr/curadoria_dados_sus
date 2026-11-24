@@ -19,7 +19,7 @@ def duck(sql:str)->str:
 def main()->int:
     ap=argparse.ArgumentParser(description="QC global CNES Silver current")
     ap.add_argument("--competencia",required=True)
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
     lake=Path(args.lake_root); state=lake/"state"/"cnes"; silver=lake/"silver"/"cnes"
     required=[

@@ -1,0 +1,44 @@
+system	source_schema_pattern	source_field	canonical_field	transform	identity_role	status	notes
+SIA	^sia_200801__pa$	nu_cnspcn	id_pessoa_fonte_pseudo	preserve_text_normalized	pseudonymized_source_id	validated	Enriquecimento local quando nao nativo deve carregar proveniencia
+SIA	^sia_200801__pa$	cnspcn	id_pessoa_fonte_pseudo	preserve_text_normalized	pseudonymized_source_id	validated	Variacao observada no legado
+SIA	^sia_200801__(ab|abo|acf|ad|am|amp|an|aq|ar|atd)$	ap_cnspcn	id_pessoa_fonte_pseudo	preserve_text_normalized	pseudonymized_source_id	validated	CNS pseudonimizado da fonte APAC
+SIA	^sia_200801__pa$	pa_coduni	co_cnes	lpad_numeric_7		validated	CNES
+SIA	^sia_200801__pa$	pa_proc_id	co_procedimento	lpad_numeric_10		validated	SIGTAP 2008+
+SIA	^sia_200801__pa$	pa_autoriz	nu_autorizacao	preserve_text		validated	0000000000000 pode ser valor estrutural conforme instrumento
+SIA	^sia_200801__pa$	pa_munpcn	co_municipio_residencia	lpad_numeric_6		defined	Papel residencia conforme fonte
+SIA	^sia_200801__pa$	pa_ufmun	co_municipio_estabelecimento	lpad_numeric_6		defined	Papel estabelecimento
+SIA	^sia_200801__pa$	pa_cidpri	co_diagnostico_principal	preserve_text		defined	
+SIA	^sia_200801__pa$	pa_cidsec	co_diagnostico_secundario	preserve_text		defined	
+SIA	^sia_200801__pa$	pa_sexo	sg_sexo	domain_by_era	identity_feature	defined	
+SIA	^sia_200801__pa$	pa_idade	nu_idade	integer_by_source_rule	identity_feature	defined	
+SIA	^sia_200801__pa$	pa_docorig	origem_documento	preserve_text		validated	C/I/P/S/A/B
+SIA	^sia_200801__(ab|abo|acf|ad|am|amp|an|aq|ar|atd)$	ap_autoriz	nu_autorizacao	preserve_text		validated	Ligacao APAC mesma UF/competencia
+SIA	^sia_200801__(ab|abo|acf|ad|am|amp|an|aq|ar|atd)$	ap_coduni	co_cnes	lpad_numeric_7		defined	
+SIA	^sia_200801__(ab|abo|acf|ad|am|amp|an|aq|ar|atd)$	ap_pripal	co_procedimento	lpad_numeric_10		defined	Procedimento principal APAC
+SIH	^sih_200801__rd$	n_aih	nu_aih	lpad_numeric_13		validated	AIH logica; nao e chave de linha
+SIH	^sih_200801__rd$	cnes	co_cnes	lpad_numeric_7		validated	
+SIH	^sih_200801__rd$	proc_rea	co_procedimento	lpad_numeric_10		validated	
+SIH	^sih_200801__rd$	munic_res	co_municipio_residencia	lpad_numeric_6	identity_feature	defined	
+SIH	^sih_200801__rd$	munic_mov	co_municipio_estabelecimento	lpad_numeric_6		defined	
+SIH	^sih_200801__rd$	dt_inter	dt_internacao	date_by_layout	identity_feature	defined	
+SIH	^sih_200801__rd$	dt_saida	dt_saida	date_by_layout		validated	Com nu_aih identifica segmento
+SIH	^sih_200801__sp$	sp_naih	nu_aih	lpad_numeric_13		validated	Ligacao ao segmento RD com sp_dtsaida
+SIH	^sih_200801__sp$	sp_cnes	co_cnes	lpad_numeric_7		validated	
+SIH	^sih_200801__sp$	sp_procrea	co_procedimento	lpad_numeric_10		validated	
+CIH	^cih_200801_201012_cr$	cnes	co_cnes	lpad_numeric_7		defined	
+CIH	^cih_200801_201012_cr$	proc_rea	co_procedimento	lpad_numeric_10		defined	
+CIH	^cih_200801_201012_cr$	munic_res	co_municipio_residencia	lpad_numeric_6	identity_feature	defined	
+CIHA	^ciha_201101__ciha$	CNES	co_cnes	lpad_numeric_7		defined	
+CIHA	^ciha_201101__ciha$	PROC_REA	co_procedimento	lpad_numeric_10		defined	
+CIHA	^ciha_201101__ciha$	MUNIC_RES	co_municipio_residencia	lpad_numeric_6	identity_feature	defined	
+SIM	^(sim_dores_do|simdores__do)$	DTOBITO	dt_obito	date_by_layout	identity_feature	defined	Uma linha DO representa um obito/pessoa no grão da fonte
+SIM	^(sim_dores_do|simdores__do)$	CODMUNRES	co_municipio_residencia	lpad_numeric_6	identity_feature	defined	
+SINAN	^(sinan_(finais|prelim)_[a-z0-9]+|sinanfinais__[a-z0-9]+)$	ID_MUNICIP	co_municipio_notificacao	lpad_numeric_6	identity_feature	defined	Campo comum quando presente
+SINAN	^(sinan_(finais|prelim)_[a-z0-9]+|sinanfinais__[a-z0-9]+)$	ID_MN_RESI	co_municipio_residencia	lpad_numeric_6	identity_feature	defined	Campo ausente em algumas familias
+SINAN	^(sinan_(finais|prelim)_[a-z0-9]+|sinanfinais__[a-z0-9]+)$	DT_NOTIFIC	dt_notificacao	date_by_layout	identity_feature	defined	
+SINAN	^(sinan_(finais|prelim)_[a-z0-9]+|sinanfinais__[a-z0-9]+)$	CS_SEXO	sg_sexo	domain_by_era	identity_feature	defined	
+SINAN	^(sinan_(finais|prelim)_[a-z0-9]+|sinanfinais__[a-z0-9]+)$	NU_IDADE_N	nu_idade	age_encoding_by_era	identity_feature	defined	
+SINASC	^sinasc_.*$	DTNASC	dt_nascimento	date_by_layout	identity_feature	defined	Nascimento do recem-nascido
+PAINEL_ONCOLOGIA	^painel_oncologia(_{1,2}po(_br)?)$	cns_pac	id_pessoa_fonte_pseudo	preserve_text_normalized	pseudonymized_source_id	defined	Identificador pseudonimizado; nao tratar como CNS nominal
+PAINEL_ONCOLOGIA	^painel_oncologia(_{1,2}po(_br)?)$	cnes_diag	co_cnes_diagnostico	lpad_numeric_7		defined	
+PAINEL_ONCOLOGIA	^painel_oncologia(_{1,2}po(_br)?)$	cnes_trat	co_cnes_tratamento	lpad_numeric_7		defined	

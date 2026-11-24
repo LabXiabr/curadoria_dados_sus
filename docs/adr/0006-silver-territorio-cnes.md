@@ -135,7 +135,7 @@ o custo de disco nos fatos maiores.
 O pipeline cria um catálogo privado em:
 
 ```text
-silver/suslake.duckdb
+silver/suslabx.duckdb
 ```
 
 As principais views são:

@@ -6,7 +6,7 @@ PARSER="$ROOT/etl/parquet_duckdb/sigtap/fwf_to_csv.awk"
 LAYOUT_NORMALIZER="$ROOT/etl/parquet_duckdb/sigtap/normalize_layout.py"
 
 FTP_BASE="${SIGTAP_FTP_BASE:-ftp://ftp2.datasus.gov.br/pub/sistemas/tup/downloads}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 
 RAW="$LAKE_ROOT/raw/sigtap/zip"
 BRONZE="$LAKE_ROOT/bronze/sigtap"

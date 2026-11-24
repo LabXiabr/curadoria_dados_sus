@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 FTP_BASE="${POPSVS_FTP_BASE:-ftp://ftp.datasus.gov.br/dissemin/publicos/IBGE/POPSVS}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 FROM=2000
 TO=2025
 

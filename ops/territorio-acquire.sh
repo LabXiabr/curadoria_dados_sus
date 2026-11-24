@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 FTP_ROOT="${TERRITORIO_FTP_ROOT:-ftp://ftp.datasus.gov.br/territorio/tabelas}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 YEAR="$(date +%Y)"
 ZIP_NAME=""
 

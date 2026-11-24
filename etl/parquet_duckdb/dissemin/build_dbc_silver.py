@@ -87,7 +87,7 @@ def main() -> int:
     ap.add_argument("--uf", action="append")
     ap.add_argument("--subsystem", action="append")
     ap.add_argument("--force", action="store_true")
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"))
     args = ap.parse_args()
 
     system = args.system

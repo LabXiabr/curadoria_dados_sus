@@ -143,7 +143,7 @@ def recode(zf: zipfile.ZipFile, info: zipfile.ZipInfo, out: Path) -> tuple[str, 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Base territorial DATASUS -> Bronze/Silver Parquet")
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"))
     ap.add_argument("--zip", type=Path)
     ap.add_argument("--snapshot")
     ap.add_argument("--keep-work", action="store_true")

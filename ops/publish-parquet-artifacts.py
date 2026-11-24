@@ -124,11 +124,11 @@ def http_qc(rows: list[dict[str, str]], host: str, base: str):
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        description="Projeta Parquet publicavel do lake em /dados/abertos/{bronze,silver} por hardlink"
+        description="Projeta subconjuntos publicaveis por hardlink dentro da arvore /dados/abertos/suslabx"
     )
     ap.add_argument(
         "--lake-root",
-        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"),
+        default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"),
     )
     ap.add_argument(
         "--public-root",
@@ -140,7 +140,7 @@ def main() -> int:
         "--catalog",
         default=os.environ.get(
             "PARQUET_PUBLIC_CATALOG",
-            "/dados/abertos/parquet_catalog.tsv",
+            "/dados/suslabx_runtime/state/publication/parquet_catalog.tsv",
         ),
     )
     ap.add_argument(

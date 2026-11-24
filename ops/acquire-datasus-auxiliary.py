@@ -94,7 +94,7 @@ def marker_path(marker: Path) -> Path | None:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Adquire e versiona fontes auxiliares DATASUS")
     ap.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"))
     ap.add_argument("--system", action="append", help="Filtra sistema; repetivel")
     ap.add_argument("--source", action="append", help="Filtra source_id; repetivel")
     ap.add_argument("--refresh", action="store_true", help="Baixa novamente fontes rolling")

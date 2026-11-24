@@ -1,0 +1,20 @@
+name: model-contract-qc
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [modelagem-sih-sia-20261116]
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile Python
+        run: python -m compileall -q ops
+      - name: Validate model contracts
+        run: python ops/qc-model-contracts.py

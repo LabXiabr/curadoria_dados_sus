@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 LOGROOT="$LAKE_ROOT/logs/dissemin"
 STATER="$LAKE_ROOT/state/dissemin"
 

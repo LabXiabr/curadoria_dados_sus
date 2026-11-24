@@ -24,7 +24,7 @@ arquivo mestre, contudo, e plano e identifica o arquivo principalmente pelo base
 Raiz canonica:
 
 ```text
-/dados/abertos/suslake/raw/dissemin/publicos/
+/dados/abertos/suslabx/raw/dissemin/publicos/
 ```
 
 Uma URL como:

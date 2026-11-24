@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 TERR="$LAKE_ROOT/state/reference/territorio_current_complete.ok"
 HTTP_BASE="${CNES_HTTP_TEST_BASE:-http://127.0.0.1:8766/files}"
 HTTP_HOST="${CNES_HTTP_TEST_HOST:-dados.labx.ia.br}"
@@ -16,20 +16,21 @@ echo "TERRITORIO_OK"
 cat "$TERR"
 
 if [[ -d /etc/apache2 ]]; then
-  conf=/etc/apache2/conf-available/labx-suslake-private.conf
+  conf=/etc/apache2/conf-available/labx-suslabx-private.conf
   vhost=/etc/apache2/conf-available/labx-public-parquet.conf
   if [[ ! -f "$conf" ]]; then
     echo "ERRO: fragmento privado ausente: $conf" >&2
     exit 21
   fi
-  if [[ ! -f "$vhost" ]] || ! grep -Fq       "IncludeOptional /etc/apache2/conf-available/labx-suslake-private.conf" "$vhost"; then
+  if [[ ! -f "$vhost" ]] || ! grep -Fq       "IncludeOptional /etc/apache2/conf-available/labx-suslabx-private.conf" "$vhost"; then
     echo "ERRO: vhost :8766 nao inclui o guard privado" >&2
     echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
     exit 21
   fi
-  if ! grep -Fq '<Directory "/dados/abertos/suslake">' "$conf" \
-     || ! grep -Fq '<LocationMatch "^/files/suslake(?:/|$)">' "$conf"; then
-    echo "ERRO: guard geral da suslake ausente/desatualizado em $conf" >&2
+  if ! grep -Fq '<Directory "/dados/abertos/suslabx">' "$conf" \
+     || ! grep -Fq '<LocationMatch "^/files/suslabx/(state|staging|work|logs)(/|$)">' "$conf" \
+     || ! grep -Fq '<LocationMatch "^/files/suslabx/silver/cnes(/|$)">' "$conf"; then
+    echo "ERRO: guard geral do SUSLabX ausente/desatualizado em $conf" >&2
     echo "Execute: sudo $ROOT/ops/apache/install-labx-private-guard.sh" >&2
     exit 21
   fi
@@ -40,7 +41,7 @@ if [[ -d /etc/apache2 ]]; then
     exit 22
   }
 
-  private_url="$HTTP_BASE/suslake/state/reference/territorio_current_complete.ok"
+  private_url="$HTTP_BASE/suslabx/state/reference/territorio_current_complete.ok"
   private_code="$(
     curl -sS -o /dev/null -w '%{http_code}'       -H "Host: $HTTP_HOST"       "$private_url"
   )"
@@ -51,7 +52,7 @@ if [[ -d /etc/apache2 ]]; then
   fi
   echo "APACHE_PRIVATE_HTTP_OK $private_url -> HTTP $private_code"
 
-  silver_private_url="$HTTP_BASE/suslake/silver/cnes/_privacy_probe"
+  silver_private_url="$HTTP_BASE/suslabx/silver/cnes/_privacy_probe"
   silver_private_code="$(
     curl -sS -o /dev/null -w '%{http_code}' \
       -H "Host: $HTTP_HOST" \
@@ -63,9 +64,9 @@ if [[ -d /etc/apache2 ]]; then
   fi
   echo "APACHE_CNES_SILVER_PRIVATE_OK $silver_private_url -> HTTP $silver_private_code"
 
-  public_file="/dados/abertos/silver/sigtap/tb_procedimento/temporal.parquet"
+  public_file="$LAKE_ROOT/silver/sigtap/tb_procedimento/temporal.parquet"
   if [[ -f "$public_file" ]]; then
-    public_url="$HTTP_BASE/silver/sigtap/tb_procedimento/temporal.parquet"
+    public_url="$HTTP_BASE/suslabx/silver/sigtap/tb_procedimento/temporal.parquet"
     public_code="$(
       curl -sS -o /dev/null -w '%{http_code}'         -H "Host: $HTTP_HOST"         "$public_url"
     )"

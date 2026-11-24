@@ -26,7 +26,7 @@ def parse_manifest(path: Path):
     return out
 
 def latest(pattern: str) -> Path:
-    matches = sorted(Path("/dados/abertos/suslake/state/dissemin").glob(pattern))
+    matches = sorted(Path("/dados/abertos/suslabx/state/dissemin").glob(pattern))
     if not matches:
         raise SystemExit(f"manifest ausente: {pattern}")
     return matches[-1]
@@ -48,12 +48,12 @@ def human(n: int) -> str:
 
 def main():
     ap = argparse.ArgumentParser(description="Audita duplicacao entre as duas arvores DBC legadas")
-    ap.add_argument("--home-root", type=Path, default=Path("/dados/abertos/suslake/raw/dissemin/dbc/_legacy/from_home"))
-    ap.add_argument("--sdb-root", type=Path, default=Path("/dados/abertos/suslake/raw/dissemin/dbc/_legacy/from_sdb"))
+    ap.add_argument("--home-root", type=Path, default=Path("/dados/abertos/suslabx/raw/dissemin/dbc/_legacy/from_home"))
+    ap.add_argument("--sdb-root", type=Path, default=Path("/dados/abertos/suslabx/raw/dissemin/dbc/_legacy/from_sdb"))
     ap.add_argument("--home-manifest", type=Path)
     ap.add_argument("--sdb-manifest", type=Path)
-    ap.add_argument("--out", type=Path, default=Path("/dados/abertos/suslake/state/dissemin/dbc_legacy_overlap.tsv"))
-    ap.add_argument("--conflicts-out", type=Path, default=Path("/dados/abertos/suslake/state/dissemin/dbc_legacy_conflicts.tsv"))
+    ap.add_argument("--out", type=Path, default=Path("/dados/abertos/suslabx/state/dissemin/dbc_legacy_overlap.tsv"))
+    ap.add_argument("--conflicts-out", type=Path, default=Path("/dados/abertos/suslabx/state/dissemin/dbc_legacy_conflicts.tsv"))
     args = ap.parse_args()
 
     hm = args.home_manifest or latest("dbc_from_home_sha256_*.txt")

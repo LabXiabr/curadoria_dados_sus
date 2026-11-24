@@ -1,0 +1,25 @@
+date	topic	decision_or_finding	status	git_authority
+2026-04-28	SIA_CEAF	ETL PA+AM/PAAM idempotente e enriquecimento por autorização/procedimento	retained_as_legacy_compat	systems/sia/derived_products.tsv
+2026-07-04	ERLEN_PID	Record linkage/entity resolution; precisão maior que recall; PID opaco; pipeline incremental	current	systems/identity/README.md
+2026-07-04	ERLEN_PID	Treino histórico, teste cego e aplicação incremental; blocagem por PCDT/UF/tempo	current_with_evolution	systems/identity/README.md
+2026-08-16	SIA	PA multipartes devem ser UNION ALL por UF/competência antes de semântica	current	catalog/quality_rules.tsv
+2026-08-16	SIGTAP	SIGTAP temporal por competência e uma linha de procedimento/competência	current	systems/sia/README.md
+2026-08-17	SIA_PA	PA_DOCORIG separa BPA-C/BPA-I/APAC/RAAS; não contar instrumentos como fatos somáveis	current	systems/sia/README.md
+2026-08-17	CEAF_ONCO	AM/AQ/AR enriquecem PA; consumo/adesão/desfecho não podem ser inferidos apenas da autorização	current	systems/sia/derived_products.md
+2026-08-30	SIA_SIH	PA fato canônico; BI/PS auditoria/papéis próprios; SP_NAIH liga a N_AIH	current	catalog/relationships.tsv
+2026-09-07	PSQL_PARQUET	PSQL->Parquet é migração acelerada; ETL definitiva preserva DBC/republicações/versionamento	current	docs/modeling/DECISIONS_CURRENT.md
+2026-09-19	ERLEN_CNS	Nunca sobrescrever identificador original; preencher nulos incrementalmente; CQ por proveniência	current	systems/identity/README.md
+2026-09-21	ERLEN_PARALLEL	Paralelizar entre blocos exclusivos; 4 workers/1 CPU; checkpoints; considerar 6 após CQ	open_evolution	docs/modeling/OPEN_ISSUES.md
+2026-11-14	LAYERS	Bronze source-conformed; Silver semântica/temporal; Gold OMOP/PCDT derivado	current	docs/adr/0001-storage-layers.md
+2026-11-14	IDENTITY	ERLEN como bridge versionável registro->pessoa; OMOP só com identidade suficiente	current	systems/identity/README.md
+2026-11-15	TERRITORIO	Corrigir território corrente primeiro; memória histórica por último preservando âncoras temporais	current	docs/modeling/OPEN_ISSUES.md
+2026-11-15	CNES	CO_UNIDADE opaca; CO_CNES público; território separado; hard gates relacionais	current	systems/cnes/silver_model.tsv
+2026-11-15	RAW	Raw versionado preserva volatilidade/republicação; CQ TabNet antes de aposentadoria PostgreSQL	current	docs/modeling/DECISIONS_CURRENT.md
+2026-11-15	PUBLICATION	Projeções públicas paralelas /raw /bronze /silver foram consideradas	 superseded	docs/modeling/DECISIONS_SUPERSEDED.md
+2026-11-16	FILESYSTEM	Árvore única suslabx/raw, bronze, silver; runtime deve sair da árvore persistente	current	docs/adr/0001-storage-layers.md
+2026-11-16	CNES_PUBLICATION	cnes_reference público dentro da própria camada; CNES canônico privado	current	docs/adr/0008-publicacao-suslabx.md
+2026-11-16	SIA_PA	CNSPCN e variações são identificadores pseudonimizados; janela +/-3 apenas para recuperação	current	systems/identity/README.md
+2026-11-16	SCHEMA_COVERAGE	193/193 schemas assistenciais/disseminados observados cobertos por contrato	current	docs/modeling/source-coverage-20261116.md
+2026-11-16	OMOP	AIH lógica é candidata a visita; VISIT_OCCURRENCE somente após ERLEN/person_id	current	systems/omop/README.md
+2026-11-16	SIH_MIGRATION	PSQL real -> staging Parquet -> Bronze reconstruída -> Silver -> ERLEN -> OMOP	current	docs/modeling/DECISIONS_CURRENT.md
+2026-11-16	GIT_GOVERNANCE	Git passa a ser fonte de verdade de arquitetura/contratos/scripts; chats apenas rastreabilidade	current	docs/modeling/PROJECT_INDEX.md

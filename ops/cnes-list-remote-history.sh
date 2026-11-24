@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 FTP_BASE="${CNES_FTP_BASE:-ftp://ftp.datasus.gov.br/cnes}"
 MIN_COMP="${CNES_BASE_MIN_COMP:-201706}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 STATE="$LAKE_ROOT/state/cnes"
 RAW="$LAKE_ROOT/raw/cnes/base_dados"
 mkdir -p "$STATE"

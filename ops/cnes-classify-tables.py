@@ -21,7 +21,7 @@ def marker(path:Path)->dict[str,str]:
 
 def main()->int:
     ap=argparse.ArgumentParser(description="Classifica tabelas CNES: Silver necessaria, dominio ou Bronze suficiente")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
     lake=Path(args.lake_root); state=lake/"state"/"cnes"
     pm=state/"profile_latest.ok"

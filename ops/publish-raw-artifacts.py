@@ -142,12 +142,12 @@ def http_qc(public_root: Path, rows: list[dict[str,str]], host: str, base: str):
         print(f"HTTP_QC_OK dataset={ds} head={code} range={rcode} url={url}")
 
 def main() -> int:
-    ap=argparse.ArgumentParser(description="Projeta Raw canonico publicavel em /dados/abertos/raw por hardlink")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
-    ap.add_argument("--public-root",default=os.environ.get("RAW_PUBLIC_ROOT","/dados/abertos/raw"))
+    ap=argparse.ArgumentParser(description="Projeta Raw canonico autorizado em suslabx/raw/public por hardlink")
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
+    ap.add_argument("--public-root",default=os.environ.get("RAW_PUBLIC_ROOT","/dados/abertos/suslabx/raw/public"))
     ap.add_argument("--policy",type=Path,default=DEFAULT_POLICY)
     ap.add_argument("--dataset",action="append",help="publicar apenas dataset_id indicado; repetivel")
-    ap.add_argument("--http-base",default=os.environ.get("RAW_HTTP_TEST_BASE","http://127.0.0.1:8766/files/raw"))
+    ap.add_argument("--http-base",default=os.environ.get("RAW_HTTP_TEST_BASE","http://127.0.0.1:8766/files/suslabx/raw/public"))
     ap.add_argument("--http-host",default=os.environ.get("RAW_HTTP_TEST_HOST","dados.labx.ia.br"))
     ap.add_argument("--skip-http-qc",action="store_true")
     args=ap.parse_args()
@@ -194,7 +194,7 @@ def main() -> int:
             hardlink(src,dst)
             st=src.stat()
             digest=sha256(src)
-            public_url="https://dados.labx.ia.br/files/raw/"+"/".join(quote(x) for x in rel.parts)
+            public_url="https://dados.labx.ia.br/files/suslabx/raw/public/"+"/".join(quote(x) for x in rel.parts)
             rows.append({
                 "dataset_id":rule["dataset_id"],
                 "system":rule["system"],
@@ -245,7 +245,7 @@ def main() -> int:
     )
     for ds,n in sorted(by_ds.items()):
         print(f"dataset={ds} files={n}")
-    print("url=https://dados.labx.ia.br/files/raw/")
+    print("url=https://dados.labx.ia.br/files/suslabx/raw/public/")
     return 0
 
 if __name__=="__main__":

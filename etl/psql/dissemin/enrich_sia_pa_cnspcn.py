@@ -40,7 +40,7 @@ def scalar(sql: str) -> int:
 def main() -> int:
     ap=argparse.ArgumentParser(description="Completa SIA PA CNSPCN por autorizacao em APAC, mesma UF e janela +/-3 meses")
     ap.add_argument("--profile",default="BURETA")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     ap.add_argument("--manifest",type=Path)
     ap.add_argument("--from",dest="comp_from")
     ap.add_argument("--to",dest="comp_to")

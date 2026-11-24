@@ -94,7 +94,7 @@ def relation_diagnostic(root: Path, rel: str, dim: str, key_candidates: tuple[st
 
 def main() -> int:
     ap=argparse.ArgumentParser()
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
     if not shutil.which("duckdb"):
         die("duckdb CLI ausente",3)

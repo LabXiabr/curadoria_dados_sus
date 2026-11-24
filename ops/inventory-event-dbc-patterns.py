@@ -40,7 +40,7 @@ def shape(stem: str) -> str:
 
 def main():
     ap=argparse.ArgumentParser(description="Inventaria padrões físicos DBC de SIM/SINASC/SINAN/CIH/CIHA")
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
     lake=Path(args.lake_root)
     raw=lake/"raw"/"dissemin"/"publicos"

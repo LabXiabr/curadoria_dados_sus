@@ -7,7 +7,7 @@ Status: planejado; nenhuma exclusão automática.
 A representação relacional fiel do snapshot oficial CNES passa a ser:
 
 ```text
-suslake/bronze/cnes/<tabela>/competencia=AAAAMM/part-000.parquet
+suslabx/bronze/cnes/<tabela>/competencia=AAAAMM/part-000.parquet
 ```
 
 O PostgreSQL deixa de ser a camada Bronze canônica. Pode continuar temporariamente como cache/compatibilidade para aplicações legadas.

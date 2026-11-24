@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 COMP="${1:?Uso: $0 YYYYMM TABNET_TSV}"
 TAB="${2:?Uso: $0 YYYYMM TABNET_TSV}"
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 
 BRONZE="$LAKE_ROOT/bronze/sigtap"
 STATE="$LAKE_ROOT/state/sigtap"

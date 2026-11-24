@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LAYOUT="$ROOT/systems/sigtap/layouts/fwf.tsv"
 
-LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslake}"
+LAKE_ROOT="${LAKE_ROOT:-/dados/abertos/suslabx}"
 COMP="${1:-202502}"
 OLD_REPO="${OLD_REPO:-https://github.com/LabXiabr/bd_sigtap.git}"
 

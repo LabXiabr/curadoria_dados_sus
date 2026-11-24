@@ -22,7 +22,7 @@ def duck(sql: str, capture: bool=False) -> str:
 def main() -> int:
     ap=argparse.ArgumentParser(description="QC das chaves CO_UNIDADE e CO_CNES no CNES")
     ap.add_argument("--competencia",required=True)
-    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslake"))
+    ap.add_argument("--lake-root",default=os.environ.get("LAKE_ROOT","/dados/abertos/suslabx"))
     args=ap.parse_args()
 
     if not re.fullmatch(r"\d{6}",args.competencia):

@@ -1,6 +1,6 @@
-layer	object	source	grain	time_anchor	references	status
-fact	fact_sim_obito	DO	source_record	data_obito	CID|CNES|TERRITORIO|SIM_AUX	designed
-view	vw_sim_obito_fetal	DOF|fact_sim_obito	filtered_projection	data_obito	CID|TERRITORIO	designed
-view	vw_sim_obito_infantil	DOI|fact_sim_obito	filtered_projection	data_obito	CID|TERRITORIO	designed
-view	vw_sim_obito_materno	DOM|fact_sim_obito	filtered_projection	data_obito	CID|TERRITORIO	designed
-view	vw_sim_obito_causa_externa	DOE|DORE|fact_sim_obito	filtered_projection	data_obito	CID|TERRITORIO	designed
+layer	object	source	grain	time_anchor	references	identity	omop_target	status
+fact	fact_sim_obito	DO	death_record_person	dt_obito	CID|CNES|TERRITORIO|SIM_AUX	ERLEN_bridge	DEATH	designed
+view	vw_sim_obito_fetal	DOF|fact_sim_obito	filtered_projection	dt_obito	CID|TERRITORIO	inherit_or_resolve	DEATH	designed
+view	vw_sim_obito_infantil	DOI|fact_sim_obito	filtered_projection	dt_obito	CID|TERRITORIO	inherit_or_resolve	DEATH	designed
+view	vw_sim_obito_materno	DOM|fact_sim_obito	filtered_projection	dt_obito	CID|TERRITORIO	inherit_or_resolve	DEATH	designed
+view	vw_sim_obito_causa_externa	DOE|DORE|fact_sim_obito	filtered_projection	dt_obito	CID|TERRITORIO	inherit_or_resolve	DEATH	designed

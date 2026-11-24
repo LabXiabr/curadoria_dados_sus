@@ -8,9 +8,9 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-STATE=Path("/dados/abertos/suslake/state/dissemin")
-HOME=Path("/dados/abertos/suslake/raw/dissemin/dbc/_legacy/from_home")
-SDB=Path("/dados/abertos/suslake/raw/dissemin/dbc/_legacy/from_sdb")
+STATE=Path("/dados/abertos/suslabx/state/dissemin")
+HOME=Path("/dados/abertos/suslabx/raw/dissemin/dbc/_legacy/from_home")
+SDB=Path("/dados/abertos/suslabx/raw/dissemin/dbc/_legacy/from_sdb")
 
 def latest(pattern: str) -> Path:
     xs=sorted(STATE.glob(pattern))

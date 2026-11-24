@@ -101,7 +101,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="POPSVS DBF -> Bronze/Silver Parquet")
     ap.add_argument("--from", dest="year_from", type=int, default=2000)
     ap.add_argument("--to", dest="year_to", type=int, default=2025)
-    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslake"))
+    ap.add_argument("--lake-root", default=os.environ.get("LAKE_ROOT", "/dados/abertos/suslabx"))
     args = ap.parse_args()
 
     if args.year_from > args.year_to:
